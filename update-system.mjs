@@ -203,6 +203,7 @@ const SYSTEM_PATHS = [
   'batch-evaluate-gemini.mjs',
   'providers/',
   'seeds/',
+  'src/',
   'tests/',
   'user-agent.mjs',
   'doctor.mjs',

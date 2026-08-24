@@ -73,7 +73,7 @@ export function lockDirFor(pipelinePath) {
  * a lock that is very much alive. Absence we established, versus absence we
  * merely failed to observe.
  */
-function readLockOwner(lockDir) {
+export function readLockOwner(lockDir) {
   let raw;
   try {
     raw = readFileSync(join(lockDir, 'owner.json'), 'utf-8');
