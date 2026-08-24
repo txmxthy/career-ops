@@ -9,6 +9,7 @@ Design for the consolidation. Evidence is in [`../audit/`](../audit/); read that
 | [0003](0003-command-taxonomy.md) | `career-ops <noun> <verb>`, ten nouns. All 127 root scripts classified: 85 commands, 22 library modules, 20 tests. No gaps. |
 | [0004](0004-divergence-decisions.md) | 8 divergences decided in advance. **One blocked on a human decision** — URL path casing. |
 | [0005](0005-migration-strategy.md) | Strangler fig in a fixed order, finishing the migration upstream started and stalled. Plus the CI check that stops it stalling again. |
+| [0007](0007-root-directories.md) | **Root dirs 38 → 14 visible.** Tests, `lib`/`utils`/`scripts`, translated READMEs and governance files relocate. The 8 user-data dirs move to `workspace/` behind a legacy-path fallback, since moving them outright is a product change. |
 | [0006](0006-cli-contract.md) | `--json` everywhere; exit code 3 means "could not verify" and is distinct from 1, "ran and failed". |
 
 ## Blocked before execution
