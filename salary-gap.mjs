@@ -32,15 +32,17 @@ import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 
+import { hasFlag, flagValue } from './src/core/flags.js';
+import { readText } from './src/core/store.js';
+
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
 const OBS_PATH = join(CAREER_OPS, 'data/salary-observations.tsv');
 const REPORTS_DIR = join(CAREER_OPS, 'reports');
 
 const args = process.argv.slice(2);
-const summaryMode = args.includes('--summary');
-const selfTestMode = args.includes('--self-test');
-const statedForFlagIdx = args.indexOf('--stated-for');
-const statedForNum = statedForFlagIdx !== -1 ? args[statedForFlagIdx + 1] : null;
+const summaryMode = hasFlag(args, '--summary');
+const selfTestMode = hasFlag(args, '--self-test');
+const statedForNum = flagValue(args, '--stated-for');
 
 const TRUST = {
   actual: { contract: 3, 'offer-letter': 2, 'recruiter-verbal': 1, user: 0 },
@@ -574,18 +576,15 @@ function collectSources() {
     }
   }
 
-  if (existsSync(OBS_PATH)) {
-    observations.push(...parseObservations(readFileSync(OBS_PATH, 'utf-8')));
-  }
+  observations.push(...parseObservations(readText(OBS_PATH)));
 
   return { apps, observations };
 }
 
 function loadProfileDesired() {
   const profilePath = join(CAREER_OPS, 'config/profile.yml');
-  if (!existsSync(profilePath)) return null;
   try {
-    const profile = yaml.load(readFileSync(profilePath, 'utf-8'));
+    const profile = yaml.load(readText(profilePath));
     const comp = profile?.compensation;
     if (!comp?.target_range) return null;
     return { amount: String(comp.target_range), currency: comp.currency ? String(comp.currency) : null };
@@ -680,7 +679,7 @@ function printSummary(result) {
 function main() {
   if (selfTestMode) { selfTest(); return; }
 
-  if (statedForFlagIdx !== -1) {
+  if (hasFlag(args, '--stated-for')) {
     if (!statedForNum) {
       console.error('Usage: node salary-gap.mjs --stated-for <tracker#>');
       process.exit(1);

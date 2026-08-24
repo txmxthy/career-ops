@@ -10,9 +10,10 @@
  * 4. article-digest.md freshness (if exists)
  */
 
-import { readFileSync, existsSync, statSync } from 'fs';
+import { existsSync, statSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { readFile } from './src/core/store.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = __dirname;
@@ -22,21 +23,20 @@ const errors = [];
 
 // 1. Check cv.md exists
 const cvPath = join(projectRoot, 'cv.md');
-if (!existsSync(cvPath)) {
+const cv = readFile(cvPath);
+if (!cv.exists) {
   errors.push('cv.md not found in project root. Create it with your CV in markdown format.');
-} else {
-  const cvContent = readFileSync(cvPath, 'utf-8');
-  if (cvContent.trim().length < 100) {
-    warnings.push('cv.md seems too short. Make sure it contains your full CV.');
-  }
+} else if (cv.content.trim().length < 100) {
+  warnings.push('cv.md seems too short. Make sure it contains your full CV.');
 }
 
 // 2. Check profile.yml exists
 const profilePath = join(projectRoot, 'config', 'profile.yml');
-if (!existsSync(profilePath)) {
+const profile = readFile(profilePath);
+if (!profile.exists) {
   errors.push('config/profile.yml not found. Copy from config/profile.example.yml and fill in your details.');
 } else {
-  const profileContent = readFileSync(profilePath, 'utf-8');
+  const profileContent = profile.content;
   const requiredFields = ['full_name', 'email', 'location'];
   for (const field of requiredFields) {
     if (!profileContent.includes(field) || profileContent.includes(`"Jane Smith"`)) {
@@ -57,8 +57,8 @@ const filesToCheck = [
 const metricPattern = /\b\d{2,4}\+?\s*(hours?|%|evals?|layers?|tests?|fields?|bases?)\b/gi;
 
 for (const { path, name } of filesToCheck) {
-  if (!existsSync(path)) continue;
-  const content = readFileSync(path, 'utf-8');
+  const { exists, content } = readFile(path);
+  if (!exists) continue;
 
   // Skip lines that are clearly instructions (contain "NEVER hardcode" etc.)
   const lines = content.split('\n');

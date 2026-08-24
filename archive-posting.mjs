@@ -23,17 +23,17 @@
  */
 
 import { chromium } from 'playwright';
-import { writeFile, readFile } from 'fs/promises';
-import { existsSync, mkdirSync } from 'fs';
+import { writeFile } from 'fs/promises';
+import { mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { reportPrefix } from './jd-capture.mjs';
 import { rejectPrivateOrInvalid, validateUrlSecurity } from './liveness-browser.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
+import { readPipeline } from './src/core/store.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const JDS_DIR = join(ROOT, 'jds');
-const PIPELINE_PATH = join(ROOT, 'data', 'pipeline.md');
 
 const KNOWN_FLAGS = ['--company', '--role', '--report', '--pipeline', '--dry-run', '--help', '-h'];
 const VALUE_FLAGS = ['--company', '--role', '--report'];
@@ -255,12 +255,15 @@ function extractCompanyFromUrl(url) {
  *   - [ ] https://example.com/job/456 | Acme Corp | Senior PM
  */
 async function extractPipelineEntries() {
-  if (!existsSync(PIPELINE_PATH)) {
+  // resolvePipelinePath, not join(ROOT, 'data', 'pipeline.md'): this script
+  // ignored CAREER_OPS_PIPELINE and CAREER_OPS_TRACKER, so a redirected
+  // workspace archived against the default inbox instead of its own.
+  const { exists, content } = readPipeline(ROOT);
+  if (!exists) {
     console.error('data/pipeline.md not found. Add URLs there first.');
     process.exit(1);
   }
 
-  const content = await readFile(PIPELINE_PATH, 'utf-8');
   const entries = [];
 
   for (const line of content.split('\n')) {

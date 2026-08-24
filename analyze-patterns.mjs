@@ -13,16 +13,16 @@
  *      node analyze-patterns.mjs --self-test
  */
 
-import { readFileSync, existsSync, realpathSync, writeFileSync, symlinkSync, rmSync } from 'fs';
+import { existsSync, realpathSync, writeFileSync, symlinkSync, rmSync } from 'fs';
 import { join, dirname, relative, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { load as yamlLoad } from 'js-yaml';
 import { resolveColumns, parseTrackerRow, normalizeVia } from './tracker-parse.mjs';
+import { resolveTrackerPath, readFile } from './src/core/store.js';
+import { flagValue, hasFlag } from './src/core/flags.js';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
-const APPS_FILE = existsSync(join(CAREER_OPS, 'data/applications.md'))
-  ? join(CAREER_OPS, 'data/applications.md')
-  : join(CAREER_OPS, 'applications.md');
+const APPS_FILE = resolveTrackerPath(CAREER_OPS);
 const REPORTS_DIR = join(CAREER_OPS, 'reports');
 
 const MACHINE_SUMMARY_FIELDS = new Set([
@@ -59,22 +59,16 @@ const MACHINE_SUMMARY_FIELDS = new Set([
 
 // --- CLI args ---
 const args = process.argv.slice(2);
-const summaryMode = args.includes('--summary');
-const minThresholdIdx = args.indexOf('--min-threshold');
-const MIN_THRESHOLD = minThresholdIdx !== -1 && args[minThresholdIdx + 1] !== undefined
-  ? (Number.isNaN(parseInt(args[minThresholdIdx + 1])) ? 5 : parseInt(args[minThresholdIdx + 1]))
-  : 5;
+const summaryMode = hasFlag(args, '--summary');
+const thresholdArg = parseInt(flagValue(args, '--min-threshold'));
+const MIN_THRESHOLD = Number.isNaN(thresholdArg) ? 5 : thresholdArg;
 
 // Minimum per-vendor sample before a channel-yield recommendation fires. Kept
 // modest (small trackers) but high enough that one unlucky bucket isn't a claim.
-const minVendorNIdx = args.indexOf('--min-vendor-n');
-const MIN_VENDOR_N = (() => {
-  if (minVendorNIdx === -1 || args[minVendorNIdx + 1] === undefined) return 8;
-  const n = parseInt(args[minVendorNIdx + 1], 10);
-  // Reject 0/negative: a floor of 0 makes sufficientSample always true and
-  // silently defeats the "don't claim on noise" guard the whole feature rests on.
-  return Number.isNaN(n) || n < 1 ? 8 : n;
-})();
+const vendorNArg = parseInt(flagValue(args, '--min-vendor-n'), 10);
+// Reject 0/negative: a floor of 0 makes sufficientSample always true and
+// silently defeats the "don't claim on noise" guard the whole feature rests on.
+const MIN_VENDOR_N = Number.isNaN(vendorNArg) || vendorNArg < 1 ? 8 : vendorNArg;
 
 // --- Status normalization (mirrors verify-pipeline.mjs) ---
 const ALIASES = {
@@ -565,8 +559,8 @@ risk_summary:
 
 // --- Parse applications.md ---
 function parseTracker() {
-  if (!existsSync(APPS_FILE)) return [];
-  const content = readFileSync(APPS_FILE, 'utf-8');
+  const { exists, content } = readFile(APPS_FILE);
+  if (!exists) return [];
   const lines = content.split('\n');
   const colmap = resolveColumns(lines);
   const entries = [];
@@ -587,7 +581,7 @@ function parseTracker() {
 // missing reports root — both are non-fatal: a missing candidate falls through
 // to the downstream read (which returns null, preserving prior semantics), a
 // missing root means there are simply no reports. Only genuinely unexpected
-// errors rethrow, matching readTextIfExists. Identical to the guard in
+// errors rethrow, matching store.readFile. Identical to the guard in
 // upskill.mjs so both sites behave the same.
 function withinReports(candidate) {
   const repoRelative = relative(CAREER_OPS, candidate).split(sep).join('/');
@@ -610,22 +604,10 @@ function withinReports(candidate) {
   return realCandidate === realRoot || realCandidate.startsWith(rootWithSep);
 }
 
-// Read a file, returning null when it does not exist. A pre-flight existsSync
-// costs a full stat per report and races with the read (#2385); attempting the
-// read and handling the missing-file error costs the same as a bare read.
-function readTextIfExists(path) {
-  try {
-    return readFileSync(path, 'utf-8');
-  } catch (err) {
-    if (err.code === 'ENOENT' || err.code === 'ENOTDIR') return null;
-    throw err;
-  }
-}
-
 // --- Parse a single report file ---
 function parseReport(reportPath) {
-  const content = readTextIfExists(reportPath);
-  if (content === null) return null;
+  const { exists, content } = readFile(reportPath);
+  if (!exists) return null;
   const report = {
     company: null,
     role: null,

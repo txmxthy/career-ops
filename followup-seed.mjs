@@ -66,8 +66,9 @@ import { createHash, randomUUID } from 'crypto';
 // so the next Windows-contention finding lands in one place instead of three.
 import {
   isMkdirContention, isRmContention, rmLockArtifactSync, createLockWaitPolicy,
-  sameLockDirectory, lockRecoveryVerdict, RECOVER_STALE,
+  sameLockDirectory, lockRecoveryVerdict, RECOVER_STALE, readLockOwner,
 } from './pipeline-lock.mjs';
+import { parseRow } from './src/core/table.js';
 import { renameSyncWithRetry } from './tracker-utils.mjs';
 import { tmpdir } from 'os';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
@@ -238,15 +239,15 @@ function readTrackerRows(trackerPath) {
 
 // --- Idempotency: pin OR follow-up table row already exists for appNum ----
 
-// Mirrors followup-cadence.mjs's parseFollowups: a `|`-delimited row whose 3rd
-// cell (index 2 after split('|').map(trim) — index 0 is the empty cell before
-// the leading pipe, index 1 is the follow-up's own `num`) is the appNum.
+// Mirrors followup-cadence.mjs's parseFollowups: cell 1 of a follow-ups row is
+// the appNum (cell 0 is the follow-up's own `num`). The width floor keeps a
+// narrow fragment from being read as a row; it counts real cells, so a row
+// written without a trailing pipe is no longer one short of the bar.
 function hasFollowupTableRow(content, appNum) {
   for (const line of content.split('\n')) {
-    if (!line.startsWith('|')) continue;
-    const parts = line.split('|').map(s => s.trim());
-    if (parts.length < 8) continue;
-    const rowAppNum = parseInt(parts[2], 10);
+    const cells = parseRow(line);
+    if (!cells || cells.length < 6) continue;
+    const rowAppNum = parseInt(cells[1], 10);
     if (!isNaN(rowAppNum) && rowAppNum === appNum) return true;
   }
   return false;
@@ -286,14 +287,6 @@ function resolveLockDir(explicitLockDir, followupsPath) {
 
 function sleep(ms) {
   return new Promise(res => setTimeout(res, ms));
-}
-
-function readLockOwner(lockDir) {
-  try {
-    return JSON.parse(readFileSync(join(lockDir, 'owner.json'), 'utf-8'));
-  } catch {
-    return null;
-  }
 }
 
 // The recovery judgment comes from pipeline-lock rather than a fourth copy of
@@ -361,7 +354,7 @@ async function acquireFollowupsLock(lockDir, followupsPath, options = {}) {
           } catch {
             return; // already gone
           }
-          const owner = readLockOwner(lockDir);
+          const { owner } = readLockOwner(lockDir);
           if (owner?.token !== token) return; // reclaimed by someone else
           let after;
           try {

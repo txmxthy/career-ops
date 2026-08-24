@@ -54,7 +54,10 @@ import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
-import { flagValue, validateFlags } from './lib/cli-flags.mjs';
+// Parsing comes from the core module; validateFlags stays in lib/ because its
+// body prints and exits, which belongs in a command adapter (ADR 0002).
+import { flagValue, hasFlag } from './src/core/flags.js';
+import { validateFlags } from './lib/cli-flags.mjs';
 import { localToday } from './lib/local-today.mjs';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
@@ -82,8 +85,8 @@ const USAGE = `Usage:
 
 Exits 1 when any row is expired (past next_effective without re-verification).`;
 
-const summaryMode = args.includes('--summary');
-const selfTestMode = args.includes('--self-test');
+const summaryMode = hasFlag(args, '--summary');
+const selfTestMode = hasFlag(args, '--self-test');
 const maxAgeRaw = flagValue(args, '--max-age-months') ?? null;
 const todayFlag = flagValue(args, '--today') ?? null;
 

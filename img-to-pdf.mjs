@@ -29,6 +29,7 @@ import { resolve, dirname, extname } from 'path';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { parseFlags } from './src/core/flags.js';
 
 const MIME_TYPES = {
   '.png': 'image/png',
@@ -49,31 +50,40 @@ export function detectMimeType(imagePath) {
   return MIME_TYPES[ext] || null;
 }
 
+const SPEC = {
+  command: 'img-to-pdf',
+  usage: 'node img-to-pdf.mjs <image-path> <output-path> [--force]',
+  flags: {
+    '--force': { type: 'boolean', describe: 'Overwrite <output-path> if it already exists' },
+    '--self-test': { type: 'boolean', describe: 'Run the in-process suite and exit' },
+    '--help': { type: 'boolean', short: '-h', describe: 'Show this help' },
+  },
+  // Two operands, but arity is reported by the `error` field below rather than
+  // by the parser, so a missing one keeps reading as this script's own message.
+  positionals: { name: 'path', min: 0, max: Infinity },
+};
+
 /**
  * Parse CLI args into { inputPath, outputPath, force, help, error }.
  * Pure and side-effect free so it's testable without touching the filesystem.
  *
+ * The shared parser replaced a hand-rolled loop that treated ANY unrecognized
+ * token as a positional: `--force=1` and a typo'd `--fore` both became the
+ * image path, so the run failed with "Image not found: --force=1" and the
+ * overwrite guard was silently off. Both are now named as what they are.
+ *
  * @param {string[]} args
  */
 export function parseArgs(args) {
-  let inputPath = '';
-  let outputPath = '';
-  let force = false;
-  let help = false;
-
-  for (const arg of args) {
-    if (arg === '--force') {
-      force = true;
-    } else if (arg === '--help' || arg === '-h') {
-      help = true;
-    } else if (!inputPath) {
-      inputPath = arg;
-    } else if (!outputPath) {
-      outputPath = arg;
-    }
-  }
+  const parsed = parseFlags(args, SPEC);
+  const [inputPath = '', outputPath = ''] = parsed.positionals;
+  const force = parsed.values['--force'] === true;
+  const help = parsed.values['--help'] === true;
 
   if (help) return { inputPath, outputPath, force, help, error: null };
+  if (!parsed.ok) {
+    return { inputPath, outputPath, force, help, error: parsed.errors[0].message };
+  }
   if (!inputPath || !outputPath) {
     return { inputPath, outputPath, force, help, error: 'Missing <image-path> and/or <output-path>.' };
   }
@@ -200,6 +210,26 @@ function selfTest() {
 
   const a6 = parseArgs(['--help']);
   assert(a6.help === true && a6.error === null, '--help short-circuits missing-arg validation');
+
+  const a7 = parseArgs(['-h']);
+  assert(a7.help === true && a7.error === null, '-h is the same as --help');
+
+  const a8 = parseArgs(['in.png', 'out.pdf', 'extra']);
+  assert(a8.inputPath === 'in.png' && a8.outputPath === 'out.pdf' && a8.error === null, 'surplus operands are ignored');
+
+  // These four used to be read as the image path, so the run reported a missing
+  // file (or ran with the overwrite guard off) instead of naming the real fault.
+  const a9 = parseArgs(['--fore', 'in.png', 'out.pdf']);
+  assert(a9.error !== null && a9.error.includes('--fore'), 'a typo\'d flag is reported, not read as the image path');
+
+  const a10 = parseArgs(['--force=1', 'in.png', 'out.pdf']);
+  assert(a10.error !== null && a10.force === false, '--force=1 is rejected rather than silently disabling the overwrite guard');
+
+  const a11 = parseArgs(['--force', '--force', 'in.png', 'out.pdf']);
+  assert(a11.force === true && a11.error === null, 'a repeated boolean flag is idempotent');
+
+  const a12 = parseArgs(['--', '--force']);
+  assert(a12.inputPath === '--force' && a12.force === false, '-- ends the flags: a dash-led operand is usable');
 
   console.log('img-to-pdf self-test OK (mime detection + arg parsing)');
 }

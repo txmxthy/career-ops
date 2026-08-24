@@ -156,6 +156,24 @@ try {
     }
     rmSync(lockDir, { recursive: true, force: true });
   }
+  // 7. release() with a CORRUPT owner stamp must leave the directory alone.
+  //    Pins the shape swap at ADR 0004 D1: readLockOwner now answers
+  //    {inspected, owner} rather than a bare null, and release() reads the
+  //    owner half. An unreadable stamp proves nothing about who holds the
+  //    lock, so the cautious answer -- don't delete -- must survive the swap.
+  {
+    const p = join(root, 'data', 'corrupt-stamp.tsv');
+    mkdirSync(dirname(p), { recursive: true });
+    const lock = await acquirePortalHealthLock(p, { timeoutMs: 400, retryMs: 20 });
+    writeFileSync(join(lock.lockDir, 'owner.json'), '{not json');
+    lock.release();
+    if (existsSync(lock.lockDir)) {
+      pass('release() leaves a lock with an unreadable owner stamp intact');
+    } else {
+      fail('release() deleted a lock whose owner stamp it could not read');
+    }
+    rmSync(lock.lockDir, { recursive: true, force: true });
+  }
 } finally {
   rmSync(root, { recursive: true, force: true });
 }

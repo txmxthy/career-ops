@@ -20,6 +20,7 @@ import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import {
   openTrackerTransaction, rebuildRow, resolveTrackerPath,
 } from './tracker-utils.mjs';
+import { readFile } from './src/core/store.js';
 import { validateFlags } from './lib/cli-flags.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -96,10 +97,12 @@ function ensureCandidatesFile(filePath) {
 
 // Load applications tracker rows
 function loadTrackerApps() {
-  if (!fs.existsSync(APPS_FILE)) {
+  // Absent tracker → no rows; an unreadable one throws instead of quietly
+  // reporting an empty pipeline and matching nothing (ADR 0004 #7).
+  const { exists, content } = readFile(APPS_FILE);
+  if (!exists) {
     return [];
   }
-  const content = fs.readFileSync(APPS_FILE, 'utf-8');
   const lines = content.split('\n');
   const colmap = resolveColumns(lines);
   const apps = [];
@@ -114,10 +117,10 @@ function loadTrackerApps() {
 
 // Load followups history
 function loadFollowups() {
-  if (!fs.existsSync(FOLLOWUPS_FILE)) {
+  const { exists, content } = readFile(FOLLOWUPS_FILE);
+  if (!exists) {
     return [];
   }
-  const content = fs.readFileSync(FOLLOWUPS_FILE, 'utf-8');
   const lines = content.split('\n');
   const followups = [];
   for (const line of lines) {

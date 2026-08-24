@@ -24,7 +24,7 @@
 // Timing is caller-configurable (with these defaults) so tests can exercise
 // contention in milliseconds instead of waiting out a multi-second constant.
 
-import { mkdirSync, rmSync, statSync, writeFileSync, readFileSync } from 'fs';
+import { mkdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { randomUUID } from 'crypto';
 // Fourth copy of the directory-lock protocol in this repo. #2984 patched two of
@@ -33,7 +33,7 @@ import { randomUUID } from 'crypto';
 // classifiers live in pipeline-lock.mjs so the next finding lands once.
 import {
   isMkdirContention, rmLockArtifactSync, createLockWaitPolicy,
-  lockRecoveryVerdict, RECOVER_STALE,
+  lockRecoveryVerdict, RECOVER_STALE, readLockOwner, sameLockDirectory,
 } from './pipeline-lock.mjs';
 
 const DEFAULT_STALE_MS = 30_000;
@@ -69,22 +69,6 @@ export class LockTimeoutError extends Error {
 
 function lockDirFor(filePath) {
   return `${filePath}.lock`;
-}
-
-/** Owner metadata for a lock directory, or null when missing/unreadable. */
-function readLockOwner(lockDir) {
-  try {
-    return JSON.parse(readFileSync(join(lockDir, 'owner.json'), 'utf-8'));
-  } catch {
-    return null;
-  }
-}
-
-// Identity of a directory, so a lock that was removed and recreated by another
-// process is never mistaken for the one this caller created.
-function sameLockDirectory(left, right) {
-  return left.dev === right.dev && left.ino === right.ino
-    && (left.ino !== 0 || left.birthtimeMs === right.birthtimeMs);
 }
 
 // The recovery judgment comes from pipeline-lock rather than a fourth copy of
@@ -217,7 +201,7 @@ export async function acquirePortalHealthLock(filePath, options = {}) {
         } catch {
           return; // already gone
         }
-        const owner = readLockOwner(lockDir);
+        const { owner } = readLockOwner(lockDir);
         if (owner?.token !== token) return; // reclaimed by someone else — leave it alone
         let after;
         try {

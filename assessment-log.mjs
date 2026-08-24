@@ -26,10 +26,11 @@
  *      node assessment-log.mjs --self-test
  */
 
-import { readFileSync, existsSync, appendFileSync, mkdirSync } from 'fs';
+import { appendFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { localToday } from './lib/local-today.mjs';
+import { ensureDir, readFile, readText } from './src/core/store.js';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
 const LOG_PATH = join(CAREER_OPS, 'data/assessments.tsv');
@@ -161,14 +162,13 @@ function addEntry(args) {
     process.exit(1);
   }
   // Append-only: existing rows are never rewritten. Create with header comment on first use.
-  mkdirSync(dirname(LOG_PATH), { recursive: true });
-  let prefix;
-  if (existsSync(LOG_PATH)) {
-    const existing = readFileSync(LOG_PATH, 'utf-8');
-    prefix = existing.endsWith('\n') || existing === '' ? '' : '\n';
-  } else {
-    prefix = HEADER_COMMENT + '\n';
-  }
+  ensureDir(dirname(LOG_PATH));
+  // readFile keeps "absent" and "empty" apart: absent needs the header comment,
+  // empty does not.
+  const log = readFile(LOG_PATH);
+  const prefix = log.exists
+    ? (log.content.endsWith('\n') || log.content === '' ? '' : '\n')
+    : HEADER_COMMENT + '\n';
   appendFileSync(LOG_PATH, prefix + row + '\n');
   console.log(JSON.stringify({ added: true, row: row.split('\t') }, null, 2));
 }
@@ -317,7 +317,7 @@ function main() {
   if (args.includes('--self-test')) { selfTest(); return; }
   if (args[0] === 'add') { addEntry(args.slice(1)); return; }
 
-  const content = existsSync(LOG_PATH) ? readFileSync(LOG_PATH, 'utf-8') : '';
+  const content = readText(LOG_PATH);
   const { rows, malformed } = parseAssessments(content);
   const result = summarize(rows, malformed);
 

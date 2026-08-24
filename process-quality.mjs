@@ -36,7 +36,9 @@
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { flagValue, validateFlags } from './lib/cli-flags.mjs';
+import { validateFlags } from './lib/cli-flags.mjs';
+import { flagValue } from './src/core/flags.js';
+import { parseTable } from './src/core/table.js';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ACTIVE_INTERVIEWS_PATH = existsSync(join(CAREER_OPS, 'data/active-interviews.md'))
@@ -93,46 +95,25 @@ function findColumn(row, name) {
 export function parseActiveInterviews(content) {
   if (typeof content !== 'string' || !content.trim()) return [];
 
-  const lines = content.split('\n');
-  const isTableLine = line => /^\s*\|.*\|\s*$/.test(line);
+  // contiguous: stop at the first non-table line rather than collecting every
+  // pipe-formatted line in the file (see the note above).
+  const { header, rows } = parseTable(content, { contiguous: true });
+  if (!header) return [];
 
-  const startIdx = lines.findIndex(isTableLine);
-  if (startIdx === -1) return [];
-
-  const tableLines = [];
-  for (let i = startIdx; i < lines.length; i++) {
-    if (!isTableLine(lines[i])) break;
-    tableLines.push(lines[i]);
-  }
-  if (tableLines.length < 2) return [];
-
-  const splitRow = line =>
-    line
-      .trim()
-      .replace(/^\|/, '')
-      .replace(/\|$/, '')
-      .split('|')
-      .map(cell => cell.trim());
-
-  const isSeparatorRow = cells => cells.every(cell => /^:?-+:?$/.test(cell));
-
-  const header = splitRow(tableLines[0]);
-  const colCount = header.length;
-  if (colCount === 0) return [];
-
-  const rows = [];
-  for (const line of tableLines.slice(1)) {
-    const cells = splitRow(line);
-    if (isSeparatorRow(cells)) continue;
-    if (cells.length !== colCount) continue;
-
+  // Rows are keyed by the header cell VERBATIM, not by parseTable's normalized
+  // column names: rejection-latency.mjs:172 and findColumn() below both look
+  // these keys up case-insensitively, so the raw header text is what callers
+  // have always seen.
+  const out = [];
+  for (const { cells } of rows) {
+    if (cells.length !== header.length) continue;
     const row = {};
     header.forEach((col, i) => {
       row[col] = cells[i];
     });
-    rows.push(row);
+    out.push(row);
   }
-  return rows;
+  return out;
 }
 
 // --- Friction extraction ---

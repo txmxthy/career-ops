@@ -58,6 +58,9 @@ import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 
+import { flagValue } from './src/core/flags.js';
+import { readFile } from './src/core/store.js';
+import { parseRow, isSeparatorRow } from './src/core/table.js';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import { roleFuzzyMatch } from './role-matcher.mjs';
 import { normalizeCompanyName, companySimilarity } from './invite-match.mjs';
@@ -74,14 +77,11 @@ const DEFAULT_INTERVIEWS_FILE = existsSync(join(CAREER_OPS, 'data/active-intervi
 const args = process.argv.slice(2);
 const summaryMode = args.includes('--summary');
 const selfTestMode = args.includes('--self-test');
-const appsFileIdx = args.indexOf('--apps-file');
-const APPS_FILE = appsFileIdx !== -1 && args[appsFileIdx + 1] !== undefined
-  ? args[appsFileIdx + 1]
-  : DEFAULT_APPS_FILE;
-const interviewsFileIdx = args.indexOf('--interviews-file');
-const INTERVIEWS_FILE = interviewsFileIdx !== -1 && args[interviewsFileIdx + 1] !== undefined
-  ? args[interviewsFileIdx + 1]
-  : DEFAULT_INTERVIEWS_FILE;
+// flagValue reads both `--apps-file x` and `--apps-file=x`. The indexOf lookup
+// this replaces could not see the second form, so a caller who used it got a
+// report on the install's own tracker instead (#2401's defect class).
+const APPS_FILE = flagValue(args, '--apps-file') ?? DEFAULT_APPS_FILE;
+const INTERVIEWS_FILE = flagValue(args, '--interviews-file') ?? DEFAULT_INTERVIEWS_FILE;
 
 // --- Canonical lifecycle (templates/states.yml) ---
 // Non-terminal states are strictly ordered; terminal states have no order
@@ -240,8 +240,12 @@ export function extractTrackerRef(notes) {
 
 // --- applications.md loader (line-number aware, for git blame) ---
 function loadTrackerWithLines(appsFile) {
-  if (!existsSync(appsFile)) return [];
-  const content = readFileSync(appsFile, 'utf-8');
+  // ADR 0004 #7: absent reads empty, unreadable throws. The existsSync gate
+  // this replaces answered false for a file behind an untraversable directory,
+  // so an unreadable tracker reported as an empty one and the run said "0 rows"
+  // for a comparison it had never made.
+  const { exists, content } = readFile(appsFile);
+  if (!exists) return [];
   const lines = content.split('\n');
   const colmap = resolveColumns(lines);
   const entries = [];
@@ -259,8 +263,16 @@ function loadTrackerWithLines(appsFile) {
 // dropped). Kept local — rather than calling that function and trying to
 // re-derive line numbers afterward — because this checker needs the
 // original line number of each row for `git blame -L`, which
-// parseActiveInterviews does not expose. Any change to the table-detection
-// algorithm there should be mirrored here.
+// parseActiveInterviews does not expose.
+//
+// Cell splitting is core/table.js's; the block scan is not. parseTable finds
+// the header by content and keeps rows wider than it, which is right for a
+// tracker and wrong here: this table is hand-maintained, so a wider row means
+// a typo, and reading it would attribute cells to the wrong stage. The strict
+// width rule and the closing-pipe requirement below are what drop it instead.
+//
+// Those two rules are still a hand-mirror of process-quality.mjs and must stay
+// in step with it until both sides read the table through one function.
 export function parseActiveInterviewsWithLines(content) {
   if (typeof content !== 'string' || !content.trim()) return [];
 
@@ -277,18 +289,15 @@ export function parseActiveInterviewsWithLines(content) {
   }
   if (tableLineIdxs.length < 2) return [];
 
-  const splitRow = line =>
-    line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
-  const isSeparatorRow = cells => cells.every(cell => /^:?-+:?$/.test(cell));
-
-  const header = splitRow(lines[tableLineIdxs[0]]);
-  const colCount = header.length;
+  const header = parseRow(lines[tableLineIdxs[0]]);
+  const colCount = header ? header.length : 0;
   if (colCount === 0) return [];
 
   const rows = [];
   for (const idx of tableLineIdxs.slice(1)) {
-    const cells = splitRow(lines[idx]);
-    if (isSeparatorRow(cells)) continue;
+    const cells = parseRow(lines[idx]);
+    if (!cells) continue;
+    if (isSeparatorRow(lines[idx])) continue;
     if (cells.length !== colCount) continue;
 
     const row = {};
@@ -299,8 +308,8 @@ export function parseActiveInterviewsWithLines(content) {
 }
 
 function loadActiveInterviewsWithLines(interviewsFile) {
-  if (!existsSync(interviewsFile)) return [];
-  return parseActiveInterviewsWithLines(readFileSync(interviewsFile, 'utf-8'));
+  const { exists, content } = readFile(interviewsFile);
+  return exists ? parseActiveInterviewsWithLines(content) : [];
 }
 
 // Case-insensitive column lookup — same rationale as process-quality.mjs's

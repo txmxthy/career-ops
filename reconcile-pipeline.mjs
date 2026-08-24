@@ -21,23 +21,21 @@
  * Run: node reconcile-pipeline.mjs [--dry-run] [--state <path>] [--pipeline <path>]
  */
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, copyFileSync, realpathSync, statSync } from 'fs';
+import { existsSync, readdirSync, realpathSync, statSync } from 'fs';
 import { join, dirname, resolve, relative, isAbsolute } from 'path';
 import { fileURLToPath } from 'url';
 import { normalizeReportLink } from './tracker-links.mjs';
+import { flagValue, hasFlag } from './src/core/flags.js';
+import { readFile, readText, writeFileAtomic } from './src/core/store.js';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
-const DRY_RUN = process.argv.includes('--dry-run');
+const ARGS = process.argv.slice(2);
+const DRY_RUN = hasFlag(ARGS, '--dry-run');
 
-if (process.argv.includes('-h') || process.argv.includes('--help')) {
+if (hasFlag(ARGS, '-h') || hasFlag(ARGS, '--help')) {
   console.log('Usage: node reconcile-pipeline.mjs [--dry-run] [--state <path>] [--pipeline <path>]');
   console.log('  Moves batch-processed offers out of pipeline.md "Pendientes" into "Procesadas".');
   process.exit(0);
-}
-
-function argValue(flag) {
-  const i = process.argv.indexOf(flag);
-  return i >= 0 && i + 1 < process.argv.length ? process.argv[i + 1] : null;
 }
 
 // Constrain user-supplied --state/--pipeline paths to the repository tree, so a
@@ -61,7 +59,7 @@ function resolveInsideRepo(inputPath, fallbackPath, flag) {
     console.error(`Invalid ${flag}: path must stay inside the repository (${abs})`);
     process.exit(1);
   }
-  // Reject a directory target early — otherwise readFileSync/copyFileSync would
+  // Reject a directory target early — otherwise the read or the atomic write would
   // throw an unhandled EISDIR later instead of failing with a clear message.
   if (existsSync(abs) && statSync(abs).isDirectory()) {
     console.error(`Invalid ${flag}: expected a file, not a directory (${abs})`);
@@ -73,16 +71,20 @@ function resolveInsideRepo(inputPath, fallbackPath, flag) {
 const defaultPipeline = existsSync(join(CAREER_OPS, 'data/pipeline.md'))
   ? join(CAREER_OPS, 'data/pipeline.md')
   : join(CAREER_OPS, 'pipeline.md');
-const PIPELINE_FILE = resolveInsideRepo(argValue('--pipeline'), defaultPipeline, '--pipeline');
-const STATE_FILE = resolveInsideRepo(argValue('--state'), join(CAREER_OPS, 'batch/batch-state.tsv'), '--state');
+const PIPELINE_FILE = resolveInsideRepo(flagValue(ARGS, '--pipeline'), defaultPipeline, '--pipeline');
+const STATE_FILE = resolveInsideRepo(flagValue(ARGS, '--state'), join(CAREER_OPS, 'batch/batch-state.tsv'), '--state');
 const REPORTS_DIR = join(CAREER_OPS, 'reports');
 
 // ---- guards ----
-if (!existsSync(STATE_FILE)) {
+// Read rather than stat: an absent file is the "nothing to reconcile" case, and
+// an unreadable one must still raise rather than be reported as absent.
+const state = readFile(STATE_FILE);
+if (!state.exists) {
   console.log('No batch-state.tsv found — nothing to reconcile.');
   process.exit(0);
 }
-if (!existsSync(PIPELINE_FILE)) {
+const pipeline = readFile(PIPELINE_FILE);
+if (!pipeline.exists) {
   console.log('No pipeline.md found — nothing to reconcile.');
   process.exit(0);
 }
@@ -90,7 +92,7 @@ if (!existsSync(PIPELINE_FILE)) {
 // ---- parse batch-state.tsv ----
 // columns: id  url  status  started_at  completed_at  report_num  score  error  retries
 const DONE = new Map(); // url -> { reportNum, score }
-for (const line of readFileSync(STATE_FILE, 'utf-8').split(/\r?\n/)) {
+for (const line of state.content.split(/\r?\n/)) {
   if (!line.trim() || line.startsWith('id\t')) continue;
   const c = line.split('\t');
   if (c.length < 7) continue;
@@ -123,7 +125,7 @@ function findReportFile(reportNum) {
 function readReportField(reportFile, field) {
   if (!reportFile) return null;
   try {
-    const txt = readFileSync(join(REPORTS_DIR, reportFile), 'utf-8');
+    const txt = readText(join(REPORTS_DIR, reportFile));
     const m = txt.match(new RegExp(`^\\*\\*${field}:\\*\\*\\s*(.+)$`, 'm'));
     return m ? m[1].trim() : null;
   } catch { return null; }
@@ -148,7 +150,7 @@ function resolvePdf(reportFile) {
 }
 
 // ---- parse pipeline.md ----
-const lines = readFileSync(PIPELINE_FILE, 'utf-8').split(/\r?\n/);
+const lines = pipeline.content.split(/\r?\n/);
 
 const PENDING_RE = /^##\s+(Pendientes|Pending)\s*$/i;
 const PROCESSED_RE = /^##\s+(Procesadas|Processed)\s*$/i;
@@ -292,6 +294,7 @@ if (DRY_RUN) {
   process.exit(0);
 }
 
-copyFileSync(PIPELINE_FILE, `${PIPELINE_FILE}.pre-reconcile.bak`);
-writeFileSync(PIPELINE_FILE, newContent);
+// Atomic, so a crash mid-write cannot truncate the inbox — the failure this
+// writer's backup was compensating for.
+writeFileAtomic(PIPELINE_FILE, newContent, { backup: '.pre-reconcile.bak' });
 console.log(`✅ pipeline.md updated (backup: ${PIPELINE_FILE}.pre-reconcile.bak)`);

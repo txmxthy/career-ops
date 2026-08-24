@@ -43,6 +43,7 @@ import { resolveColumns } from './tracker-parse.mjs';
 import {
   canonicalizeTrackerPath, openTrackerTransaction, writeFileAtomic,
 } from './tracker-utils.mjs';
+import { flagValue } from './src/core/flags.js';
 
 const MD_PATH = process.env.CAREER_OPS_TRACKER || 'data/applications.md';
 const DB_PATH = process.env.CAREER_OPS_TRACKER_DB
@@ -369,13 +370,6 @@ function ensureFresh(db, states) {
 }
 
 // ── Query helpers ───────────────────────────────────────────────────
-
-function flagValue(args, flag) {
-  const idx = args.indexOf(flag);
-  if (idx !== -1 && args[idx + 1] !== undefined && !args[idx + 1].startsWith('--')) return args[idx + 1];
-  const kv = args.find(a => a.startsWith(flag + '='));
-  return kv ? kv.split('=').slice(1).join('=') : null;
-}
 
 function rowToMarkdown(r) {
   const clean = (v) => String(v ?? '').replace(/\|/g, '│').replace(/\r?\n/g, ' ');

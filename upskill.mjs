@@ -27,6 +27,8 @@ import { join, dirname, relative, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { load as yamlLoad } from 'js-yaml';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
+import { parseRow } from './src/core/table.js';
+import { readFile } from './src/core/store.js';
 import { validateFlags } from './lib/cli-flags.mjs';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
@@ -44,10 +46,10 @@ const PROFILE_FILE = join(CAREER_OPS, 'config/profile.yml');
 // symlink whose target escapes reports/ (a lexical-only check would follow it).
 // realpathSync throws ENOENT/ENOTDIR for a not-yet-created candidate or a
 // missing reports root — both are non-fatal: a missing candidate falls through
-// to the downstream read (which returns null, preserving prior semantics), a
-// missing root means there are simply no reports. Only genuinely unexpected
-// errors rethrow, matching readTextIfExists. Identical to the guard in
-// analyze-patterns.mjs so both sites behave the same.
+// to the downstream read (which reports it absent, preserving prior semantics),
+// a missing root means there are simply no reports. Only genuinely unexpected
+// errors rethrow, matching the core store's read contract. Identical to the
+// guard in analyze-patterns.mjs so both sites behave the same.
 function withinReports(candidate) {
   const repoRelative = relative(CAREER_OPS, candidate).split(sep).join('/');
   if (!repoRelative.startsWith('reports/') || repoRelative.includes('..')) return false;
@@ -67,18 +69,6 @@ function withinReports(candidate) {
   }
   const rootWithSep = realRoot.endsWith(sep) ? realRoot : realRoot + sep;
   return realCandidate === realRoot || realCandidate.startsWith(rootWithSep);
-}
-
-// Read a file, returning null when it does not exist. A pre-flight existsSync
-// costs a full stat per report and races with the read (#2385); attempting the
-// read and handling the missing-file error costs the same as a bare read.
-function readTextIfExists(path) {
-  try {
-    return readFileSync(path, 'utf-8');
-  } catch (err) {
-    if (err.code === 'ENOENT' || err.code === 'ENOTDIR') return null;
-    throw err;
-  }
 }
 
 // Bump when extraction rules change in a way that would make gap lists from
@@ -295,8 +285,12 @@ export function parseReportGaps(content) {
   const gapTableMatch = content.match(/\|\s*Gap\s*\|\s*Severity\s*\|.*?\n\|[-|\s]+\n([\s\S]*?)(?:\n\n|\n##|\n\*\*|$)/i);
   if (gapTableMatch) {
     for (const row of gapTableMatch[1].split('\n').filter(r => r.startsWith('|'))) {
-      const cols = row.split('|').map(s => s.trim()).filter(Boolean);
-      if (cols.length >= 2) gapDescriptions.push(cols[0]);
+      // Empty cells stay as positional slots, so a trailing blank cell no
+      // longer shortens the row past the arity check and a blank gap no longer
+      // promotes the next cell into its place — the `.filter(Boolean)` bug
+      // table.js:62 names. tests/upskill-gap-table.test.mjs pins both.
+      const cols = parseRow(row) || [];
+      if (cols.length >= 2 && cols[0]) gapDescriptions.push(cols[0]);
     }
   }
 
@@ -412,8 +406,8 @@ function analyze(minReports) {
     let content = null;
     for (const p of candidates) {
       if (!withinReports(p)) continue;
-      content = readTextIfExists(p);
-      if (content !== null) break;
+      const attempt = readFile(p);
+      if (attempt.exists) { content = attempt.content; break; }
     }
     if (content === null) continue;
     reportsRead += 1;

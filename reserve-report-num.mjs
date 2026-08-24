@@ -29,6 +29,7 @@ import {
 import {
   acquireTrackerLock, canonicalizeTrackerPath, resolveTrackerPath, trackerLockDirFor,
 } from './tracker-utils.mjs';
+import { readFile } from './src/core/store.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const MAX_SENTINEL_AGE_MS = 4 * 60 * 60 * 1000;
@@ -82,9 +83,12 @@ function occupiedFromReports(reportsDir) {
 
 function occupiedFromTracker(trackerPath) {
   const occupied = new Set();
-  if (!existsSync(trackerPath)) return occupied;
+  // An unreadable tracker must not read as an empty one: that hands out a
+  // report number the tracker already occupies (ADR 0004 #7).
+  const { exists, content } = readFile(trackerPath);
+  if (!exists) return occupied;
 
-  const lines = readFileSync(trackerPath, 'utf-8').split(/\r?\n/);
+  const lines = content.split(/\r?\n/);
   const colmap = resolveColumns(lines);
   for (const line of lines) {
     const row = parseTrackerRow(line, colmap);

@@ -6,6 +6,7 @@ import { resolve, dirname, basename, join } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import { escapeLatex, sanitizeUrl } from './lib/latex-escape.mjs';
+import { flagValue } from './src/core/flags.js';
 import { resolveTemplate } from './cv-templates.mjs';
 import { stripEmptySections } from './cv-sections-core.mjs';
 
@@ -121,7 +122,10 @@ async function main() {
 
   // Honor a selected .tex template variant (cv.template default or --template=<name>),
   // falling back to the base cv-template.tex when no variant exists.
-  const texName = (process.argv.find((a) => a.startsWith('--template=')) || '').split('=')[1];
+  // flagValue, not a startsWith('--template=') scan: the hand-rolled form was
+  // blind to `--template modern`, which fell through to the profile default
+  // without saying so.
+  const texName = flagValue(args, '--template');
   let TEMPLATE_PATH_RESOLVED;
   try {
     TEMPLATE_PATH_RESOLVED = resolveTemplate('cv', texName, { format: 'tex', fallback: true });

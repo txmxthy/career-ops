@@ -22,6 +22,9 @@ import { readFileSync, existsSync, statSync } from 'fs';
 import { basename, resolve, dirname, relative, isAbsolute } from 'path';
 import { fileURLToPath } from 'url';
 
+import { flagValue } from './src/core/flags.js';
+import { readFile as readFileOrAbsent } from './src/core/store.js';
+
 const ROOT = dirname(fileURLToPath(import.meta.url));
 
 const ALLOWED_HOSTS = new Set([
@@ -37,11 +40,10 @@ const ALLOWED_HOSTS = new Set([
 // ── CLI args ─────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
-const get = (flag) => { const i = args.indexOf(flag); return i !== -1 ? args[i + 1] : null; };
 
-const applyUrl  = get('--url');
-const pdfPath   = get('--pdf');
-const coverPath = get('--cover');
+const applyUrl  = flagValue(args, '--url');
+const pdfPath   = flagValue(args, '--pdf');
+const coverPath = flagValue(args, '--cover');
 
 if (!applyUrl || !pdfPath) {
   console.error('Usage: node prepare-application.mjs --url <apply_url> --pdf <pdf_path> [--cover <cover_txt>]');
@@ -129,8 +131,8 @@ function detectAts(url) {
 
 function readProfile() {
   const profilePath = resolve(ROOT, 'config/profile.yml');
-  if (!existsSync(profilePath)) return {};
-  const raw = readFileSync(profilePath, 'utf-8');
+  const { exists, content: raw } = readFileOrAbsent(profilePath);
+  if (!exists) return {};
 
   const pick = (key) => {
     const m = raw.match(new RegExp(`^\\s*${key}:\\s*["']?([^"'\\n]+?)["']?\\s*$`, 'm'));

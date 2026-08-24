@@ -47,6 +47,7 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { renameSyncWithRetry } from './tracker-utils.mjs';
+import { flagValue, hasFlag } from './src/core/flags.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CANDIDATES_PATH = process.env.CAREER_OPS_REPLY_CANDIDATES
@@ -206,10 +207,14 @@ async function main() {
     return;
   }
 
-  const fileIdx = args.indexOf('--file');
+  // hasFlag/flagValue as a pair, not a bare indexOf: indexOf cannot see
+  // `--file=path`, so the equals form fell through to interactive mode and the
+  // script waited on stdin for an email it had already been handed (#2401's
+  // shape). The pair is also what keeps "flag absent" and "flag with no
+  // operand" apart — flagValue alone reports undefined for both.
   let input;
-  if (fileIdx !== -1) {
-    const filePath = args[fileIdx + 1];
+  if (hasFlag(args, '--file')) {
+    const filePath = flagValue(args, '--file');
     if (!filePath) {
       console.error('Error: --file requires a path argument.');
       process.exit(1);

@@ -9,7 +9,7 @@ import {
   copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync,
 } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { pass, fail, NODE, ROOT } from './helpers.mjs';
+import { pass, fail, NODE, ROOT, copyCoreModules } from './helpers.mjs';
 
 console.log('\nollama-eval — includes profile.yml and _profile.md in model context (#2488)');
 
@@ -35,6 +35,8 @@ for (const relativePath of [
 ]) {
   copyIntoFixture(relativePath);
 }
+// reserve-report-num.mjs (and, increasingly, its neighbours) import ./src/core/*.
+copyCoreModules(fixtureRoot);
 
 mkdirSync(join(fixtureRoot, 'config'), { recursive: true });
 mkdirSync(join(fixtureRoot, 'modes'), { recursive: true });

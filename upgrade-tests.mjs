@@ -24,6 +24,7 @@ import { tmpdir } from 'os';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { seedFixture, loadExpectations } from './seed-fixture.mjs';
+import { parseRow } from './src/core/table.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const CANONICAL = 'https://github.com/santifer/career-ops.git';
@@ -191,11 +192,12 @@ export function runLeg({ oldTag, targetSha, label = oldTag, mutateMirror = null 
       // cell that happens to equal a status word can never false-positive.
       const headerLine = tracker.split('\n').find((l) => /^\|\s*#\s*\|/.test(l));
       ok(headerLine !== undefined, 'tracker has a parseable header row');
-      const statusCol = headerLine ? headerLine.split('|').map((c) => c.trim()).indexOf('Status') : -1;
-      ok(statusCol > 0, `tracker header has a Status column`);
-      if (statusCol > 0) {
+      const headerCells = headerLine ? parseRow(headerLine) : null;
+      const statusCol = headerCells ? headerCells.indexOf('Status') : -1;
+      ok(statusCol >= 0, `tracker header has a Status column`);
+      if (statusCol >= 0) {
         for (const [status, count] of Object.entries(exp.status_counts)) {
-          const n = rows.filter((r) => r.split('|').map((c) => c.trim())[statusCol] === status).length;
+          const n = rows.filter((r) => parseRow(r)?.[statusCol] === status).length;
           ok(n === count, `tracker status ${status}: ${n} == ${count}`);
         }
       }

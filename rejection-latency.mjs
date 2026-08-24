@@ -45,7 +45,7 @@
  * Issue #2013 — github.com/santifer/career-ops
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
@@ -54,14 +54,15 @@ import { parseActiveInterviews } from './process-quality.mjs';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import { roleFuzzyMatch } from './role-matcher.mjs';
 import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
+import { readFile, resolveTrackerPath } from './src/core/store.js';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ACTIVE_INTERVIEWS_PATH = existsSync(join(CAREER_OPS, 'data/active-interviews.md'))
   ? join(CAREER_OPS, 'data/active-interviews.md')
   : join(CAREER_OPS, 'active-interviews.md');
-const DEFAULT_TRACKER_PATH = existsSync(join(CAREER_OPS, 'data/applications.md'))
-  ? join(CAREER_OPS, 'data/applications.md')
-  : join(CAREER_OPS, 'applications.md');
+// The shared resolver, so CAREER_OPS_TRACKER is honoured here the way
+// --tracker is: the hand-rolled data/ probe saw only the two default spellings.
+const DEFAULT_TRACKER_PATH = resolveTrackerPath(CAREER_OPS);
 const PROFILE_FILE = process.env.CAREER_OPS_PROFILE || join(CAREER_OPS, 'config/profile.yml');
 
 export const DEFAULT_COURTESY_DAYS = 30;
@@ -174,9 +175,9 @@ function findColumn(row, name) {
 
 // --- Profile / jurisdiction resolution ---
 export function loadProfile(profilePath = PROFILE_FILE) {
-  if (!profilePath || !existsSync(profilePath)) return {};
+  if (!profilePath) return {};
   try {
-    return yaml.load(readFileSync(profilePath, 'utf-8')) || {};
+    return yaml.load(readFile(profilePath).content) || {};
   } catch {
     return {};
   }
@@ -343,9 +344,13 @@ export function computeRejectionLatency(interviewRows, trackerByCompany, opts = 
 }
 
 // --- File loading (CRLF normalized at read time — this repo's CRLF bug class) ---
+// NOTE: absent and present-but-empty still collapse to '' here, so a
+// mis-pointed --tracker reports "nothing exceeded the thresholds" at exit 0
+// rather than "could not verify" (D4.2 / ADR 0006). readFile carries the
+// `exists` bit needed to fix that; spending it is the CLI adapter's call,
+// because it changes this command's exit code.
 function readNormalized(path) {
-  if (!existsSync(path)) return '';
-  return readFileSync(path, 'utf-8').replace(/\r\n/g, '\n');
+  return readFile(path).content.replace(/\r\n/g, '\n');
 }
 
 // --- Summary mode ---

@@ -33,17 +33,20 @@
  * Issue #1495, #2098 — github.com/santifer/career-ops
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { execFileSync } from 'child_process';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
+import { readFile, resolveTrackerPath } from './src/core/store.js';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
-const APPS_FILE = existsSync(join(CAREER_OPS, 'data/applications.md'))
-  ? join(CAREER_OPS, 'data/applications.md')
-  : join(CAREER_OPS, 'applications.md');
+// The shared resolver, so CAREER_OPS_TRACKER points the read at the same
+// tracker applyRejection() already points the set-status child at (D1.1): the
+// hand-rolled data/ probe here ignored the env var, so an override read one
+// workspace and wrote another.
+const APPS_FILE = resolveTrackerPath(CAREER_OPS);
 
 // --- CLI args ---
 const args = process.argv.slice(2);
@@ -611,8 +614,8 @@ export function classifyEmail(text) {
 
 // --- Tracker loading ---
 function loadTracker(appsFile = APPS_FILE) {
-  if (!existsSync(appsFile)) return [];
-  const content = readFileSync(appsFile, 'utf-8');
+  const { exists, content } = readFile(appsFile);
+  if (!exists) return [];
   const lines = content.split('\n');
   const colmap = resolveColumns(lines);
   const entries = [];
@@ -1123,13 +1126,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   } else {
     let text;
     if (filePathArg) {
-      if (!existsSync(filePathArg)) {
+      const invite = readFile(filePathArg);
+      if (!invite.exists) {
         console.error(`invite-match: file not found: ${filePathArg}`);
         process.exit(1);
       }
-      text = readFileSync(filePathArg, 'utf-8');
+      text = invite.content;
     } else {
-      text = readFileSync(0, 'utf-8'); // stdin
+      text = readFileSync(0, 'utf-8'); // stdin — a descriptor, not a path
     }
 
     const result = analyzeInvite(text);

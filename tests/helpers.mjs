@@ -373,6 +373,31 @@ export function linkRepoPackage(sandboxDir, pkgName) {
   return dest;
 }
 
+/**
+ * Copy `src/` (the shared core modules) into a sandbox that copies root scripts
+ * in by name.
+ *
+ * A sandbox built from a hand-listed set of root files has to carry every
+ * import those files make. Root scripts now import `./src/core/*.js`, so a list
+ * that names the script but not `src/` makes the spawned child die with
+ * ERR_MODULE_NOT_FOUND before it parses argv -- a failure that reads as a
+ * behaviour regression in whatever the sandbox was actually testing. Calling
+ * this once per sandbox keeps the list from having to track which script gained
+ * which core import.
+ *
+ * `src/package.json` carries `{"type":"module"}`, which is what lets the `.js`
+ * files under `src/core/` load as ESM without a root package.json in the
+ * sandbox -- so the whole directory is copied, not just `core/`.
+ *
+ * @param {string} sandboxDir - Sandbox root; `src/` is created inside it.
+ * @returns {string} Path to `src/` as seen from inside the sandbox.
+ */
+export function copyCoreModules(sandboxDir) {
+  const dest = join(sandboxDir, 'src');
+  cpSync(join(ROOT, 'src'), dest, { recursive: true });
+  return dest;
+}
+
 let bashCache = null;
 let bashSourceCache = null;
 

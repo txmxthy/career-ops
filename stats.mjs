@@ -19,10 +19,10 @@ import { validateFlags } from './lib/cli-flags.mjs';
  * #1604 PR-2) — null until the first non-dry scan creates the file.
  */
 
-import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
+import { readFile } from './src/core/store.js';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import { normalizeStatus, analyzeFromContent } from './followup-cadence.mjs';
 
@@ -477,7 +477,9 @@ export function computeAllStats({
   portalsFile = PORTALS_FILE,
   portalHealthFile = PORTAL_HEALTH_FILE,
 } = {}) {
-  const read = (f) => (existsSync(f) ? readFileSync(f, 'utf-8') : null);
+  // null still means "the file is not there"; an unreadable one now throws
+  // rather than reporting a section as absent (ADR 0004 #7).
+  const read = (f) => { const r = readFile(f); return r.exists ? r.content : null; };
   const apps = read(appsFile);
   const scanHist = read(scanHistoryFile);
   const fups = read(followupsFile);

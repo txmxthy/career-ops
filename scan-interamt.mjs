@@ -18,8 +18,10 @@
  */
 
 import { chromium } from 'playwright';
-import { readFileSync, existsSync, mkdirSync } from 'fs';
+import { mkdirSync } from 'fs';
 import * as yaml from 'js-yaml';
+import { readText } from './src/core/store.js';
+import { flagValue, hasFlag } from './src/core/flags.js';
 import { appendToPipeline, appendToScanHistory, loadSeenUrls } from './scan.mjs';
 
 // ── Config ───────────────────────────────────────────────────────────
@@ -47,22 +49,23 @@ const DEFAULT_KEYWORDS = [
 // ── Args ─────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
-const DRY_RUN    = args.includes('--dry-run');
-const DEBUG      = args.includes('--debug');
-const NO_DATE_FILTER = args.includes('--all');
-const kwIdx = args.indexOf('--keyword');
-if (kwIdx !== -1 && (args[kwIdx + 1] === undefined || args[kwIdx + 1].startsWith('--'))) {
+const DRY_RUN    = hasFlag(args, '--dry-run');
+const DEBUG      = hasFlag(args, '--debug');
+const NO_DATE_FILTER = hasFlag(args, '--all');
+// hasFlag/flagValue split, because flagValue alone cannot tell an absent
+// --keyword (scan every configured search) from one given without a value
+// (a typo that must not silently widen the scan).
+const keywordGiven = hasFlag(args, '--keyword');
+const keywordValue = flagValue(args, '--keyword');
+if (keywordGiven && keywordValue === undefined) {
   console.error('Error: --keyword requires a value, e.g. --keyword "Softwareentwickler"');
   process.exit(1);
 }
-const SINGLE_KEYWORD = kwIdx !== -1 ? args[kwIdx + 1] : null;
+const SINGLE_KEYWORD = keywordGiven ? keywordValue : null;
 
 // ── Load portals.yml ─────────────────────────────────────────────────
 
-let config = {};
-if (existsSync(PORTALS_PATH)) {
-  config = yaml.load(readFileSync(PORTALS_PATH, 'utf-8')) || {};
-}
+const config = yaml.load(readText(PORTALS_PATH)) || {};
 
 const interamtSearches = config.interamt_searches || DEFAULT_KEYWORDS.map(k => ({ was: k }));
 const keywords = SINGLE_KEYWORD
@@ -106,9 +109,8 @@ function parseDE(str) {
 
 // Returns the most recent first_seen date for 'interamt' portal entries, or null
 function loadLastScanDate() {
-  if (!existsSync(SCAN_HISTORY)) return null;
   let latest = null;
-  readFileSync(SCAN_HISTORY, 'utf-8').split('\n').slice(1).forEach(line => {
+  readText(SCAN_HISTORY).split('\n').slice(1).forEach(line => {
     const parts = line.split('\t');
     if (parts[2] !== 'interamt') return;
     const d = new Date((parts[1] || '') + 'T00:00:00Z');

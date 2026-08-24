@@ -12,10 +12,10 @@
  *   node extract-latex-content.mjs <source.tex> --out manifest.json
  */
 
-import { readFile, writeFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import { resolve, basename } from 'path';
 import { pathToFileURL } from 'url';
+import { readFile } from './src/core/store.js';
 import { buildManifest } from './lib/latex-content.mjs';
 
 async function main() {
@@ -34,14 +34,19 @@ async function main() {
   }
 
   const absPath = resolve(sourcePath);
-  if (!existsSync(absPath)) {
-    console.error(`Source not found: ${absPath}`);
-    process.exit(1);
-  }
 
+  // One read, two outcomes: absent is "not found", anything else that stops the
+  // read is "failed to read". The old existsSync pre-flight answered false for
+  // a path this process cannot traverse to, reporting an unreadable source as
+  // a missing one.
   let tex;
   try {
-    tex = await readFile(absPath, 'utf-8');
+    const source = readFile(absPath);
+    if (!source.exists) {
+      console.error(`Source not found: ${absPath}`);
+      process.exit(1);
+    }
+    tex = source.content;
   } catch (err) {
     console.error(`Failed to read ${absPath}: ${err.message}`);
     process.exit(1);

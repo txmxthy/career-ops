@@ -9,12 +9,13 @@
  *   node validate-portals.mjs --self-test
  */
 
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'fs';
 import { join, dirname, resolve } from 'path';
 import { tmpdir } from 'os';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
-import { flagValue, hasFlag } from './lib/cli-flags.mjs';
+import { flagValue, hasFlag } from './src/core/flags.js';
+import { readFile } from './src/core/store.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const PROVIDERS_DIR = join(ROOT, 'providers');
@@ -273,11 +274,15 @@ function formatIssue(issue) {
 }
 
 async function validateFile(filePath) {
-  if (!existsSync(filePath)) {
+  // One read, not existsSync-then-read: the gate answers false for a file this
+  // process cannot traverse to, which reported "file not found" for a portals.yml
+  // that was really there but unreadable.
+  const { exists, content } = readFile(filePath);
+  if (!exists) {
     throw new Error(`file not found: ${filePath}`);
   }
   const providerIds = await loadProviderIds();
-  const parsed = yaml.load(readFileSync(filePath, 'utf-8'));
+  const parsed = yaml.load(content);
   return validatePortalsConfig(parsed, { providerIds });
 }
 

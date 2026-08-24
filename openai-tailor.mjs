@@ -16,10 +16,13 @@
  *   OPENAI_MODEL (or --model)   — the model id
  */
 
-import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import * as yaml from 'js-yaml';
+
+import { flagValue } from './src/core/flags.js';
+import { readFile as readFileOrAbsent, ensureDir } from './src/core/store.js';
 
 try {
   const { config } = await import('dotenv');
@@ -83,36 +86,32 @@ let modelName  = process.env.OPENAI_MODEL || 'gpt-4o'; // Tailoring needs a smar
 let baseUrl    = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
 let apiKey     = process.env.OPENAI_API_KEY || '';
 
-for (let i = 0; i < args.length; i++) {
-  if (args[i] === '--jd' && args[i + 1]) {
-    jdPath = args[++i];
-  } else if (args[i] === '--report' && args[i + 1]) {
-    reportPath = args[++i];
-  } else if (args[i] === '--model' && args[i + 1]) {
-    modelName = args[++i];
-  } else if (args[i] === '--url' && args[i + 1]) {
-    baseUrl = args[++i].replace(/\/$/, '');
-  } else if (args[i] === '--key' && args[i + 1]) {
-    apiKey = args[++i];
-  }
-}
+// `||` rather than `??`: an empty operand kept the default in the loop this
+// replaces, and `--model ""` must not leave the model id blank.
+jdPath     = flagValue(args, '--jd')     || jdPath;
+reportPath = flagValue(args, '--report') || reportPath;
+modelName  = flagValue(args, '--model')  || modelName;
+apiKey     = flagValue(args, '--key')    || apiKey;
+baseUrl    = (flagValue(args, '--url') || baseUrl).replace(/\/$/, '');
 
 if (!jdPath || !reportPath) {
   console.error('❌  Both --jd and --report are required. Run with --help for usage.');
   process.exit(1);
 }
 
-if (!existsSync(jdPath)) {
+const jd = readFileOrAbsent(jdPath);
+if (!jd.exists) {
   console.error(`❌  JD file not found: ${jdPath}`);
   process.exit(1);
 }
-if (!existsSync(reportPath)) {
+const report = readFileOrAbsent(reportPath);
+if (!report.exists) {
   console.error(`❌  Report file not found: ${reportPath}`);
   process.exit(1);
 }
 
-const jdText = readFileSync(jdPath, 'utf-8').trim();
-const reportText = readFileSync(reportPath, 'utf-8').trim();
+const jdText = jd.content.trim();
+const reportText = report.content.trim();
 
 // Attempt to parse company slug and candidate name
 const reportFilename = basename(reportPath);
@@ -166,7 +165,8 @@ const endpoint = `${baseUrl}/chat/completions`;
 // File helpers
 // ---------------------------------------------------------------------------
 function readFile(path, label, required = false) {
-  if (!existsSync(path)) {
+  const { exists, content } = readFileOrAbsent(path);
+  if (!exists) {
     if (required) {
       console.error(`❌  Required context file not found: ${label} at ${path}`);
       process.exit(1);
@@ -174,7 +174,7 @@ function readFile(path, label, required = false) {
     console.warn(`⚠️   ${label} not found at: ${path}`);
     return `[${label} not found — skipping]`;
   }
-  return readFileSync(path, 'utf-8').trim();
+  return content.trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -314,9 +314,7 @@ tailoredHtml = tailoredHtml.replace(/^\s*```(html)?\s*/i, '').replace(/\s*```\s*
 // Save tailored HTML
 // ---------------------------------------------------------------------------
 try {
-  if (!existsSync(PATHS.output)) {
-    mkdirSync(PATHS.output, { recursive: true });
-  }
+  ensureDir(PATHS.output);
 
   let candidateName = 'candidate';
   try {

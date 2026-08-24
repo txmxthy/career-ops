@@ -58,6 +58,7 @@ import { normalizeCompanyName } from './invite-match.mjs';
 import { normalizeCompany, resolveTrackerPath } from './tracker-utils.mjs';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
 import { localToday } from './lib/local-today.mjs';
+import { flagValue } from './src/core/flags.js';
 import {
   parseFollowups,
   parseAppliedDate,
@@ -143,15 +144,7 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
-  const valueOf = (flag) => {
-    // `--flag=value` form first: `args.indexOf(flag)` is -1 for it, so the
-    // space-separated lookup below would silently drop the value otherwise.
-    const eq = args.find(a => a.startsWith(`${flag}=`));
-    if (eq) return eq.slice(flag.length + 1);
-    const idx = args.indexOf(flag);
-    if (idx === -1) return undefined;
-    return args[idx + 1];
-  };
+  const valueOf = (flag) => flagValue(args, flag);
 
   // A value-taking flag must actually receive a non-empty value: without this
   // guard `--company --summary` would consume `--summary` as the company name,

@@ -56,6 +56,7 @@ import { compileKeyword, compilePositiveKeyword, buildTitleFilter } from './titl
 import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
 import { withPortalHealthLock } from './portal-health-lock.mjs';
 import { localToday } from './lib/local-today.mjs';
+import { parseRow } from './src/core/table.js';
 
 try {
   const { config } = await import('dotenv');
@@ -1960,18 +1961,22 @@ const BLACKLIST_PATH = 'data/blacklist.md';
 export function parseBlacklist(text) {
   const entries = new Map();
   for (const line of String(text ?? '').replace(/\r/g, '').split('\n')) {
-    if (!line.trim().startsWith('|')) continue;
-    const cells = line.split('|').map(s => s.trim());
-    const company = cells[1] || '';
+    // parseRow indexes the REAL cells, so the columns sit one lower than they
+    // did under the old `line.split('|')` (whose index 0 was the empty string
+    // before the leading pipe). It also honours GFM's `\|` escape, so a pipe
+    // inside a company name stays in its cell instead of breaking the row.
+    const cells = parseRow(line);
+    if (!cells) continue;
+    const company = cells[0] || '';
     if (!company || /^[-: ]+$/.test(company)) continue; // separator row
     if (company.toLowerCase() === 'company') continue;  // header row
     const key = normalizeCompany(company);
     if (!key || entries.has(key)) continue;
     entries.set(key, {
       company,
-      since: cells[2] || '',
-      scope: cells[3] || '',
-      reason: cells[4] || '',
+      since: cells[1] || '',
+      scope: cells[2] || '',
+      reason: cells[3] || '',
     });
   }
   return entries;

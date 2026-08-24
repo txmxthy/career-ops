@@ -15,6 +15,7 @@ import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, exist
 import { tmpdir } from 'os';
 import { join, dirname, relative, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { flagValue, hasFlag } from './src/core/flags.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(ROOT, 'test-fixtures', 'upgrade');
@@ -105,13 +106,18 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   if (args[0] === '--self-test') selfTest();
   else if (args[0] && !args[0].startsWith('--')) {
-    const stateIdx = args.indexOf('--state');
-    if (stateIdx > -1 && (args[stateIdx + 1] === undefined || args[stateIdx + 1].startsWith('--'))) {
+    // hasFlag/flagValue together: hasFlag sees `--state` in either form, and
+    // flagValue is undefined both when the operand is missing and when the next
+    // token is another flag — which is the pair that makes the two cases
+    // distinguishable at all.
+    const wantsState = hasFlag(args, '--state');
+    const state = flagValue(args, '--state');
+    if (wantsState && state === undefined) {
       console.error('Missing value for --state');
       process.exit(1);
     }
     try {
-      const res = seedFixture(args[0], stateIdx > -1 ? { state: args[stateIdx + 1] } : {});
+      const res = seedFixture(args[0], wantsState ? { state } : {});
       console.log(JSON.stringify(res, null, 2));
     } catch (err) {
       // Concise, actionable message — never leak a raw stack trace to the CLI.

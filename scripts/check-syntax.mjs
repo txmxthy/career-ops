@@ -2,7 +2,7 @@
 /**
  * check-syntax.mjs — zero-dependency syntax linter for repository scripts.
  *
- * Runs `node --check` on every repository .mjs file. Generated data and
+ * Runs `node --check` on every repository .mjs and .js file. Generated data and
  * dependency directories are excluded so the result is deterministic on a
  * clean checkout and useful locally before dependencies are installed.
  */
@@ -24,7 +24,10 @@ function collect(dir) {
     // neither should make a local lint run recurse unpredictably.
     if (entry.isSymbolicLink()) continue;
     if (entry.isDirectory()) files.push(...collect(full));
-    else if (entry.name.endsWith('.mjs')) files.push(full);
+    // .js as well as .mjs: the shared core modules under src/ are .js
+    // (src/package.json marks them ESM), and a linter that cannot see them
+    // reports a green checkout with an unparseable core.
+    else if (entry.name.endsWith('.mjs') || entry.name.endsWith('.js')) files.push(full);
   }
   return files;
 }
@@ -47,4 +50,4 @@ if (failed > 0) {
   process.exit(1);
 }
 
-console.log(`✓ ${files.length} .mjs files passed syntax check.`);
+console.log(`✓ ${files.length} script files passed syntax check.`);

@@ -16,6 +16,8 @@ import { resolveExtractorMode } from './browser-extract.mjs';
 import { parseConfigByExtension } from './jsonc-parse.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
 import { geminiNodeFloor } from './lib/gemini-node-floor.mjs';
+import { flagValue } from './src/core/flags.js';
+import { PIPELINE_SKELETON } from './src/core/store.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -51,16 +53,17 @@ CLIs: ${VALID_CLIS.join(', ')}`;
 // shared message.
 validateFlags(argv, KNOWN_FLAGS, USAGE, { valueFlags: VALUE_FLAGS, requireOperand: true });
 
-const targetIdx = argv.indexOf('--target');
-const projectRoot =
-  targetIdx !== -1 && argv[targetIdx + 1] ? argv[targetIdx + 1] : __dirname;
+// flagValue, not a bare indexOf: `--target=/some/path` passed validateFlags
+// (which strips at `=`) and was then never read, so the doctor silently
+// diagnosed THIS checkout instead of the one asked for.
+const projectRoot = flagValue(argv, '--target') || __dirname;
 const JSON_OUT = argv.includes('--json');
 // --strict adds a live ATS-slug probe of portals.yml (network). Opt-in so the
 // default `npm run doctor` stays fast and fully offline.
 const STRICT = argv.includes('--strict');
 
-const cliIdx = argv.indexOf('--cli');
-const cliFlag = cliIdx !== -1 ? argv[cliIdx + 1] : null;
+// Same defect at `--cli=opencode`, which reached resolveActiveCli() as null.
+const cliFlag = flagValue(argv, '--cli') ?? null;
 
 // ANSI colors (only on TTY)
 const isTTY = process.stdout.isTTY;
@@ -477,15 +480,6 @@ async function checkPortalSlugs(root) {
     return { warn: true, label: `ATS slug check skipped: ${err.message}` };
   }
 }
-
-const PIPELINE_SKELETON = `# Pipeline — Pending URLs
-
-Paste job URLs below as \`- [ ] {url}\` then run \`/career-ops pipeline\`.
-
-## Pending
-
-## Processed
-`;
 
 function checkPipelineFile() {
   const filePath = join(projectRoot, 'data', 'pipeline.md');

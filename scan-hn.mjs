@@ -13,7 +13,6 @@ try {
   config(); 
 } catch (e) {}
 
-import { readFileSync, existsSync } from 'fs';
 import { pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -21,6 +20,7 @@ import { appendToPipeline, appendToScanHistory, loadSeenUrls } from './scan.mjs'
 
 // Import the deterministic provider
 import hnProvider from './providers/hackernews.mjs';
+import { readText } from './src/core/store.js';
 
 // ── Configuration ────────────────────────────────────────────────────
 const PORTALS_PATH = 'portals.yml';
@@ -28,11 +28,12 @@ const PORTALS_PATH = 'portals.yml';
 function loadKeywords() {
   const defaultKeywords = ["Software Engineer"];
   let configObj = {};
-  if (existsSync(PORTALS_PATH)) {
-    try {
-      configObj = yaml.load(readFileSync(PORTALS_PATH, 'utf-8')) || {};
-    } catch (e) {}
-  }
+  // readText gives '' for an absent portals.yml, which yaml.load turns into
+  // undefined — same fall-through to the defaults as the old existsSync gate,
+  // without the read-after-check window.
+  try {
+    configObj = yaml.load(readText(PORTALS_PATH)) || {};
+  } catch (e) {}
   return configObj.hn_hiring?.keywords || defaultKeywords;
 }
 

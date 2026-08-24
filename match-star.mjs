@@ -14,20 +14,23 @@
  *   node match-star.mjs --list    # list all stories with their tags
  */
 
-import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { readFile } from './src/core/store.js';
+import { flagValue, hasFlag } from './src/core/flags.js';
 
 // ── Config ──────────────────────────────────────────────────────────
 
 const STORY_BANK_PATH = 'interview-prep/story-bank.md';
 
+// flagValue/hasFlag so `--jd=path` and `--top=2` are honoured too: the old
+// indexOf lookup could not see the `=` form and silently dropped the value.
 const args       = process.argv.slice(2);
-const LIST_MODE  = args.includes('--list');
-const jdFlag     = args.indexOf('--jd');
-const jdPath     = jdFlag !== -1 ? args[jdFlag + 1] : null;
-const topFlag    = args.indexOf('--top');
-const topRaw     = topFlag !== -1 ? parseInt(args[topFlag + 1], 10) : NaN;
+const LIST_MODE  = hasFlag(args, '--list');
+const jdPath     = flagValue(args, '--jd') ?? null;
+const topRaw     = parseInt(flagValue(args, '--top') ?? '', 10);
 const TOP_N      = Number.isInteger(topRaw) && topRaw > 0 ? topRaw : 1;
+const jdFlag     = args.indexOf('--jd');
+const topFlag    = args.indexOf('--top');
 // Exclude flag operands by index position, not by value, to preserve repeated text in the question
 const excludeIdx = new Set([
   ...(jdFlag  !== -1 ? [jdFlag + 1]  : []),
@@ -200,14 +203,14 @@ export { parseStories, tokenize, score, STOPWORDS };
 // ── Main ─────────────────────────────────────────────────────────────
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-if (!existsSync(STORY_BANK_PATH)) {
+const bank = readFile(STORY_BANK_PATH);
+if (!bank.exists) {
   console.error(`Error: ${STORY_BANK_PATH} not found.`);
   console.error('Run /career-ops interview-prep on a role first to populate your story bank.');
   process.exit(1);
 }
 
-const content = readFileSync(STORY_BANK_PATH, 'utf-8');
-const stories = parseStories(content);
+const stories = parseStories(bank.content);
 
 if (stories.length === 0) {
   console.error('No stories found in story-bank.md yet.');
@@ -235,11 +238,12 @@ if (!question) {
 const queryTokens = tokenize(question);
 let jdTokens = [];
 if (jdPath) {
-  if (!existsSync(jdPath)) {
+  const jd = readFile(jdPath);
+  if (!jd.exists) {
     console.error(`Error: JD file not found at ${jdPath}`);
     process.exit(1);
   }
-  jdTokens = tokenize(readFileSync(jdPath, 'utf-8'));
+  jdTokens = tokenize(jd.content);
 }
 
 // Score and rank

@@ -32,6 +32,7 @@ import {
 } from 'fs';
 import { dirname } from 'path';
 import { withPipelineLock } from './pipeline-lock.mjs';
+import { flagValue, hasFlag } from './src/core/flags.js';
 
 const PATH = process.env.CAREER_OPS_INBOX || 'data/agent-inbox.md';
 
@@ -131,13 +132,6 @@ function parseItems() {
   return items;
 }
 
-function opt(name, def = '') {
-  const i = process.argv.indexOf('--' + name);
-  if (i < 0) return def;
-  const v = process.argv[i + 1];
-  return v && !v.startsWith('--') ? v : def;
-}
-
 async function add() {
   const text = oneLine(process.argv.slice(3).join(' '));
   if (!text) fail('add needs a request, e.g. node agent-inbox.mjs add "evaluate https://..."');
@@ -197,7 +191,7 @@ async function add() {
 }
 
 function list() {
-  const all = process.argv.includes('--all');
+  const all = hasFlag(process.argv, '--all');
   const items = parseItems().filter((it) => all || !it.done);
   if (!items.length) return process.stdout.write(all ? 'Inbox is empty.\n' : 'No pending items.\n');
   items.forEach((it, n) => {
@@ -212,7 +206,7 @@ function resolve() {
   const pending = parseItems().filter((it) => !it.done);
   const target = pending[n - 1];
   if (!target) fail(`no pending item #${n} (${pending.length} pending)`);
-  const result = oneLine(opt('result'));
+  const result = oneLine(flagValue(process.argv, '--result'));
   const lines = readFileSync(PATH, 'utf8').split('\n');
   let updated = lines[target.line].replace('[ ]', '[x]');
   if (result && !/→ result:/.test(updated)) updated += ` → result: ${result}`;

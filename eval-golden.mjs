@@ -28,6 +28,7 @@ import { join, dirname } from 'path';
 import { tmpdir } from 'os';
 import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
+import { flagValue } from './src/core/flags.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const GOLDEN_DIR = join(ROOT, 'evals', 'golden');
@@ -67,22 +68,11 @@ if (args.includes('--help') || args.includes('-h')) {
 }
 
 const mode  = args.includes('--live') ? 'live' : 'replay';
-const model = argValue('--model') || 'cheap-stub';
-const goldenDir = argValue('--golden') || GOLDEN_DIR;
+const model = flagValue(args, '--model') || 'cheap-stub';
+const goldenDir = flagValue(args, '--golden') || GOLDEN_DIR;
 // Keep fixtures next to the golden set so a custom --golden dir resolves its
 // own fixtures (the default lands on evals/fixtures); override with --fixtures.
-const fixtureDir = argValue('--fixtures') || join(dirname(goldenDir), 'fixtures');
-
-/**
- * Read the value following a `--flag` token in argv.
- *
- * @param {string} flag - The flag whose following value to return.
- * @returns {string|undefined} The value, or undefined if the flag is absent/last.
- */
-function argValue(flag) {
-  const i = args.indexOf(flag);
-  return i >= 0 && i + 1 < args.length ? args[i + 1] : undefined;
-}
+const fixtureDir = flagValue(args, '--fixtures') || join(dirname(goldenDir), 'fixtures');
 
 /**
  * Flatten a model id into a filesystem-safe fixture token.

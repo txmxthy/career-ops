@@ -30,9 +30,11 @@
  * `modelName` below and the `--model` examples accordingly.
  */
 
-import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+
+import { readFile as readFileOrAbsent, ensureDir } from './src/core/store.js';
 import { TokenAccumulator, formatBreakdown } from './utils/token-tracker.mjs';
 
 const tracker = new TokenAccumulator();
@@ -122,11 +124,12 @@ let noCompress = false;
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--file' && args[i + 1]) {
     const filePath = args[++i];
-    if (!existsSync(filePath)) {
+    const jd = readFileOrAbsent(filePath);
+    if (!jd.exists) {
       console.error(`❌  File not found: ${filePath}`);
       process.exit(1);
     }
-    jdText = readFileSync(filePath, 'utf-8').trim();
+    jdText = jd.content.trim();
   } else if (args[i] === '--model' && args[i + 1]) {
     modelName = args[++i];
   } else if (args[i] === '--no-save') {
@@ -162,11 +165,12 @@ if (!apiKey) {
 // File helpers
 // ---------------------------------------------------------------------------
 function readFile(path, label) {
-  if (!existsSync(path)) {
+  const { exists, content } = readFileOrAbsent(path);
+  if (!exists) {
     console.warn(`⚠️   ${label} not found at: ${path}`);
     return `[${label} not found — skipping]`;
   }
-  return readFileSync(path, 'utf-8').trim();
+  return content.trim();
 }
 
 function validateEvaluationShape(text) {
@@ -394,9 +398,7 @@ if (saveReport) {
   let reservedNumbers = [];
   try {
     try {
-      if (!existsSync(PATHS.reports)) {
-        mkdirSync(PATHS.reports, { recursive: true });
-      }
+      ensureDir(PATHS.reports);
 
       reservedNumbers   = await reserveReportNumbers(1, { rootDir: ROOT, reportsDir: PATHS.reports });
       const num         = formatReportNumber(reservedNumbers[0]);
@@ -421,7 +423,7 @@ ${evaluationText.replace(/---SCORE_SUMMARY---[\s\S]*?---END_SUMMARY---/, '').tri
 `;
 
       writeFileSync(reportPath, reportContent, 'utf-8');
-      mkdirSync(PATHS.trackerAdditions, { recursive: true });
+      ensureDir(PATHS.trackerAdditions);
       const trackerFields = [
         String(parseInt(num, 10)),
         today,

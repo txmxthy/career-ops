@@ -1,6 +1,6 @@
 # Tech-debt audit — career-ops
 
-Repo: `/Users/tim/Documents/Personal/workspaces/career-ops/dedupe-core/career-ops`
+Repo: this checkout (branch `dedupe-core`).
 Method: read the code. Every claim cites `path:line`. Confidence stated where measurement was partial.
 
 ---

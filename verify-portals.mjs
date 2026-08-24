@@ -25,10 +25,12 @@
  * through an injectable `fetchJson`, so the pure logic is testable offline.
  */
 
-import { existsSync, readFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
+
+import { hasFlag, flagValue } from './src/core/flags.js';
+import { readFile } from './src/core/store.js';
 
 import { fetchJson as defaultFetchJson, fetchTextHead as defaultFetchText, makeHttpCtx } from './providers/_http.mjs';
 import { decodeEntities } from './providers/_html-entities.mjs';
@@ -607,8 +609,11 @@ export async function verifyPortalsFile(
   filePath,
   { fetchJson = defaultFetchJson, providers = null, httpCtx = null } = {},
 ) {
-  if (!existsSync(filePath)) return { found: false, results: [] };
-  const config = yaml.load(readFileSync(filePath, 'utf-8'));
+  // Absent is a no-op; unreadable throws rather than reading as "nothing to
+  // verify" (ADR 0004 #7).
+  const { exists, content } = readFile(filePath);
+  if (!exists) return { found: false, results: [] };
+  const config = yaml.load(content);
   const companies = Array.isArray(config?.tracked_companies)
     ? config.tracked_companies
     : [];
@@ -698,18 +703,16 @@ async function runAdd(name, { fetchJson }) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const strict = args.includes('--strict');
+  const strict = hasFlag(args, '--strict');
   const fetchJson = defaultFetchJson;
 
-  const addFlag = args.indexOf('--add');
-  if (addFlag !== -1) {
-    await runAdd(args[addFlag + 1] || '', { fetchJson });
+  if (hasFlag(args, '--add')) {
+    await runAdd(flagValue(args, '--add') || '', { fetchJson });
     return;
   }
 
-  const fileFlag = args.indexOf('--file');
   const filePath = resolve(
-    fileFlag === -1 ? DEFAULT_PORTALS_PATH : args[fileFlag + 1] || '',
+    hasFlag(args, '--file') ? flagValue(args, '--file') || '' : DEFAULT_PORTALS_PATH,
   );
 
   // Load the scanner's provider plugins so non-ATS boards (Workday,

@@ -24,11 +24,11 @@
  * manifest data/pdf-index.tsv (written by generate-pdf.mjs).
  */
 
-import { readFileSync, existsSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
-import { resolvePdfIndexPath } from './tracker-utils.mjs';
+import { readFile, resolvePdfIndexPath } from './src/core/store.js';
+import { parseFlags } from './src/core/flags.js';
 import { roleFuzzyMatch } from './role-matcher.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -132,24 +132,41 @@ const USAGE = `Usage:
   node find.mjs <report# | tracker# | company/role fragment> [--json]
   node find.mjs --help                            # print this usage block and exit`;
 
-function parseArgs(argv) {
-  const args = argv.slice(2);
+// The query is free text, so every positional is kept and joined — a company
+// name is routinely two or three words.
+const SPEC = {
+  command: 'find',
+  usage: USAGE,
+  flags: {
+    '--json': { type: 'boolean', describe: 'Print matches as JSON' },
+    '--help': { type: 'boolean', short: '-h', describe: 'Show this usage block and exit' },
+  },
+  positionals: { name: 'query', min: 0, max: Infinity },
+};
 
-  if (args.includes('--help') || args.includes('-h')) {
+function parseArgs(argv) {
+  const parsed = parseFlags(argv.slice(2), SPEC);
+
+  // --help BEFORE the error check, keeping this script's own ordering. The
+  // shared parser reports flag errors first by default (so `--help --bogus`
+  // names --bogus); find.mjs has always answered --help and exited 0, and
+  // harmonising the two is a CLI-contract decision, not a rewiring one.
+  if (parsed.help) {
     console.log(USAGE);
     process.exit(0);
   }
 
-  const unknownFlags = args.filter(a => a.startsWith('-') && !KNOWN_FLAGS.includes(a));
-  if (unknownFlags.length) {
-    console.error(`Error: unrecognized flag(s): ${unknownFlags.join(', ')}. Valid flags: ${KNOWN_FLAGS.join(', ')}`);
+  if (!parsed.ok) {
+    // `flag` is the flag the parser objected to; a positional-arity error has
+    // none, and this spec accepts any number of them, so there is nothing else
+    // to fall back to.
+    const bad = parsed.errors.map(e => e.flag).filter(Boolean);
+    console.error(`Error: unrecognized flag(s): ${bad.join(', ')}. Valid flags: ${KNOWN_FLAGS.join(', ')}`);
     console.error(USAGE);
     process.exit(1);
   }
 
-  const json = args.includes('--json');
-  const query = args.filter(a => a !== '--json').join(' ').trim();
-  return { json, query };
+  return { json: parsed.json, query: parsed.positionals.join(' ').trim() };
 }
 
 function main() {
@@ -163,19 +180,22 @@ function main() {
   }
 
   const trackerPath = process.env.CAREER_OPS_TRACKER || resolve(ROOT, 'data', 'applications.md');
-  if (!existsSync(trackerPath)) {
+  // readFile, not existsSync-then-read: existsSync answers false for a file
+  // this process cannot traverse to, which turned an unreadable tracker into a
+  // silently empty search, and it is a TOCTOU besides. ABSENT is reported;
+  // UNREADABLE throws (ADR 0004 #7).
+  const tracker = readFile(trackerPath);
+  if (!tracker.exists) {
     console.error(`Error: ${trackerPath} not found — nothing to search.`);
     process.exitCode = 1;
     return;
   }
-  const rows = parseTrackerRows(readFileSync(trackerPath, 'utf-8'));
+  const rows = parseTrackerRows(tracker.content);
 
   // Derived from the tracker resolved just above, not from ROOT: a redirected
   // CAREER_OPS_TRACKER must not be searched against this install's manifest (#2471).
-  const manifestPath = resolvePdfIndexPath(trackerPath);
-  const pdfIndex = existsSync(manifestPath)
-    ? parsePdfIndex(readFileSync(manifestPath, 'utf-8'))
-    : new Map();
+  const manifest = readFile(resolvePdfIndexPath(trackerPath));
+  const pdfIndex = manifest.exists ? parsePdfIndex(manifest.content) : new Map();
 
   const matches = findMatches(rows, query, pdfIndex);
   if (json) {

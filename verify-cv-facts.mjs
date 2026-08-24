@@ -12,7 +12,7 @@
  *   node verify-cv-facts.mjs --self-test
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { readFile, readText } from './src/core/store.js';
 import { isAbsolute, join, dirname, basename } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 
@@ -101,11 +101,6 @@ const SIMPLE_CLAIM_PATTERNS = [
   /(?<![\w$€£])[$€£]\s?\d[\d,.]*(?:\s?[kKmMbB])?/g,
   /\b\d+(?:\.\d+)?\s?x\b/gi,
 ];
-
-/** Read a UTF-8 file when it exists, otherwise return an empty string. */
-function readIfExists(path) {
-  return existsSync(path) ? readFileSync(path, 'utf-8') : '';
-}
 
 // Unicode decimal-digit blocks, by the code point of their zero. Every claim
 // pattern in this file is written with ASCII `\d`, so a CV that spells its
@@ -347,8 +342,9 @@ export function auditClaims(targetText, sourceText, config = {}) {
 
 /** Load and validate the optional fact-gate configuration file. */
 function loadConfig(path) {
-  if (!existsSync(path)) return { allow_metrics: [], allow_facts: [], forbidden_phrases: [], warn_phrases: [] };
-  const config = JSON.parse(readFileSync(path, 'utf-8'));
+  const { exists, content } = readFile(path);
+  if (!exists) return { allow_metrics: [], allow_facts: [], forbidden_phrases: [], warn_phrases: [] };
+  const config = JSON.parse(content);
   for (const key of ['allow_metrics', 'allow_facts', 'forbidden_phrases', 'warn_phrases']) {
     if (config[key] == null) config[key] = [];
     else if (!Array.isArray(config[key])) throw new Error(`${key} must be an array in ${path}`);
@@ -380,7 +376,7 @@ export function verifyFacts(targetText, {
   configPath = DEFAULT_CONFIG,
   cwd = process.cwd(),
 } = {}) {
-  const sourceText = sourcePaths.map(path => readIfExists(resolveInputPath(path, cwd))).join('\n');
+  const sourceText = sourcePaths.map(path => readText(resolveInputPath(path, cwd))).join('\n');
   const config = loadConfig(resolveInputPath(configPath, cwd));
   const allowed = allowedMetricSet(sourceText, config.allow_metrics);
   const targetClaims = metricClaims(targetText);
@@ -715,12 +711,13 @@ export function runCli(args = process.argv.slice(2)) {
     return parsed.help ? 0 : 1;
   }
   const targetPath = resolveInputPath(parsed.targetArg);
-  if (!existsSync(targetPath)) {
+  const target = readFile(targetPath);
+  if (!target.exists) {
     console.error(`ERROR: target file not found: ${parsed.targetArg}`);
     return 1;
   }
   try {
-    const result = verifyFacts(readFileSync(targetPath, 'utf-8'), {
+    const result = verifyFacts(target.content, {
       sourcePaths: parsed.sourcePaths.length ? parsed.sourcePaths : DEFAULT_SOURCES,
       configPath: parsed.configPath,
     });

@@ -29,10 +29,15 @@ import { loadRegistry, findInRegistry, classifySource, sourceBadge, successorFor
 import { readLock, writeLockEntry, removeLockEntry, hashPluginTree, consentSurface } from './plugins/_lock.mjs';
 import { installFromRepo, scaffoldNew, parseRepoArg } from './plugin-install.mjs';
 import { appendToPipeline } from './scan.mjs';
+import { parseRow, isSeparatorRow } from './src/core/table.js';
+import { resolveTrackerPath, resolvePipelinePath, readText } from './src/core/store.js';
+import { flagValue, hasFlag } from './src/core/flags.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const APPLICATIONS_PATH = path.join(ROOT, 'data', 'applications.md');
-const PIPELINE_PATH = path.join(ROOT, 'data', 'pipeline.md');
+// Resolved rather than joined, so the snapshot and the de-dup read the same
+// files scan.mjs appends to when CAREER_OPS_* redirects the workspace.
+const APPLICATIONS_PATH = resolveTrackerPath(ROOT);
+const PIPELINE_PATH = resolvePipelinePath(ROOT);
 
 // A misbehaving plugin's stray rejection should be attributed and not silently
 // crash the host (the engine's per-hook try/catch handles the common case; this
@@ -55,15 +60,17 @@ function sanitizeJob(job) {
 }
 
 /** Generic markdown-table parser → rows keyed by lowercased header. READ-ONLY. */
-function parseMarkdownTable(md) {
+export function parseMarkdownTable(md) {
   const lines = md.split('\n').map(l => l.trim()).filter(l => l.startsWith('|'));
   if (lines.length < 2) return [];
-  const headers = lines[0].split('|').slice(1, -1).map(h => h.trim().toLowerCase());
+  const headers = (parseRow(lines[0]) ?? []).map(h => h.toLowerCase());
   const rows = [];
   for (const line of lines.slice(1)) {
-    if (/^\|[\s|:-]+\|?$/.test(line)) continue; // separator row
-    const cells = line.split('|').slice(1, -1).map(c => c.trim());
-    if (cells.length === 0) continue;
+    if (isSeparatorRow(line)) continue;
+    const cells = parseRow(line);
+    if (!cells || cells.length === 0) continue;
+    if (cells.every(c => c === '')) continue; // blank row, not a record
+    // Padded, not skipped: an export hook expects every header key present.
     const row = {};
     headers.forEach((h, i) => { row[h] = cells[i] ?? ''; });
     rows.push(Object.freeze(row));
@@ -74,18 +81,14 @@ function parseMarkdownTable(md) {
 /** URLs already present in data/pipeline.md, for additive de-duplication. */
 function existingPipelineUrls() {
   const urls = new Set();
-  if (!existsSync(PIPELINE_PATH)) return urls;
-  const text = readFileSync(PIPELINE_PATH, 'utf8');
-  for (const m of text.matchAll(/- \[[ xX]\]\s+(\S+)/g)) urls.add(m[1]);
+  for (const m of readText(PIPELINE_PATH).matchAll(/- \[[ xX]\]\s+(\S+)/g)) urls.add(m[1]);
   return urls;
 }
 
 /** Frozen, read-only view of the user's tracker for `export` hooks. No file handle. */
 function buildSnapshot() {
-  const applications = existsSync(APPLICATIONS_PATH)
-    ? parseMarkdownTable(readFileSync(APPLICATIONS_PATH, 'utf8')) : [];
-  const pipeline = existsSync(PIPELINE_PATH)
-    ? parseMarkdownTable(readFileSync(PIPELINE_PATH, 'utf8')) : [];
+  const applications = parseMarkdownTable(readText(APPLICATIONS_PATH));
+  const pipeline = parseMarkdownTable(readText(PIPELINE_PATH));
   return Object.freeze({
     applications: Object.freeze(applications),
     pipeline: Object.freeze(pipeline),
@@ -252,7 +255,7 @@ function cmdSkill(args) {
 
 function cmdEnable(args) {
   const id = args.find(a => !a.startsWith('--'));
-  const confirm = args.includes('--confirm');
+  const confirm = hasFlag(args, '--confirm');
   if (!id) { console.error('Usage: node plugins.mjs enable <id> [--confirm]'); process.exit(1); }
   const m = findManifest(id);
   if (!m) { console.error(`Unknown plugin "${id}". Run \`node plugins.mjs list\`.`); process.exit(1); }
@@ -310,9 +313,8 @@ function cmdNew(args) {
 async function cmdAdd(args) {
   const positional = args.filter(a => !a.startsWith('--'));
   const target = positional[0];
-  const shaIdx = args.indexOf('--sha');
-  const sha = shaIdx !== -1 ? args[shaIdx + 1] : null;
-  const confirm = args.includes('--confirm');
+  const sha = flagValue(args, '--sha') ?? null;
+  const confirm = hasFlag(args, '--confirm');
   if (!target) { console.error('Usage: node plugins.mjs add <name|owner/repo> [--sha <commit>] [--confirm]'); process.exit(1); }
 
   let url, useSha, approved;

@@ -35,15 +35,20 @@
 
 import { createHash } from 'crypto';
 import { execFileSync } from 'child_process';
-import {
-  existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync,
-} from 'fs';
+import { existsSync, readdirSync, realpathSync, statSync } from 'fs';
 import { dirname, extname, join, relative, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
+import { flagValue, hasFlag } from './src/core/flags.js';
+import {
+  ensureDir, readFile, requireText, workspaceDir, writeFileAtomic,
+} from './src/core/store.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-const DOCS_DIR = process.env.CAREER_OPS_DOCUMENTS_DIR || join(ROOT, 'documents');
-const STATE_FILE = process.env.CAREER_OPS_INTAKE_STATE || join(ROOT, 'data', 'intake-state.json');
+// workspaceDir keeps the legacy root layout for installs that already have
+// documents/ and data/, and puts a fresh install under workspace/ (ADR 0007).
+const DOCS_DIR = process.env.CAREER_OPS_DOCUMENTS_DIR || workspaceDir('documents', ROOT);
+const STATE_FILE = process.env.CAREER_OPS_INTAKE_STATE
+  || join(workspaceDir('data', ROOT), 'intake-state.json');
 
 // The four intake folders from the issue spec. Files directly under
 // documents/ are picked up too — the folders are guidance, not a gate.
@@ -149,10 +154,13 @@ export function computeDelta(state, sources) {
 }
 
 function loadState() {
-  if (!existsSync(STATE_FILE)) return { ingested: {} };
   try {
-    return JSON.parse(readFileSync(STATE_FILE, 'utf-8')) || { ingested: {} };
+    const { exists, content } = readFile(STATE_FILE);
+    if (!exists) return { ingested: {} };
+    return JSON.parse(content) || { ingested: {} };
   } catch {
+    // Unreadable or malformed alike: a state file we cannot trust means every
+    // source is proposed again, which is recoverable. Failing here would not be.
     return { ingested: {} };
   }
 }
@@ -269,7 +277,7 @@ function extractAll() {
     try {
       let text;
       if (cls.kind === 'direct') {
-        text = readFileSync(abs, 'utf-8');
+        text = requireText(abs);
         base.extractor = 'direct';
       } else {
         if (!extractor) return { ...base, status: 'skipped', reason: PDF_INSTALL_HINT };
@@ -306,7 +314,7 @@ function extractAll() {
 }
 
 function ensureScaffold() {
-  for (const folder of INTAKE_FOLDERS) mkdirSync(join(DOCS_DIR, folder), { recursive: true });
+  for (const folder of INTAKE_FOLDERS) ensureDir(join(DOCS_DIR, folder));
 }
 
 // Sentinel for `--commit --all`. The safe case ("record what the user
@@ -332,8 +340,8 @@ function commitState(result, only = []) {
     state.ingested[s.path] = { hash: s.hash, ingestedAt: now };
     count += 1;
   }
-  mkdirSync(dirname(STATE_FILE), { recursive: true });
-  writeFileSync(STATE_FILE, JSON.stringify(state, null, 2) + '\n', 'utf-8');
+  ensureDir(dirname(STATE_FILE));
+  writeFileAtomic(STATE_FILE, JSON.stringify(state, null, 2) + '\n');
   return count;
 }
 
@@ -416,9 +424,8 @@ function main() {
   if (args.includes('--self-test')) runSelfTest();
 
   ensureScaffold();
-  const textIdx = args.indexOf('--text');
-  if (textIdx !== -1) {
-    const target = args[textIdx + 1];
+  if (hasFlag(args, '--text')) {
+    const target = flagValue(args, '--text');
     if (!target) { console.error('Usage: node intake.mjs --text <path relative to documents/>'); process.exit(1); }
     const abs = resolve(DOCS_DIR, target);
     // Scan output only ever emits paths inside documents/ — refuse anything
@@ -435,7 +442,7 @@ function main() {
     // the way extractAll() does (first line of the message, nonzero) instead of
     // dumping a stack trace at someone who mistyped a path.
     try {
-      if (cls.kind === 'direct') text = readFileSync(abs, 'utf-8');
+      if (cls.kind === 'direct') text = requireText(abs);
       else if (cls.kind === 'pdf') {
         const extractor = detectPdfExtractor();
         if (!extractor) { console.error(PDF_INSTALL_HINT); process.exit(1); }

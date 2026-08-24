@@ -53,6 +53,7 @@ import { buildTitleFilter, buildLocationFilter, buildContentFilter, matchedTitle
 import { SEED_SOURCES, toPortalEntry } from './seeds/vc-portfolios.mjs';
 import { normalizeCompany } from './tracker-utils.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
+import { flagValue } from './src/core/flags.js';
 
 // ── Config ──────────────────────────────────────────────────────────
 
@@ -261,12 +262,7 @@ function parseArgs(argv) {
   // CodeRabbit flagged on #2745/#2746).
   validateFlags(args, KNOWN_FLAGS, USAGE, { valueFlags: VALUE_FLAGS });
 
-  const valueOf = (flag) => {
-    const idx = args.indexOf(flag);
-    if (idx !== -1 && args[idx + 1] && !args[idx + 1].startsWith('--')) return args[idx + 1];
-    const kv = args.find(a => a.startsWith(flag + '='));
-    return kv ? kv.split('=').slice(1).join('=') : null;
-  };
+  const valueOf = (flag) => flagValue(args, flag);
   // Validated by the SAME parser scan.mjs uses, so one flag name cannot mean
   // two different things (#2498). `Number(...) || 3` silently swallowed every
   // malformed operand: `--since abc` and `--since 0` became 3 while the user

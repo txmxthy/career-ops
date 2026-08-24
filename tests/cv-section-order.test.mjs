@@ -7,7 +7,7 @@
 // Assertions run against rendered HTML rather than source patterns: the reorder
 // has to survive nested markup, comments, absent optional sections and a second
 // application, and none of that is observable from the source text.
-import { pass, fail, linkRepoPackage, ROOT, NODE } from './helpers.mjs';
+import { pass, fail, linkRepoPackage, copyCoreModules, ROOT, NODE } from './helpers.mjs';
 import { spawnSync } from 'child_process';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
@@ -745,6 +745,8 @@ try {
     ]) {
       copyFileSync(join(ROOT, f), join(sandbox, f));
     }
+    // Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
+    copyCoreModules(sandbox);
 
     // theme-style.mjs and tracker-utils.mjs both `import * as yaml from
     // 'js-yaml'`, resolved by walking up into the repo's node_modules -- from
@@ -874,6 +876,8 @@ export const chromium = {
     ]) {
       copyFileSync(join(ROOT, f), join(sandbox, f));
     }
+    // Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
+    copyCoreModules(sandbox);
 
     // theme-style.mjs and tracker-utils.mjs both `import * as yaml from
     // 'js-yaml'`, resolved by walking up into the repo's node_modules -- from

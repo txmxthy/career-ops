@@ -153,9 +153,9 @@
  *   node story-provenance-check.mjs --self-test
  */
 
-import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { flagValue } from './lib/cli-flags.mjs';
+import { flagValue, hasFlag } from './src/core/flags.js';
+import { readFile } from './src/core/store.js';
 
 // ── Config ──────────────────────────────────────────────────────────
 
@@ -468,8 +468,8 @@ export { parseStoryBlocks, extractClaims, extractNumbers, classifyStoryBank, dia
 // ── CLI ──────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
-const summaryMode = args.includes('--summary');
-const selfTestMode = args.includes('--self-test');
+const summaryMode = hasFlag(args, '--summary');
+const selfTestMode = hasFlag(args, '--self-test');
 const storyBankPath = flagValue(args, '--story-bank') || DEFAULT_STORY_BANK_PATH;
 const cvPath = flagValue(args, '--cv') || DEFAULT_CV_PATH;
 
@@ -710,10 +710,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (selfTestMode) {
     runSelfTest();
   } else {
-    const storyBankExists = existsSync(storyBankPath);
-    const cvExists = existsSync(cvPath);
-    const storyBankText = storyBankExists ? readFileSync(storyBankPath, 'utf-8') : '';
-    const cvText = cvExists ? readFileSync(cvPath, 'utf-8') : '';
+    const { exists: storyBankExists, content: storyBankText } = readFile(storyBankPath);
+    const { exists: cvExists, content: cvText } = readFile(cvPath);
 
     const result = classifyStoryBank(storyBankText, cvText);
     const storyCount = storyBankExists ? parseStoryBlocks(storyBankText).length : 0;

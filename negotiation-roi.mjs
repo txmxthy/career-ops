@@ -62,7 +62,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { spawnSync } from 'child_process';
 import { parseStories } from './match-star.mjs';
-import { flagValue, hasFlag } from './lib/cli-flags.mjs';
+import { flagValue, hasFlag } from './src/core/flags.js';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
 const STORY_BANK_PATH = join(CAREER_OPS, 'interview-prep', 'story-bank.md');

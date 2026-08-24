@@ -12,12 +12,14 @@
  *  - Inline updates of data/pipeline.md (marks [ ] as [x])
  */
 
-import { readFileSync, existsSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
+import { writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import { execFileSync, execFile } from 'child_process';
 import { promisify } from 'util';
+import { readFile as readStoredFile, readText } from './src/core/store.js';
+import { flagValue } from './src/core/flags.js';
 import { rejectPrivateOrInvalid } from './liveness-browser.mjs';
 const execFileAsync = promisify(execFile);
 try {
@@ -45,12 +47,9 @@ let modelName;
 
 function readSpendTier() {
   try {
-    if (existsSync(PATHS.profileYml)) {
-      const content = readFileSync(PATHS.profileYml, 'utf-8');
-      const match = content.match(/^[ \t]*spend_tier[ \t]*:[ \t]*(.+)$/m);
-      if (match) {
-        return match[1].trim();
-      }
+    const match = readText(PATHS.profileYml).match(/^[ \t]*spend_tier[ \t]*:[ \t]*(.+)$/m);
+    if (match) {
+      return match[1].trim();
     }
   } catch (err) {}
   return 'standard';
@@ -73,9 +72,9 @@ function setupEnvironment() {
     process.exit(1);
   }
 
-  const modelArg = process.argv.find(a => a.startsWith('--model='));
+  const modelArg = flagValue(process.argv.slice(2), '--model');
   const resolvedSpendTier = readSpendTier();
-  modelName = modelArg ? modelArg.split('=')[1] : spendTierToModel(resolvedSpendTier); // GitHub diff trigger
+  modelName = modelArg || spendTierToModel(resolvedSpendTier); // GitHub diff trigger
   const genAI = new GoogleGenerativeAI(apiKey);
   model = genAI.getGenerativeModel({
     model: modelName,
@@ -84,12 +83,13 @@ function setupEnvironment() {
 } // GitHub diff trigger for bot outdate
 
 // --- File Helpers ---
-function readFile(path, label) {
-  if (!existsSync(path)) {
+function readContextFile(path, label) {
+  const { exists, content } = readStoredFile(path);
+  if (!exists) {
     console.error(`❌ Required context file missing: ${path} (${label})`);
     process.exit(1);
   }
-  return readFileSync(path, 'utf-8').trim();
+  return content.trim();
 }
 
 async function nextReportNumber() { // outdate-bot
@@ -115,11 +115,11 @@ let systemPromptTemplate;
 
 function loadContext() {
   console.log('📂 Loading context files...');
-  const sharedContext  = readFile(PATHS.shared, '_shared.md');
-  const ofertaLogic    = readFile(PATHS.oferta, 'oferta.md');
-  const cvContent      = readFile(PATHS.cv, 'cv.md');
-  const profileContent = readFile(PATHS.profile, '_profile.md');
-  const profileYml     = readFile(PATHS.profileYml, 'profile.yml');
+  const sharedContext  = readContextFile(PATHS.shared, '_shared.md');
+  const ofertaLogic    = readContextFile(PATHS.oferta, 'oferta.md');
+  const cvContent      = readContextFile(PATHS.cv, 'cv.md');
+  const profileContent = readContextFile(PATHS.profile, '_profile.md');
+  const profileYml     = readContextFile(PATHS.profileYml, 'profile.yml');
 
   systemPromptTemplate = `You are career-ops, an AI-powered job search assistant.
 You evaluate job offers against the user's CV using a structured A-G scoring system.
@@ -312,19 +312,21 @@ async function main() {
   setupEnvironment();
   loadContext();
 
-  const limitArg = process.argv.find(a => a.startsWith("--limit="));
-  const limitCount = limitArg ? parseInt(limitArg.split("=")[1], 10) : 0;
-  
-  const concArg = process.argv.find(a => a.startsWith("--concurrency="));
-  let CONCURRENCY = concArg ? parseInt(concArg.split("=")[1], 10) : 2; // outdate-bot
+  const cliArgs = process.argv.slice(2);
+  const limitArg = flagValue(cliArgs, '--limit');
+  const limitCount = limitArg ? parseInt(limitArg, 10) : 0;
+
+  const concArg = flagValue(cliArgs, '--concurrency');
+  let CONCURRENCY = concArg ? parseInt(concArg, 10) : 2; // outdate-bot
   if (isNaN(CONCURRENCY) || CONCURRENCY < 1) CONCURRENCY = 2;
 
-  if (!existsSync(PATHS.pipeline)) {
+  const pipeline = readStoredFile(PATHS.pipeline);
+  if (!pipeline.exists) {
     console.log("No pipeline.md found.");
     return;
   }
 
-  const pipelineLines = readFileSync(PATHS.pipeline, 'utf-8').split('\n');
+  const pipelineLines = pipeline.content.split('\n');
   const pendingIndices = pipelineLines
     .map((l, i) => l.trim().startsWith('- [ ]') ? i : -1)
     .filter(i => i !== -1);

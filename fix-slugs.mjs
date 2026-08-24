@@ -30,12 +30,13 @@
  *   node fix-slugs.mjs --help        # show this message (-h is an alias)
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
 
 import { verifyPortalsFile } from './verify-portals.mjs';
 import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
+import { readFile } from './src/core/store.js';
 
 const DEFAULT_PORTALS_PATH = process.env.CAREER_OPS_PORTALS || 'portals.yml';
 
@@ -350,13 +351,16 @@ async function main() {
   const fileVal = flagValue(args, '--file');
   const filePath = resolve(fileVal || DEFAULT_PORTALS_PATH);
 
-  if (!existsSync(filePath)) {
+  // Read before the (slow, network-bound) verify: gating on existsSync and
+  // reading afterwards let the file vanish in between, turning "nothing to fix"
+  // into an unhandled ENOENT.
+  const { exists, content: rawText } = readFile(filePath);
+  if (!exists) {
     console.log(`fix-slugs: no portals file at ${filePath} — nothing to fix.`);
     return;
   }
 
   const { results } = await verifyPortalsFile(filePath);
-  const rawText = readFileSync(filePath, 'utf-8');
   const { text, fixes } = computeFixes(rawText, results);
 
   printDiff(fixes, { dryRun });

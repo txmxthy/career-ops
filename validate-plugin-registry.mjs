@@ -11,6 +11,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { loadRegistry, loadRegistryFiles, validateRegistryEntry } from './plugins/_registry.mjs';
 import { HOOK_KINDS, RESERVED_ENV } from './plugins/_engine.mjs';
+import { hasFlag } from './src/core/flags.js';
 
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -45,7 +46,9 @@ export function validateRegistry(root) {
 
 if (import.meta.url === (await import('node:url')).pathToFileURL(process.argv[1] || '').href) {
   const root = process.cwd();
-  const deep = process.argv.includes('--deep');
+  // hasFlag, not argv.includes: `--deep=1` used to fall through to the shallow
+  // check and still print "valid" at exit 0 — a pass for a check never run.
+  const deep = hasFlag(process.argv.slice(2), '--deep');
   const problems = validateRegistry(root);
   // --deep: clone each entry at its pinned SHA + statically validate it (no
   // plugin code is executed). Used by the registry-validate CI in a sandbox.

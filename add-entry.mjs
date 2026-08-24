@@ -38,11 +38,12 @@
  * files so tests never touch a real user CV.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { normalizeTextKey } from './tracker-parse.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
+import { readFile } from './src/core/store.js';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
 
@@ -239,8 +240,14 @@ async function main() {
     process.exit(1);
   }
 
-  const cvText = existsSync(CV_FILE) ? readFileSync(CV_FILE, 'utf-8') : null;
-  const articleText = existsSync(ARTICLE_DIGEST_FILE) ? readFileSync(ARTICLE_DIGEST_FILE, 'utf-8') : null;
+  // `null` still means "no such file" — applyAdd reads it as "create this one".
+  // One read rather than existsSync-then-read: the gate answered false for a
+  // cv.md this process could not traverse to, so an unreadable CV looked absent
+  // and `add` would have created a second one beside it.
+  const cv = readFile(CV_FILE);
+  const article = readFile(ARTICLE_DIGEST_FILE);
+  const cvText = cv.exists ? cv.content : null;
+  const articleText = article.exists ? article.content : null;
 
   let out;
   try {

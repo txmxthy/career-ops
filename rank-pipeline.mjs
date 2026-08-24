@@ -33,12 +33,18 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { execFileSync } from 'child_process';
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { flagValue, hasFlag } from './lib/cli-flags.mjs';
+import { flagValue, hasFlag } from './src/core/flags.js';
+import { resolvePipelinePath } from './src/core/store.js';
 import { sanitizeMarkdownField } from './scan.mjs';
 import { withPipelineLock } from './pipeline-lock.mjs';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
-const PIPELINE_PATH = join(CAREER_OPS, 'data', 'pipeline.md');
+// The shared resolver, not a private join: this script used to annotate
+// `<script dir>/data/pipeline.md` unconditionally, so a lane redirected with
+// CAREER_OPS_PIPELINE was ranked against the wrong inbox and the run reported
+// success anyway. scan.mjs, scan-ats-full.mjs and this script write the same
+// file and must agree on which one it is.
+const PIPELINE_PATH = resolvePipelinePath(CAREER_OPS);
 const CV_PATH = join(CAREER_OPS, 'cv.md');
 
 const DEFAULT_LIMIT = 20;
