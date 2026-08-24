@@ -4,7 +4,7 @@ Design for the consolidation. Evidence is in [`../audit/`](../audit/); read that
 
 | ADR | Decision |
 |---|---|
-| [0001](0001-root-paths-stay.md) | **Root filenames stay**; dedupe happens inside them. Supersedes the brief's "everything moves to `src/`" default — `update-system.mjs` resurrects any deleted root path on every upstream update. |
+|  [0001](0001-root-goes-to-fifteen.md) | **Root goes 127 → 15.** The 112 unpinned scripts move to `src/`; the 15 with real external consumers stay as 3-line shims. `update-system.mjs` is forked (`REMOVED_PATHS` + a prune command + a `doctor` check) because it otherwise resurrects every moved file. |
 | [0002](0002-module-boundaries.md) | **Four** core modules (`table`, `store`, `flags`, `text`), not twelve. Each justified by a measured consumer count. |
 | [0003](0003-command-taxonomy.md) | `career-ops <noun> <verb>`, ten nouns. All 127 root scripts classified: 85 commands, 22 library modules, 20 tests. No gaps. |
 | [0004](0004-divergence-decisions.md) | 8 divergences decided in advance. **One blocked on a human decision** — URL path casing. |

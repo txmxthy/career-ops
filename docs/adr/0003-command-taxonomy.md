@@ -9,8 +9,8 @@ The 127 root scripts are the LLM's tool surface: `modes/*.md` shells out to them
 is a legitimate design for agent invocation, and it is why the sprawl exists. The new CLI must
 be at least as good a tool surface, not merely a tidier one.
 
-Per ADR 0001 the root filenames stay. This taxonomy therefore defines what each script's logic
-*becomes* inside the CLI, with the root file remaining as a shim that delegates to it.
+Per ADR 0001 the 112 unpinned scripts MOVE into `src/`; the 15 frozen ones stay at root as
+3-line shims delegating into the CLI. This taxonomy defines the destination for each.
 
 ## Decision
 
