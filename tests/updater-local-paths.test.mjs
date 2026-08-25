@@ -16,7 +16,7 @@
 import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, rmSync } from 'fs';
 import { spawnSync } from 'child_process';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { ROOT, pass, fail } from './helpers.mjs';
 import {
   LOCAL_PATHS_FILE,
@@ -204,7 +204,9 @@ console.log('\n🧪 Local user-paths declaration file (#2421)\n');
   g('config', 'core.hooksPath', join(dir, 'no-such-hooks'));
 
   for (const f of ['src/scripts/validate-system-paths-coverage.mjs', 'update-system.mjs']) {
-    copyFileSync(join(ROOT, f), join(dir, f));
+    const dest = join(dir, f);
+    mkdirSync(dirname(dest), { recursive: true });
+    copyFileSync(join(ROOT, f), dest);
   }
   // A fork-local file upstream has never heard of — the reported case.
   writeFileSync(join(dir, 'run-nightly.ps1'), '# fork-local runner\n');

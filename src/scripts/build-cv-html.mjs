@@ -32,7 +32,7 @@ import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import { stripEmptySections } from '../lib/cv-sections-core.mjs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const TEMPLATE_PATH = resolve(__dirname, 'templates', 'cv-template.html');
 const PLACEHOLDER_RE = /\{\{[A-Z_]+\}\}/g;
 const CONTACT_ROW_RE = /<div class="contact-row">[\s\S]*?<\/div>/;

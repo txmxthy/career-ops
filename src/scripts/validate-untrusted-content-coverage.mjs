@@ -29,7 +29,8 @@ import { dirname, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { USER_PATHS } from '../../update-system.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+// repo root (src/scripts/ lives two levels down)
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const MARKER = 'Untrusted External Content';
 const CANONICAL_HEADING = `## ${MARKER} (CRITICAL)`;

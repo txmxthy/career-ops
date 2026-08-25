@@ -21,7 +21,7 @@ import { resolveColumns, parseTrackerRow, normalizeVia } from '../../tracker-par
 import { resolveTrackerPath, readFile } from '../core/store.js';
 import { flagValue, hasFlag } from '../core/flags.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const APPS_FILE = resolveTrackerPath(CAREER_OPS);
 const REPORTS_DIR = join(CAREER_OPS, 'reports');
 

@@ -21,19 +21,17 @@
 
 import { execFileSync } from 'child_process';
 import { readFileSync, writeFileSync, mkdtempSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { tmpdir } from 'os';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { pathToFileURL } from 'url';
+import { pass, fail, ROOT } from './helpers.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
 const NODE = process.execPath;
 const CLI = join(ROOT, 'src/scripts/paste-reply.mjs');
 
-let passed = 0;
-let failed = 0;
 function check(name, cond, detail = '') {
-  if (cond) { passed++; console.log(`  ✅ ${name}`); }
-  else { failed++; console.log(`  ❌ ${name}${detail ? ` — ${detail}` : ''}`); }
+  if (cond) pass(name);
+  else fail(`${name}${detail ? ` — ${detail}` : ''}`);
 }
 
 function tmp(prefix) {
@@ -204,6 +202,3 @@ console.log('8. interactive (stdin) mode — no --file flag');
   check('interactive: signal is null', cand.signal === null);
   check('interactive: CLI reports success', out.includes('Appended a new reply candidate'), out);
 }
-
-console.log(`\nResults: ${passed} passed, ${failed} failed`);
-process.exit(failed ? 1 : 0);

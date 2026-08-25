@@ -25,7 +25,7 @@ import { fileURLToPath } from 'url';
 import { flagValue } from '../core/flags.js';
 import { readFile as readFileOrAbsent } from '../core/store.js';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const ALLOWED_HOSTS = new Set([
   'boards.greenhouse.io',

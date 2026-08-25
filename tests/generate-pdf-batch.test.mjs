@@ -44,12 +44,12 @@ mkdirSync(join(sandbox, 'data'), { recursive: true });
 writeFileSync(join(sandbox, 'data', 'pdf-index.tsv'), '', 'utf-8');
 
 copyFileSync(join(ROOT, 'generate-pdf.mjs'), script);
-copyFileSync(join(ROOT, 'src/lib/theme-style.mjs'), join(sandbox, 'src/lib/theme-style.mjs'));
 copyFileSync(join(ROOT, 'tracker-utils.mjs'), join(sandbox, 'tracker-utils.mjs'));
 copyFileSync(join(ROOT, 'tracker-parse.mjs'), join(sandbox, 'tracker-parse.mjs'));
 copyFileSync(join(ROOT, 'tracker-aliases.json'), join(sandbox, 'tracker-aliases.json'));
-copyFileSync(join(ROOT, 'src/lib/pipeline-lock.mjs'), join(sandbox, 'src/lib/pipeline-lock.mjs'));
-// Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
+// Everything generate-pdf.mjs imports under src/ -- src/core/*, plus
+// src/lib/theme-style.mjs and src/lib/pipeline-lock.mjs. Copied as one tree so
+// the hand-list above never has to track which module lives where.
 copyCoreModules(sandbox);
 
 // src/lib/theme-style.mjs and tracker-utils.mjs both `import * as yaml from 'js-yaml'`,

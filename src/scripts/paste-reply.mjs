@@ -49,7 +49,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { renameSyncWithRetry } from '../../tracker-utils.mjs';
 import { flagValue, hasFlag } from '../core/flags.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CANDIDATES_PATH = process.env.CAREER_OPS_REPLY_CANDIDATES
   || path.join(__dirname, 'data', 'reply-candidates.json');
 

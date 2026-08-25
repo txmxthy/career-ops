@@ -86,8 +86,8 @@ jobs:
           go-version: '1.26'   # old updaters rebuild the dashboard during apply
       - run: npm install --ignore-scripts
       - name: Upgrade PR gate (newest old release -> this commit)
-        run: node tests/upgrade.test.mjs --pr-gate
+        run: node tests/upgrade-harness.mjs --pr-gate
       - name: Canary (harness must be able to fail)
-        run: node tests/upgrade.test.mjs --canary
+        run: node tests/upgrade-harness.mjs --canary
       - name: Local-paths declaration survives a real apply (#2421)
-        run: node tests/upgrade.test.mjs --local-paths
+        run: node tests/upgrade-harness.mjs --local-paths

@@ -35,7 +35,7 @@ import * as yaml from 'js-yaml';
 import { hasFlag, flagValue } from '../core/flags.js';
 import { readText } from '../core/store.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OBS_PATH = join(CAREER_OPS, 'data/salary-observations.tsv');
 const REPORTS_DIR = join(CAREER_OPS, 'reports');
 

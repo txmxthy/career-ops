@@ -23,7 +23,7 @@ import {
 import { readFile } from '../core/store.js';
 import { validateFlags } from '../../lib/cli-flags.mjs';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_CANDIDATES_PATH = path.join(__dirname, 'data', 'reply-candidates.json');
 const APPS_FILE = resolveTrackerPath(__dirname);
 const FOLLOWUPS_FILE = path.join(__dirname, 'data', 'follow-ups.md');

@@ -173,6 +173,7 @@ test('render image: a missing image could not be converted — 3', async () => {
 
 test('render dashboard: no dashboard source is a could-not-run — 3', async () => {
   const dir = sandbox();
+  mkdirSync(join(dir, 'src', 'scripts'), { recursive: true });
   writeFileSync(join(dir, 'src/scripts/build-dashboard.mjs'), '// stand-in\n');
   const exec = fakeExec();
   const res = await commands.dashboard.run([], { rootDir: dir, cwd: dir, exec });

@@ -19,7 +19,7 @@ import { fileURLToPath } from 'url';
 import { extractTrackerReportNumbers, resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
 import { rebuildRow, resolveTrackerPath, resolvePdfIndexPath, openTrackerTransaction } from '../../tracker-utils.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const APPS_FILE = resolveTrackerPath(CAREER_OPS);
 // Derived from the TRACKER, not from this script's location, so a redirected
 // CAREER_OPS_TRACKER moves the whole workspace together (#2471).

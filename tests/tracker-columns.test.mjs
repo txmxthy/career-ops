@@ -19,11 +19,10 @@
 
 import { execFileSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, utimesSync } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { tmpdir } from 'os';
-import { fileURLToPath } from 'url';
+import { pass, fail, ROOT } from './helpers.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
 const NODE = process.execPath;
 
 // web/ lives deliberately OUTSIDE the auto-updater's world (its own
@@ -35,10 +34,6 @@ const NODE = process.execPath;
 const HAS_WEB = existsSync(join(ROOT, 'web', 'src', 'lib', 'tracker-table.mjs'));
 function skipWeb(m) { console.log(`SKIP ${m} — web/ not present (core-only install; web/ is excluded from the auto-updater by design)`); }
 
-let passed = 0;
-let failed = 0;
-function pass(m) { console.log(`PASS ${m}`); passed++; }
-function fail(m) { console.error(`FAIL ${m}`); failed++; }
 
 // Run a script with tracker/additions redirected to a sandbox. Returns
 // { code, stdout } — code is 0 on success, the process exit code otherwise.
@@ -701,6 +696,3 @@ if (!HAS_WEB) {
     fail(`web reader: dropped the last cell — web "${tailWeb && tailWeb.notes}" vs core "${tailCore && tailCore.notes}"`);
   }
 }
-
-console.log(`\n${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);

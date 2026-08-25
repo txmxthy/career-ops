@@ -64,7 +64,7 @@ import { spawnSync } from 'child_process';
 import { parseStories } from '../lib/match-star.mjs';
 import { flagValue, hasFlag } from '../core/flags.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const STORY_BANK_PATH = join(CAREER_OPS, 'interview-prep', 'story-bank.md');
 const CV_PATH = join(CAREER_OPS, 'cv.md');
 

@@ -11,20 +11,13 @@
 
 import { parseCompensation } from '../providers/ashby.mjs';
 import { buildSalaryFilter } from '../scan.mjs';
+import { pass, fail } from './helpers.mjs';
 
 // ── Test runner ──────────────────────────────────────────────────────
 
-let passed = 0;
-let failed = 0;
-
 function assert(condition, testName) {
-  if (condition) {
-    passed++;
-    console.log(`  ✓ ${testName}`);
-  } else {
-    failed++;
-    console.error(`  ✗ FAIL: ${testName}`);
-  }
+  if (condition) pass(testName);
+  else fail(testName);
 }
 
 function section(name) {
@@ -575,19 +568,4 @@ section('End-to-end — Ashby job through salary filter');
   });
   assert(malformed === null, 'e2e: malformed comp → null');
   assert(filter(malformed) === true, 'e2e: malformed → null → pass (conservative)');
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// Summary
-// ══════════════════════════════════════════════════════════════════════
-
-console.log(`\n${'═'.repeat(50)}`);
-console.log(`  Results: ${passed} passed, ${failed} failed, ${passed + failed} total`);
-console.log(`${'═'.repeat(50)}`);
-
-if (failed > 0) {
-  console.error(`\n❌ ${failed} test(s) FAILED`);
-  process.exit(1);
-} else {
-  console.log(`\n✅ All ${passed} tests passed!`);
 }

@@ -55,10 +55,15 @@ export function pass(msg) { console.log(`  ✅ ${msg}`); passed++; }
  * Failures increment the shared counter that controls the final process exit
  * code, while still allowing later checks to run and show the full problem set.
  *
+ * Also sets process.exitCode so a suite run on its own — no run-all, no
+ * finish() — still exits non-zero. Discovered suites may not call
+ * process.exit(), and without this a standalone run of one reported every
+ * failure on stdout and then exited 0.
+ *
  * @param {string} msg - Human-readable failure message for the terminal log.
  * @returns {void}
  */
-export function fail(msg) { console.log(`  ❌ ${msg}`); failed++; }
+export function fail(msg) { console.log(`  ❌ ${msg}`); failed++; process.exitCode = 1; }
 
 /**
  * Record and print one non-fatal warning.
@@ -93,7 +98,9 @@ export function finish() {
   // Read before printing so the summary line tells the truth too. The counters
   // stay authoritative for inline assertions; this only adds a failure source
   // that was already being computed and thrown away.
-  const runnerFailed = Boolean(process.exitCode);
+  // fail() sets process.exitCode itself, so a non-zero code with nothing in
+  // the counters is the tell that something outside them went red.
+  const runnerFailed = Boolean(process.exitCode) && failed === 0;
   console.log('\n' + '='.repeat(50));
   console.log(`📊 Results: ${passed} passed, ${failed} failed, ${warnings} warnings`
     + (runnerFailed ? ' — plus failures in a discovered node:test suite (see above)' : ''));

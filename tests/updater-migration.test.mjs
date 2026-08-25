@@ -8,27 +8,18 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-
-let passed = 0;
-let failed = 0;
-
-function pass(message) {
-  console.log(`PASS ${message}`);
-  passed++;
-}
-
-function fail(message) {
-  console.error(`FAIL ${message}`);
-  failed++;
-}
+import { join } from 'path';
+import { pass, fail, ROOT } from './helpers.mjs';
 
 let source = '';
 try {
-  source = readFileSync('update-system.mjs', 'utf-8');
+  source = readFileSync(join(ROOT, 'update-system.mjs'), 'utf-8');
   pass('update-system.mjs is readable');
 } catch (error) {
+  // Every check below reads `source`. Stop here rather than print a page of
+  // green for checks that never ran.
   fail(`update-system.mjs is readable: ${error.message}`);
-  process.exit(1);
+  throw error;
 }
 
 function extractArray(name) {
@@ -115,13 +106,20 @@ const requiredBootstrapPaths = [
   'tests/tracker-columns.test.mjs',
 ];
 
+// A directory entry ships everything under it — the same pathspec semantics
+// `git checkout` applies — so a file inside one is covered without being
+// listed. Matching on membership alone would demand a second, redundant entry
+// for every file under src/ or tests/.
+const covers = (entries, path) =>
+  entries.some((entry) => (entry.endsWith('/') ? path.startsWith(entry) : entry === path));
+
 for (const path of requiredSystemPaths) {
-  if (systemPaths.includes(path)) pass(`SYSTEM_PATHS covers ${path}`);
+  if (covers(systemPaths, path)) pass(`SYSTEM_PATHS covers ${path}`);
   else fail(`SYSTEM_PATHS missing ${path}`);
 }
 
 for (const path of requiredBootstrapPaths) {
-  if (bootstrapPaths.includes(path)) pass(`BOOTSTRAP_PATHS covers ${path}`);
+  if (covers(bootstrapPaths, path)) pass(`BOOTSTRAP_PATHS covers ${path}`);
   else fail(`BOOTSTRAP_PATHS missing ${path}`);
 }
 
@@ -322,10 +320,3 @@ for (const systemPath of systemPaths) {
 if (!hasSystemUserCollision) {
   pass('SYSTEM_PATHS does not collide with USER_PATHS');
 }
-
-if (failed > 0) {
-  console.error(`\n${passed} passed, ${failed} failed`);
-  process.exit(1);
-}
-
-console.log(`\n${passed} passed, ${failed} failed`);

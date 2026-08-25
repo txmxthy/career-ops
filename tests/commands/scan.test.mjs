@@ -43,6 +43,8 @@ process.on('exit', () => {
  * containing it, even inside a string.
  */
 function fakeDelegate(root, name, body) {
+  // `name` is repo-relative, so a delegate under src/scripts/ needs its parent.
+  mkdirSync(path.dirname(path.join(root, name)), { recursive: true });
   writeFileSync(path.join(root, name), `const args = process.argv.slice(2);\n${body}\n`, 'utf-8');
 }
 
@@ -216,12 +218,11 @@ test('a delegate exiting non-zero is a failed check, with its stderr named', () 
 });
 
 test('the delegate under src/ wins over the root filename', () => {
-  // ADR 0005 step 5 moves the unfrozen scripts into src/; the adapter must not
-  // need editing when it happens.
+  // ADR 0005 step 5 moved the unfrozen scripts into src/. A same-named leftover
+  // at the root must not shadow the one the spec names.
   const root = sandbox();
-  mkdirSync(path.join(root, 'src'));
-  fakeDelegate(root, 'src/scripts/scan-hn.mjs', `console.log('root'); process.exitCode = 1;`);
-  fakeDelegate(path.join(root, 'src'), 'src/scripts/scan-hn.mjs', `console.log('moved');`);
+  fakeDelegate(root, 'scan-hn.mjs', `console.log('root'); process.exitCode = 1;`);
+  fakeDelegate(root, 'src/scripts/scan-hn.mjs', `console.log('moved');`);
   const res = commands.hn.run(['--json'], { root });
   assert.equal(res.exitCode, EXIT.OK);
   assert.equal(res.envelope.data.output.trim(), 'moved');

@@ -7,24 +7,19 @@ import {
   existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync,
   utimesSync, writeFileSync,
 } from 'fs';
-import { basename, dirname, join } from 'path';
+import { basename, join } from 'path';
 import { tmpdir } from 'os';
-import { fileURLToPath } from 'url';
 import { acquireTrackerLock, openTrackerTransaction } from '../tracker-utils.mjs';
+import { pass, fail, ROOT } from './helpers.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
 const NODE = process.execPath;
 const CONCURRENT_ROW = '| 99 | 2026-01-03 | ConcurrentCo | Keeper | 4.3/5 | Applied | ❌ | [99](reports/099-concurrent.md) | preserve me |';
-let passed = 0;
-let failed = 0;
 // Run-level evidence that acquireTrackerLock still emits its recover guard.
 // See the consumer inside runWhileLocked for why this is counted per run
 // rather than asserted per case (#2436).
 let contentionWatchedCases = 0;
 let contentionObservedCases = 0;
 
-function pass(message) { console.log(`PASS ${message}`); passed++; }
-function fail(message) { console.error(`FAIL ${message}`); failed++; }
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // How long the HARNESS waits for a spawned Node process to start, print, or
@@ -848,11 +843,7 @@ if (contentionWatchedCases === 0) {
   // leg observed 3 of 8, another 0 of 8 on the same commit — so failing here
   // reports the sampler's luck, not the guard's existence, and turns a healthy
   // tree red at random. Reported, not enforced, on this platform.
-  console.log(`NOTE recover guard not sampled in any of the ${contentionWatchedCases} guard-watched cases on win32 — the ordering signal could not be observed here; the assertion is enforced on platforms where sampling is reliable`);
-  passed++;
+  pass(`recover guard not sampled in any of the ${contentionWatchedCases} guard-watched cases on win32 — the ordering signal could not be observed here; the assertion is enforced on platforms where sampling is reliable`);
 } else {
   fail(`recover guard never observed in any of the ${contentionWatchedCases} guard-watched cases — acquireTrackerLock has stopped emitting it, so every one of them fell back to timing-dependent ordering`);
 }
-
-console.log(`\n${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);

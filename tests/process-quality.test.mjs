@@ -16,33 +16,18 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
-
-let passed = 0;
-let failed = 0;
-const failures = [];
+import { pass, fail, ROOT } from './helpers.mjs';
 
 function ok(label, cond) {
-  if (cond) {
-    passed++;
-  } else {
-    failed++;
-    failures.push(label);
-    console.log(`  FAIL: ${label}`);
-  }
+  if (cond) pass(label);
+  else fail(label);
 }
 
 function eq(label, actual, expected) {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
-  if (a === e) {
-    passed++;
-  } else {
-    failed++;
-    failures.push(label);
-    console.log(`  FAIL: ${label}`);
-    console.log(`    expected: ${e}`);
-    console.log(`    actual:   ${a}`);
-  }
+  if (a === e) pass(label);
+  else fail(`${label} — expected ${e}, got ${a}`);
 }
 
 function table(rows) {
@@ -275,7 +260,7 @@ if (rentsync) {
 // ============================================================================
 console.log('\n--- 10. CLI behavior ---');
 
-const scriptPath = join(dirname(fileURLToPath(import.meta.url)), 'src/scripts/process-quality.mjs');
+const scriptPath = join(ROOT, 'src/scripts/process-quality.mjs');
 
 try {
   execFileSync('node', [scriptPath, '--self-test'], { encoding: 'utf-8', timeout: 10000 });
@@ -287,7 +272,7 @@ try {
 
 const defaultOut = execFileSync('node', [scriptPath], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 const defaultJson = JSON.parse(defaultOut);
 ok('default produces valid JSON', typeof defaultJson === 'object');
@@ -305,7 +290,7 @@ const missingFilePath = join(missingFileTmpDir, 'does-not-exist.md');
 try {
   const missingOut = execFileSync('node', [scriptPath, '--file', missingFilePath], {
     encoding: 'utf-8', timeout: 10000,
-    cwd: dirname(scriptPath),
+    cwd: ROOT,
   });
   ok('missing --file path: CLI does not throw', !!missingOut);
   const missingJson = JSON.parse(missingOut);
@@ -326,7 +311,7 @@ try {
   ]));
   const fixtureOut = execFileSync('node', [scriptPath, '--file', fixturePath], {
     encoding: 'utf-8', timeout: 10000,
-    cwd: dirname(scriptPath),
+    cwd: ROOT,
   });
   const fixtureJson = JSON.parse(fixtureOut);
   eq('--file fixture: totalRows = 1', fixtureJson.metadata.totalRows, 1);
@@ -338,21 +323,21 @@ try {
 
 const thresholdOut = execFileSync('node', [scriptPath, '--min-threshold', '3'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 const thresholdJson = JSON.parse(thresholdOut);
 eq('--min-threshold sets minThreshold in metadata', thresholdJson.metadata.minThreshold, 3);
 
 const badThresholdOut = execFileSync('node', [scriptPath, '--min-threshold', 'abc'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 const badThresholdJson = JSON.parse(badThresholdOut);
 eq('--min-threshold abc falls back to 1', badThresholdJson.metadata.minThreshold, 1);
 
 const summaryOut = execFileSync('node', [scriptPath, '--summary'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 ok('--summary produces human-readable output', summaryOut.includes('Process Quality Signal'));
 
@@ -376,16 +361,3 @@ for (const { reason } of documentedExamples) {
   const notes = `[process-friction: ${reason}]`;
   eq(`documented example parses: "${reason}"`, extractFriction({ Notes: notes }), { hasFriction: true, reason });
 }
-
-// ============================================================================
-// RESULTS
-// ============================================================================
-console.log(`\n${'='.repeat(78)}`);
-console.log(`  Results: ${passed} passed, ${failed} failed`);
-if (failed > 0) {
-  console.log(`\n  Failed tests:`);
-  for (const f of failures) console.log(`    - ${f}`);
-}
-console.log(`${'='.repeat(78)}`);
-
-process.exit(failed > 0 ? 1 : 0);

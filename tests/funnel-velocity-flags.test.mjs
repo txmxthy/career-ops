@@ -33,7 +33,7 @@ test('--help prints usage and exits 0', () => {
   const result = runFunnel('--help');
   assert.equal(result.status, 0, `expected exit 0, got ${result.status}: ${result.all}`);
   assert.match(result.stdout, /Usage:/);
-  assert.match(result.stdout, /node funnel-velocity\.mjs/);
+  assert.match(result.stdout, /node \S*funnel-velocity\.mjs/);
   assert.match(result.stdout, /--summary/);
   assert.match(result.stdout, /--benchmarks <path>/);
 });

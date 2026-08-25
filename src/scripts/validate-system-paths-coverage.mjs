@@ -20,7 +20,8 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { extractArrayFromSource, localUserPaths, LOCAL_PATHS_FILE } from '../../update-system.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+// repo root (src/scripts/ lives two levels down)
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const sourcePath = join(ROOT, 'update-system.mjs');
 
 if (!existsSync(sourcePath)) {

@@ -33,7 +33,7 @@ import {
 import { parsePdfIndex } from './find.mjs';
 import { findCaptureForReport } from './jd-capture.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const NODE = process.execPath;
 const SET_STATUS_SCRIPT = join(CAREER_OPS, 'set-status.mjs');
 const ARCHIVE_POSTING_SCRIPT = join(CAREER_OPS, 'src/scripts/archive-posting.mjs');

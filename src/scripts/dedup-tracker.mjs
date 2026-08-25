@@ -11,7 +11,7 @@
  */
 
 import { readFileSync, copyFileSync, existsSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import {
   openTrackerTransaction, rebuildRow, resolveTrackerPath, normalizeCompany,
@@ -19,7 +19,7 @@ import {
 import { resolveColumns, parseTrackerRow, normalizeVia } from '../../tracker-parse.mjs';
 import { validateFlags } from '../../lib/cli-flags.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // Support both layouts: data/applications.md (boilerplate) and applications.md
 // (original). CAREER_OPS_TRACKER lets tests point the script at an isolated
 // fixture so the real user tracker is never touched.

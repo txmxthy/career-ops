@@ -23,7 +23,7 @@
 // write-tmp-then-rename-over-a-live-file shape this test guards.
 
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname, resolve } from 'path';
 import { pass, fail, ROOT } from './helpers.mjs';
 
 console.log('\n📝 rename contention: the #3006 fix carries to the other five vulnerable call sites (#3046)');
@@ -63,13 +63,19 @@ for (const file of MIGRATED_FILES) {
   // update-system.mjs must stay self-loading (#1706, see its top-of-file
   // note): no static top-level relative import, so it pulls the helper in
   // via a lazy `await import(...)` instead — both forms count here.
-  const importsFromTrackerUtils = new RegExp(
-    `import\\s*\\{[^}]*\\brenameSyncWithRetry\\b[^}]*\\}\\s*from\\s*['"]\\.\\/tracker-utils\\.mjs['"]`,
-  ).test(src);
-  const lazyImportsFromTrackerUtils =
-    /(?:const|let|var)\s*\{[^}]*\brenameSyncWithRetry\b[^}]*\}\s*=\s*await\s+import\(\s*['"]\.\/tracker-utils\.mjs['"]\s*\)/.test(src);
+  // El especificador se resuelve, no se compara como texto: estos ficheros ya no
+  // viven todos a la misma profundidad, y `./tracker-utils.mjs` literal sólo
+  // valía cuando la raíz era el único directorio.
+  const specifiers = [
+    ...src.matchAll(/import\s*\{[^}]*\brenameSyncWithRetry\b[^}]*\}\s*from\s*['"]([^'"]+)['"]/g),
+    ...src.matchAll(/(?:const|let|var)\s*\{[^}]*\brenameSyncWithRetry\b[^}]*\}\s*=\s*await\s+import\(\s*['"]([^'"]+)['"]\s*\)/g),
+  ].map((m) => m[1]);
+  const canonical = join(ROOT, 'tracker-utils.mjs');
+  const importsFromTrackerUtils = specifiers.some(
+    (spec) => spec.startsWith('.') && resolve(dirname(join(ROOT, file)), spec) === canonical,
+  );
   ok(
-    importsFromTrackerUtils || lazyImportsFromTrackerUtils,
+    importsFromTrackerUtils,
     `${file}: renameSyncWithRetry is imported from the canonical tracker-utils.mjs (not reimplemented)`,
   );
 }

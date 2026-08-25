@@ -36,25 +36,18 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import { execFileSync } from 'child_process';
-
-let passed = 0;
-let failed = 0;
-const failures = [];
+import { pass, fail, ROOT } from './helpers.mjs';
 
 function ok(label, cond) {
-  if (cond) { passed++; } else { failed++; failures.push(label); console.log(`  FAIL: ${label}`); }
+  if (cond) pass(label);
+  else fail(label);
 }
 
 function eq(label, actual, expected) {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
-  if (a === e) { passed++; } else {
-    failed++;
-    failures.push(label);
-    console.log(`  FAIL: ${label}`);
-    console.log(`    expected: ${e}`);
-    console.log(`    actual:   ${a}`);
-  }
+  if (a === e) pass(label);
+  else fail(`${label} — expected ${e}, got ${a}`);
 }
 
 // ============================================================================
@@ -388,7 +381,7 @@ ok('wrong-typed workday hint → field dropped', !('workday' in wrongType.compan
 // ============================================================================
 console.log('\n--- 7. CLI behavior ---');
 
-const scriptPath = join(dirname(fileURLToPath(import.meta.url)), 'src/scripts/discover-ats.mjs');
+const scriptPath = join(ROOT, 'src/scripts/discover-ats.mjs');
 
 // --self-test exits 0
 try {
@@ -405,7 +398,7 @@ ok('--help prints usage', helpOut.includes('Usage:') && helpOut.includes('--writ
 ok('--help states preview-by-default (never writes without --write)', /never writes[\s\S]*--write/i.test(helpOut));
 
 // Empty input (no --in, no names): valid JSON envelope, no network, exit 0.
-const emptyOut = execFileSync('node', [scriptPath], { encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath) });
+const emptyOut = execFileSync('node', [scriptPath], { encoding: 'utf-8', timeout: 15000, cwd: ROOT });
 const emptyJson = JSON.parse(emptyOut);
 ok('empty input → valid JSON envelope', typeof emptyJson === 'object' && 'metadata' in emptyJson);
 eq('empty input → resolved []', emptyJson.resolved, []);
@@ -424,7 +417,7 @@ try {
   // Empty company list → no network — the point is only to prove the default
   // path writes nothing and reports previewOnly.
   const previewOut = execFileSync('node', [scriptPath], {
-    encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath),
+    encoding: 'utf-8', timeout: 15000, cwd: ROOT,
     env: { ...process.env, CAREER_OPS_PORTALS: scratchPortals },
   });
   const previewJson = JSON.parse(previewOut);
@@ -435,7 +428,7 @@ try {
   // --write is accepted as a known flag (empty list → no fresh entries → still
   // no write, file unchanged). Proves the flag parses and the guard holds.
   const writeOut = execFileSync('node', [scriptPath, '--write'], {
-    encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath),
+    encoding: 'utf-8', timeout: 15000, cwd: ROOT,
     env: { ...process.env, CAREER_OPS_PORTALS: scratchPortals },
   });
   const writeJson = JSON.parse(writeOut);
@@ -444,7 +437,7 @@ try {
 
   // --dry-run is accepted as a harmless alias for the default (no write).
   const aliasOut = execFileSync('node', [scriptPath, '--dry-run'], {
-    encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath),
+    encoding: 'utf-8', timeout: 15000, cwd: ROOT,
     env: { ...process.env, CAREER_OPS_PORTALS: scratchPortals },
   });
   ok('--dry-run still accepted (no-op alias)', JSON.parse(aliasOut).metadata.written === false);
@@ -476,22 +469,9 @@ ok('unknown flag → nonzero exit', flagExit !== 0);
 // --vendors workday is accepted (no companies → no network, exit 0)
 let workdayVendorOk = true;
 try {
-  const wvOut = execFileSync('node', [scriptPath, '--vendors', 'workday'], { encoding: 'utf-8', timeout: 15000, cwd: dirname(scriptPath) });
+  const wvOut = execFileSync('node', [scriptPath, '--vendors', 'workday'], { encoding: 'utf-8', timeout: 15000, cwd: ROOT });
   JSON.parse(wvOut);
 } catch (e) {
   workdayVendorOk = false;
 }
 ok('--vendors workday accepted', workdayVendorOk);
-
-// ============================================================================
-// RESULTS
-// ============================================================================
-console.log(`\n${'='.repeat(78)}`);
-console.log(`  Results: ${passed} passed, ${failed} failed`);
-if (failed > 0) {
-  console.log(`\n  Failed tests:`);
-  for (const f of failures) console.log(`    - ${f}`);
-}
-console.log(`${'='.repeat(78)}`);
-
-process.exit(failed > 0 ? 1 : 0);

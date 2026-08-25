@@ -32,7 +32,7 @@ import { rejectPrivateOrInvalid, validateUrlSecurity } from '../lib/liveness-bro
 import { validateFlags } from '../../lib/cli-flags.mjs';
 import { readPipeline } from '../core/store.js';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const JDS_DIR = join(ROOT, 'jds');
 
 const KNOWN_FLAGS = ['--company', '--role', '--report', '--pipeline', '--dry-run', '--help', '-h'];

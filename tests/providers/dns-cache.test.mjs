@@ -202,10 +202,14 @@ try {
 
   // --- the module-level patch is opt-out-able ---
   {
+    // Absolute file URL, not a relative specifier: `node -e` resolves relative
+    // imports against the child's cwd, so a `../..` here tracks where run()
+    // happens to start the child rather than where the module lives.
+    const moduleUrl = pathToFileURL(join(ROOT, 'providers/_dns-cache.mjs')).href;
     const probe = [
       'import dns from "node:dns";',
       'const before = dns.lookup;',
-      'await import("../../providers/_dns-cache.mjs");',
+      `await import(${JSON.stringify(moduleUrl)});`,
       'console.log(dns.lookup === before ? "UNPATCHED" : "PATCHED");',
     ].join('');
 

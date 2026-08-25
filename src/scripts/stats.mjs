@@ -26,7 +26,7 @@ import { readFile } from '../core/store.js';
 import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
 import { normalizeStatus, analyzeFromContent } from '../../followup-cadence.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const APPS_FILE = join(ROOT, 'data', 'applications.md');
 const SCAN_HISTORY_FILE = join(ROOT, 'data', 'scan-history.tsv');
 const FOLLOWUPS_FILE = join(ROOT, 'data', 'follow-ups.md');

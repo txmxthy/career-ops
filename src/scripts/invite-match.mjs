@@ -41,7 +41,7 @@ import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
 import { validateFlags } from '../../lib/cli-flags.mjs';
 import { readFile, resolveTrackerPath } from '../core/store.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // The shared resolver, so CAREER_OPS_TRACKER points the read at the same
 // tracker applyRejection() already points the set-status child at (D1.1): the
 // hand-rolled data/ probe here ignored the env var, so an override read one

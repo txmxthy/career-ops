@@ -36,6 +36,7 @@ function makeRepo() {
   g('config', 'core.autocrlf', 'false');
   g('config', 'core.eol', 'lf');
   mkdirSync(join(dir, 'modes'), { recursive: true });
+  mkdirSync(join(dir, 'src', 'scripts'), { recursive: true });
   writeFileSync(join(dir, 'modes', 'pdf.md'), 'shipped pdf\n');
   writeFileSync(join(dir, 'modes', 'cover.md'), 'shipped cover\n');
   writeFileSync(join(dir, 'src/scripts/generate-cover-letter.mjs'), 'shipped script\n');
@@ -254,7 +255,7 @@ const PATHS = ['modes/', 'src/scripts/generate-cover-letter.mjs'];
 
   let errored = false;
   try {
-    repo.g('checkout', 'upstream', '--', 'src/scripts/generate-cover-letter.mjs', ':(exclude)generate-cover-letter.mjs');
+    repo.g('checkout', 'upstream', '--', 'src/scripts/generate-cover-letter.mjs', ':(exclude)src/scripts/generate-cover-letter.mjs');
   } catch {
     errored = true;
   }
@@ -348,6 +349,7 @@ const PATHS = ['modes/', 'src/scripts/generate-cover-letter.mjs'];
   g('config', 'core.autocrlf', 'false');
   g('config', 'core.eol', 'lf');
   mkdirSync(join(dir, 'modes'), { recursive: true });
+  mkdirSync(join(dir, 'src', 'scripts'), { recursive: true });
   // Base blobs committed with CRLF, standing in for a pre-`.gitattributes` tree.
   writeFileSync(join(dir, 'modes', 'pdf.md'), 'shipped pdf\r\nline two\r\n');
   writeFileSync(join(dir, 'src/scripts/generate-cover-letter.mjs'), 'shipped script\n');

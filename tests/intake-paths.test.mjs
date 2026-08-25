@@ -25,8 +25,11 @@ function makeRoot(layout) {
   // and src/scripts/intake.mjs resolves its own location, so the two spellings must be
   // reconciled here or every path assertion below compares the wrong pair.
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'intake-paths-')));
+  // src/scripts/ is real (it holds the copy under test) so only the directories
+  // the copy imports from are linked back to the checkout.
+  mkdirSync(join(root, 'src', 'scripts'), { recursive: true });
   copyFileSync(join(REPO, 'src/scripts/intake.mjs'), join(root, 'src/scripts/intake.mjs'));
-  symlinkSync(join(REPO, 'src'), join(root, 'src'), 'dir');
+  symlinkSync(join(REPO, 'src', 'core'), join(root, 'src', 'core'), 'dir');
   if (layout) {
     mkdirSync(join(root, layout, 'cv'), { recursive: true });
     writeFileSync(join(root, layout, 'cv', 'master.md'), '# CV\n\nShipped things.\n');
@@ -118,10 +121,10 @@ test('--text accepts both flag forms and refuses a missing operand', () => {
     // '--summary' as a path (ADR 0004 #6).
     const swallowed = run('--text', '--summary');
     assert.equal(swallowed.status, 1);
-    assert.match(swallowed.stderr, /Usage: node intake\.mjs --text/);
+    assert.match(swallowed.stderr, /Usage: node \S*intake\.mjs --text/);
 
     const bare = run('--text');
     assert.equal(bare.status, 1);
-    assert.match(bare.stderr, /Usage: node intake\.mjs --text/);
+    assert.match(bare.stderr, /Usage: node \S*intake\.mjs --text/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

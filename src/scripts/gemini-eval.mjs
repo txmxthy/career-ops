@@ -62,7 +62,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // ---------------------------------------------------------------------------
 // Paths
 // ---------------------------------------------------------------------------
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const PATHS = {
   // Primary evaluation logic lives in these two mode files

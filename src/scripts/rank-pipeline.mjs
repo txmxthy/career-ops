@@ -38,7 +38,7 @@ import { resolvePipelinePath } from '../core/store.js';
 import { sanitizeMarkdownField } from '../../scan.mjs';
 import { withPipelineLock } from '../lib/pipeline-lock.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // The shared resolver, not a private join: this script used to annotate
 // `<script dir>/data/pipeline.md` unconditionally, so a lane redirected with
 // CAREER_OPS_PIPELINE was ranked against the wrong inbox and the run reported

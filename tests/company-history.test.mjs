@@ -29,36 +29,20 @@ import {
 } from '../src/scripts/company-history.mjs';
 import { writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import { execFileSync } from 'child_process';
-
-let passed = 0;
-let failed = 0;
-const failures = [];
+import { pass, fail, ROOT } from './helpers.mjs';
 
 function ok(label, cond) {
-  if (cond) {
-    passed++;
-  } else {
-    failed++;
-    failures.push(label);
-    console.log(`  FAIL: ${label}`);
-  }
+  if (cond) pass(label);
+  else fail(label);
 }
 
 function eq(label, actual, expected) {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
-  if (a === e) {
-    passed++;
-  } else {
-    failed++;
-    failures.push(label);
-    console.log(`  FAIL: ${label}`);
-    console.log(`    expected: ${e}`);
-    console.log(`    actual:   ${a}`);
-  }
+  if (a === e) pass(label);
+  else fail(`${label} — expected ${e}, got ${a}`);
 }
 
 // Tracker-row fixture — mirrors the shape parseTrackerRow() produces.
@@ -76,7 +60,7 @@ function cluster(company, role, repostCount, firstSeen, lastSeen, daysSpan, appe
   return { company, role, repostCount, firstSeen, lastSeen, daysSpan, appearances };
 }
 
-const scriptPath = join(dirname(fileURLToPath(import.meta.url)), 'src/scripts/company-history.mjs');
+const scriptPath = join(ROOT, 'src/scripts/company-history.mjs');
 const NOW = new Date('2026-07-09T00:00:00Z');
 
 // ============================================================================
@@ -342,7 +326,7 @@ try {
 }
 
 try {
-  const bareOut = execFileSync('node', [scriptPath], { encoding: 'utf-8', timeout: 10000, cwd: dirname(scriptPath) });
+  const bareOut = execFileSync('node', [scriptPath], { encoding: 'utf-8', timeout: 10000, cwd: ROOT });
   const bareJson = JSON.parse(bareOut);
   ok('bare run produces valid JSON', typeof bareJson === 'object' && bareJson !== null);
   ok('bare run JSON has metadata key', 'metadata' in bareJson);
@@ -353,7 +337,7 @@ try {
 }
 
 try {
-  execFileSync('node', [scriptPath, '--bogus-flag-xyz'], { encoding: 'utf-8', timeout: 10000, cwd: dirname(scriptPath) });
+  execFileSync('node', [scriptPath, '--bogus-flag-xyz'], { encoding: 'utf-8', timeout: 10000, cwd: ROOT });
   ok('unknown flag exits 1', false);
 } catch (e) {
   ok('unknown flag exits 1', e.status === 1);
@@ -366,7 +350,7 @@ try {
 // see it as set — accepted args, signal never emitted.
 for (const bad of ['--emit-signal=true', '--emit-signal=1', '--emit-signal=']) {
   try {
-    execFileSync('node', [scriptPath, '--summary', bad], { encoding: 'utf-8', timeout: 10000, cwd: dirname(scriptPath) });
+    execFileSync('node', [scriptPath, '--summary', bad], { encoding: 'utf-8', timeout: 10000, cwd: ROOT });
     ok(`"${bad}" exits 1`, false);
   } catch (e) {
     ok(`"${bad}" exits 1`, e.status === 1 && /does not accept a value/.test(String(e.stderr)));
@@ -378,7 +362,7 @@ for (const bad of ['--emit-signal=true', '--emit-signal=1', '--emit-signal=']) {
 for (const bad of ['abc', '0', '--silence-window=-5']) {
   const flagArgs = bad.startsWith('--') ? [bad] : ['--silence-window', bad];
   try {
-    execFileSync('node', [scriptPath, ...flagArgs], { encoding: 'utf-8', timeout: 10000, cwd: dirname(scriptPath) });
+    execFileSync('node', [scriptPath, ...flagArgs], { encoding: 'utf-8', timeout: 10000, cwd: ROOT });
     ok(`--silence-window rejects "${bad}" with exit 1`, false);
   } catch (e) {
     ok(`--silence-window rejects "${bad}" with exit 1`,
@@ -387,7 +371,7 @@ for (const bad of ['abc', '0', '--silence-window=-5']) {
 }
 
 try {
-  const winOut = execFileSync('node', [scriptPath, '--silence-window', '21'], { encoding: 'utf-8', timeout: 10000, cwd: dirname(scriptPath) });
+  const winOut = execFileSync('node', [scriptPath, '--silence-window', '21'], { encoding: 'utf-8', timeout: 10000, cwd: ROOT });
   ok('--silence-window accepts a positive integer', JSON.parse(winOut).metadata.silenceWindowDays === 21);
 } catch (e) {
   ok('--silence-window accepts a positive integer', false);
@@ -399,23 +383,10 @@ try {
 for (const flagArgs of [['--company', '--summary'], ['--company'], ['--scan-history', '--summary'], ['--followups='], ['--company='], ['--company', ''], ['--scan-history', ''], ['--followups', '']]) {
   const label = flagArgs.join(' ');
   try {
-    execFileSync('node', [scriptPath, ...flagArgs], { encoding: 'utf-8', timeout: 10000, cwd: dirname(scriptPath) });
+    execFileSync('node', [scriptPath, ...flagArgs], { encoding: 'utf-8', timeout: 10000, cwd: ROOT });
     ok(`value flag without a value ("${label}") exits 1`, false);
   } catch (e) {
     ok(`value flag without a value ("${label}") exits 1`,
       e.status === 1 && /expects a (non-empty )?value/.test(String(e.stderr)));
   }
 }
-
-// ============================================================================
-// RESULTS
-// ============================================================================
-console.log(`\n${'='.repeat(78)}`);
-console.log(`  Results: ${passed} passed, ${failed} failed`);
-if (failed > 0) {
-  console.log(`\n  Failed tests:`);
-  for (const f of failures) console.log(`    - ${f}`);
-}
-console.log(`${'='.repeat(78)}`);
-
-process.exit(failed > 0 ? 1 : 0);

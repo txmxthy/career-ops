@@ -46,7 +46,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { createHash } from 'crypto';
 import { validateFlags, hasFlag, flagValue } from '../../lib/cli-flags.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CONTACTS_PATH = join(CAREER_OPS, 'data/contacts.tsv');
 const DEFAULT_VCF = join(CAREER_OPS, 'output/contacts.vcf');
 
@@ -63,7 +63,8 @@ const USAGE = `Usage:
   node src/scripts/contacts.mjs --help              # print this usage block and exit`;
 
 const args = process.argv.slice(2);
-validateFlags(args, KNOWN_FLAGS, USAGE, { valueFlags: ['--vcf'] });
+// Validated in main(), not here: this module is also imported (tests/contacts.test.mjs),
+// and a module-scope validateFlags reads the HOST's argv and exits the importer.
 const summaryMode = args.includes('--summary');
 const selfTestMode = args.includes('--self-test');
 const callerIdMode = args.includes('--caller-id');
@@ -466,6 +467,7 @@ function writeVcf(contacts, quality) {
 }
 
 function main() {
+  validateFlags(args, KNOWN_FLAGS, USAGE, { valueFlags: ['--vcf'] });
   if (selfTestMode) { selfTest(); return; }
 
   const content = existsSync(CONTACTS_PATH) ? readFileSync(CONTACTS_PATH, 'utf-8') : '';

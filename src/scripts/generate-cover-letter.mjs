@@ -21,7 +21,7 @@ import { parseArgs } from "util";
 import { assertFacts } from "./verify-cv-facts.mjs";
 import { resolveTemplate } from "../lib/cv-templates.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const OUTPUT_ROOT = resolve(__dirname, "output");
 
 /**
@@ -185,8 +185,7 @@ function buildSignatureBlock(signature, candidateName) {
 // no templates dir, bad config) falls back to the base template, preserving the
 // original hardcoded behavior.
 export function resolveCoverTemplatePath(payload = {}, opts = {}) {
-  const scriptDir = dirname(fileURLToPath(import.meta.url));
-  const base = resolve(scriptDir, "templates", "cover-letter-template.html");
+  const base = resolve(__dirname, "templates", "cover-letter-template.html");
   try {
     return resolveTemplate("cover", payload.template, { format: "html", fallback: true, ...opts });
   } catch {

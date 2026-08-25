@@ -21,14 +21,14 @@ function runAudit(...args) {
 test('--help prints usage and exits 0', () => {
   const r = runAudit('--help');
   assert.match(r.stdout, /Usage:/);
-  assert.match(r.stdout, /node plugin-audit\.mjs <plugin-dir>/);
+  assert.match(r.stdout, /node \S*plugin-audit\.mjs <plugin-dir>/);
   assert.equal(r.status, 0, '--help must exit 0');
 });
 
 test('-h prints usage and exits 0', () => {
   const r = runAudit('-h');
   assert.match(r.stdout, /Usage:/);
-  assert.match(r.stdout, /node plugin-audit\.mjs <plugin-dir>/);
+  assert.match(r.stdout, /node \S*plugin-audit\.mjs <plugin-dir>/);
   assert.equal(r.status, 0, '-h must exit 0');
 });
 

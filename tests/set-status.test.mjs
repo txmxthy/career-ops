@@ -22,9 +22,10 @@
 
 import { execFileSync } from 'child_process';
 import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, chmodSync, utimesSync } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { tmpdir } from 'os';
-import { fileURLToPath } from 'url';
+import { pathToFileURL } from 'url';
+import { pass, fail, ROOT } from './helpers.mjs';
 import { acquireTrackerLock } from '../tracker-utils.mjs';
 // The ledger date is the LOCAL calendar day (#2932). Computing the expected
 // value with toISOString() here would compare a local date against a UTC one
@@ -32,13 +33,8 @@ import { acquireTrackerLock } from '../tracker-utils.mjs';
 // only in part of the UTC day.
 import { localToday } from '../lib/local-today.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
 const NODE = process.execPath;
 
-let passed = 0;
-let failed = 0;
-function pass(m) { console.log(`PASS ${m}`); passed++; }
-function fail(m) { console.error(`FAIL ${m}`); failed++; }
 
 // Run set-status.mjs with the tracker redirected to a sandbox. Returns
 // { code, stdout, stderr }.
@@ -1327,8 +1323,11 @@ for (const bad of ['correction', 'backfill', 'cell-edit', 'nonsense']) {
   // The west-of-UTC half, pinned to an instant so it does not depend on when
   // the suite runs: at 01:30 UTC it is still the previous day in New York, and
   // the UTC-day form would write tomorrow into status-log.tsv.
+  // Absolute file URL: `node -e` resolves a relative specifier against the
+  // child's cwd, not against this file.
+  const localTodayUrl = pathToFileURL(join(ROOT, 'lib/local-today.mjs')).href;
   const probe = execFileSync(NODE, ['-e',
-    "const {localToday}=await import('../lib/local-today.mjs');" +
+    `const {localToday}=await import(${JSON.stringify(localTodayUrl)});` +
     "const i=new Date('2026-08-16T01:30:00Z');" +
     "process.stdout.write(localToday(i)+' '+i.toISOString().slice(0,10));",
     '--input-type=module',
@@ -1413,6 +1412,3 @@ for (const bad of ['correction', 'backfill', 'cell-edit', 'nonsense']) {
     } finally { rmSync(sb.dir, { recursive: true, force: true }); }
   }
 }
-
-console.log(`\n${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);

@@ -67,7 +67,7 @@ import * as yaml from 'js-yaml';
 import { normalizeCompanyName } from './invite-match.mjs';
 import { flagValue, validateFlags } from '../../lib/cli-flags.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SCAN_HISTORY_PATH = join(CAREER_OPS, 'data/scan-history.tsv');
 // Same resolution scan.mjs uses, so a sandboxed run overrides both together.
 const PORTALS_PATH = process.env.CAREER_OPS_PORTALS || join(CAREER_OPS, 'portals.yml');

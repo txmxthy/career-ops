@@ -17,7 +17,7 @@ import { join, dirname, relative, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { flagValue, hasFlag } from '../core/flags.js';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FIXTURES = join(ROOT, 'test-fixtures', 'upgrade');
 export const DEFAULT_STATE = 'state-v1.18';
 

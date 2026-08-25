@@ -14,10 +14,10 @@
 
 import { execFileSync } from 'child_process';
 import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, existsSync, utimesSync } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { tmpdir } from 'os';
-import { fileURLToPath, pathToFileURL } from 'url';
-const ROOT = dirname(fileURLToPath(import.meta.url));
+import { pathToFileURL } from 'url';
+import { pass, fail, ROOT } from './helpers.mjs';
 const DEFAULT_CADENCE_PROFILE = join(ROOT, 'tests', 'fixtures', 'profile-default-cadence.yml');
 
 // Pin the cadence source BEFORE followup-cadence.mjs is evaluated: it resolves
@@ -29,17 +29,24 @@ const DEFAULT_CADENCE_PROFILE = join(ROOT, 'tests', 'fixtures', 'profile-default
 // The import below must stay DYNAMIC: ESM hoists static imports above every
 // statement here, so a static one would run the module first and the pin would
 // do nothing.
+const priorProfile = process.env.CAREER_OPS_PROFILE;
 process.env.CAREER_OPS_PROFILE = DEFAULT_CADENCE_PROFILE;
 
 const { parseNextOverrides, resolveNextOverride, normalizeStatus, addDays, parseDate } =
   await import('../followup-cadence.mjs');
+
+// Restored as soon as the pin has done its job. This suite is imported
+// IN-PROCESS by tests/run-all.mjs's discovery, so leaving it set leaks the
+// fixture into every suite that sorts after it — providers/_profile-keywords.mjs
+// reads the same variable, and three provider suites read the fixture instead of
+// their own temp config/profile.yml.
+// run() below passes the pin to each child explicitly, so nothing here needs it
+// to stay on the ambient environment.
+if (priorProfile === undefined) delete process.env.CAREER_OPS_PROFILE;
+else process.env.CAREER_OPS_PROFILE = priorProfile;
 const NODE = process.execPath;
 const SCRIPT = join(ROOT, 'followup-seed.mjs');
 
-let passed = 0;
-let failed = 0;
-function pass(m) { console.log(`PASS ${m}`); passed++; }
-function fail(m) { console.error(`FAIL ${m}`); failed++; }
 
 // Mirror of followup-seed.mjs's todayStr(): the LOCAL date, not the UTC one.
 // This helper used toISOString() too, so tests 1 and 4 asserted the seed's
@@ -571,6 +578,3 @@ function cleanup(sandbox) {
     else fail(`18. (set …) for ${TZ} — expected ${expected}, got ${setDates[i]}`);
   });
 }
-
-console.log(`\n${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);

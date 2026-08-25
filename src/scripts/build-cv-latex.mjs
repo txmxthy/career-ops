@@ -10,7 +10,7 @@ import { flagValue } from '../core/flags.js';
 import { resolveTemplate } from '../lib/cv-templates.mjs';
 import { stripEmptySections } from '../lib/cv-sections-core.mjs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const TEMPLATE_PATH = resolve(__dirname, 'templates', 'cv-template.tex');
 const PLACEHOLDER_RE = /\{\{[A-Z_]+\}\}/g;
 

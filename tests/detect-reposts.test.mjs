@@ -23,33 +23,18 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import { execFileSync } from 'child_process';
-
-let passed = 0;
-let failed = 0;
-const failures = [];
+import { pass, fail, ROOT } from './helpers.mjs';
 
 function ok(label, cond) {
-  if (cond) {
-    passed++;
-  } else {
-    failed++;
-    failures.push(label);
-    console.log(`  FAIL: ${label}`);
-  }
+  if (cond) pass(label);
+  else fail(label);
 }
 
 function eq(label, actual, expected) {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
-  if (a === e) {
-    passed++;
-  } else {
-    failed++;
-    failures.push(label);
-    console.log(`  FAIL: ${label}`);
-    console.log(`    expected: ${e}`);
-    console.log(`    actual:   ${a}`);
-  }
+  if (a === e) pass(label);
+  else fail(`${label} — expected ${e}, got ${a}`);
 }
 
 // Helper: create a row object with sensible defaults
@@ -1177,7 +1162,7 @@ ok('500 rows across 50 companies completes without throwing', true);
 // ============================================================================
 console.log('\n--- 12. CLI behavior ---');
 
-const scriptPath = join(dirname(fileURLToPath(import.meta.url)), 'src/scripts/detect-reposts.mjs');
+const scriptPath = join(ROOT, 'src/scripts/detect-reposts.mjs');
 
 // Test --self-test exit code
 try {
@@ -1191,7 +1176,7 @@ try {
 // Test --window flag
 const windowOut = execFileSync('node', [scriptPath, '--window', '30'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 const windowJson = JSON.parse(windowOut);
 ok('--window produces valid JSON output', typeof windowJson === 'object' && 'metadata' in windowJson);
@@ -1209,7 +1194,7 @@ eq('--window sets windowDays in metadata', windowJson.metadata.windowDays, 30);
 // reporting a conflict, so nothing outside a running CLI catches it.
 const minSpanOut = execFileSync('node', [scriptPath, '--min-span', '3'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 const minSpanJson = JSON.parse(minSpanOut);
 eq('--min-span sets minSpanDays in metadata', minSpanJson.metadata.minSpanDays, 3);
@@ -1217,14 +1202,14 @@ eq('--min-span sets minSpanDays in metadata', minSpanJson.metadata.minSpanDays, 
 // Test --summary flag
 const summaryOut = execFileSync('node', [scriptPath, '--summary'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 ok('--summary produces human-readable output', summaryOut.includes('Repost Detector'));
 
 // Test no args (default JSON output)
 const defaultOut = execFileSync('node', [scriptPath], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 const defaultJson = JSON.parse(defaultOut);
 ok('default produces valid JSON', typeof defaultJson === 'object');
@@ -1235,7 +1220,7 @@ eq('default windowDays = 90', defaultJson.metadata.windowDays, 90);
 // Test --window with non-numeric value (falls back to default)
 const badWindowOut = execFileSync('node', [scriptPath, '--window', 'abc'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 const badWindowJson = JSON.parse(badWindowOut);
 eq('--window abc falls back to 90', badWindowJson.metadata.windowDays, 90);
@@ -1249,7 +1234,7 @@ eq('--window abc falls back to 90', badWindowJson.metadata.windowDays, 90);
 try {
   execFileSync('node', [scriptPath, '--window'], {
     encoding: 'utf-8', timeout: 10000,
-    cwd: dirname(scriptPath),
+    cwd: ROOT,
   });
   ok('--window without value exits non-zero', false);
 } catch (e) {
@@ -1260,7 +1245,7 @@ try {
 // Test --help flag
 const helpOut = execFileSync('node', [scriptPath, '--help'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 ok('--help prints usage', helpOut.includes('Usage:'));
 ok('--help documents --summary', helpOut.includes('--summary'));
@@ -1273,19 +1258,19 @@ ok('--help documents --help', helpOut.includes('--help'));
 // `=` form is the one a hand-rolled indexOf() lookup drops silently.
 const spanEqOut = execFileSync('node', [scriptPath, '--min-span=30'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 eq('--min-span=30 is honoured (not silently dropped)', JSON.parse(spanEqOut).metadata.minSpanDays, 30);
 
 const spanSpaceOut = execFileSync('node', [scriptPath, '--min-span', '30'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 eq('--min-span 30 is honoured', JSON.parse(spanSpaceOut).metadata.minSpanDays, 30);
 
 const badSpanOut = execFileSync('node', [scriptPath, '--min-span', 'abc'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 eq('--min-span abc falls back to 1', JSON.parse(badSpanOut).metadata.minSpanDays, 1);
 
@@ -1304,7 +1289,7 @@ const flagFallbackCases = [
 for (const [flag, value, field, expected, label] of flagFallbackCases) {
   const out = execFileSync('node', [scriptPath, flag, value], {
     encoding: 'utf-8', timeout: 10000,
-    cwd: dirname(scriptPath),
+    cwd: ROOT,
   });
   eq(label, JSON.parse(out).metadata[field], expected);
 }
@@ -1314,7 +1299,7 @@ for (const [flag, value, field, expected, label] of flagFallbackCases) {
 // as a deliberate zero and quietly disable the floor.
 const emptySpanOut = execFileSync('node', [scriptPath, '--min-span='], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 eq('--min-span= (empty value) falls back to 1, not 0', JSON.parse(emptySpanOut).metadata.minSpanDays, 1);
 
@@ -1322,7 +1307,7 @@ eq('--min-span= (empty value) falls back to 1, not 0', JSON.parse(emptySpanOut).
 // not swallow it, or the floor could never be switched off on purpose.
 const zeroSpanOut = execFileSync('node', [scriptPath, '--min-span', '0'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 eq('--min-span 0 is honoured as an explicit zero', JSON.parse(zeroSpanOut).metadata.minSpanDays, 0);
 
@@ -1340,7 +1325,7 @@ const overflowCases = [
 for (const [flag, value, field, expected, label] of overflowCases) {
   const out = execFileSync('node', [scriptPath, flag, value], {
     encoding: 'utf-8', timeout: 10000,
-    cwd: dirname(scriptPath),
+    cwd: ROOT,
   });
   const meta = JSON.parse(out).metadata;
   eq(label, meta[field], expected);
@@ -1351,7 +1336,7 @@ for (const [flag, value, field, expected, label] of overflowCases) {
 // an Infinity got through.
 const metaSanity = JSON.parse(execFileSync('node', [scriptPath, '--min-span', '9'.repeat(400)], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 })).metadata;
 ok('metadata.minSpanDays is always a finite number, never null', Number.isFinite(metaSanity.minSpanDays));
 ok('metadata.windowDays is always a finite number, never null', Number.isFinite(metaSanity.windowDays));
@@ -1359,19 +1344,6 @@ ok('metadata.windowDays is always a finite number, never null', Number.isFinite(
 // Test -h flag
 const hOut = execFileSync('node', [scriptPath, '-h'], {
   encoding: 'utf-8', timeout: 10000,
-  cwd: dirname(scriptPath),
+  cwd: ROOT,
 });
 ok('-h prints usage', hOut.includes('Usage:'));
-
-// ============================================================================
-// RESULTS
-// ============================================================================
-console.log(`\n${'='.repeat(78)}`);
-console.log(`  Results: ${passed} passed, ${failed} failed`);
-if (failed > 0) {
-  console.log(`\n  Failed tests:`);
-  for (const f of failures) console.log(`    - ${f}`);
-}
-console.log(`${'='.repeat(78)}`);
-
-process.exit(failed > 0 ? 1 : 0);

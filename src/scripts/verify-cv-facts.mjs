@@ -16,7 +16,7 @@ import { readFile, readText } from '../core/store.js';
 import { isAbsolute, join, dirname, basename } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_SOURCES = ['cv.md', 'article-digest.md'];
 const DEFAULT_CONFIG = join(ROOT, 'config', 'cv-facts.json');
 const TOOL_PROSE_WORDS = new Set([

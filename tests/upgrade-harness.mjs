@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * tests/upgrade.test.mjs — dynamic upgrade regression harness (Layer 1: PR gate).
+ * tests/upgrade-harness.mjs — dynamic upgrade regression harness (Layer 1: PR gate).
  *
  * Proves the commit under test can be upgraded TO from an old install
  * without touching user data. The old install's `apply` self-reexecs into
@@ -12,21 +12,26 @@
  * 2026-07-17. Oracle is blob equality on a changed system file — never
  * VERSION (apply has no version gate; equal-VERSION content drift is normal).
  *
+ * Not named *.test.mjs on purpose: this is a flag-driven CI harness, not a
+ * suite. Under that name `node --test tests/**` runs it with no mode flag and
+ * counts its usage error as a failure, and tests/run-all.mjs discovers it only
+ * to import a no-op.
+ *
  * Usage:
- *   node tests/upgrade.test.mjs --pr-gate     # newest old tag -> HEAD, one leg
- *   node tests/upgrade.test.mjs --canary      # planted user-file clobber must go RED
- *   node tests/upgrade.test.mjs --local-paths # a declared fork-local path survives (#2421)
+ *   node tests/upgrade-harness.mjs --pr-gate     # newest old tag -> HEAD, one leg
+ *   node tests/upgrade-harness.mjs --canary      # planted user-file clobber must go RED
+ *   node tests/upgrade-harness.mjs --local-paths # a declared fork-local path survives (#2421)
  */
 import { execFileSync } from 'child_process';
 import { createHash } from 'crypto';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, existsSync, realpathSync } from 'fs';
 import { tmpdir } from 'os';
-import { join, dirname } from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { join } from 'path';
+import { pathToFileURL } from 'url';
 import { seedFixture, loadExpectations } from '../src/lib/seed-fixture.mjs';
 import { parseRow } from '../src/core/table.js';
+import { ROOT } from './helpers.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
 const CANONICAL = 'https://github.com/santifer/career-ops.git';
 const TAG_RE = /^career-ops-v(\d+)\.(\d+)\.(\d+)$/;
 
@@ -237,14 +242,14 @@ function newestAncestorTag(targetSha) {
 function prGate() {
   const targetSha = git(ROOT, 'rev-parse', 'HEAD');
   const newestOld = newestAncestorTag(targetSha);
-  if (!newestOld) { console.error('No release tag is an ancestor of HEAD — fetch tags first (CI: fetch-depth: 0)'); process.exit(1); }
+  if (!newestOld) { console.error('No release tag is an ancestor of HEAD — fetch tags first (CI: fetch-depth: 0)'); process.exitCode = 1; return; }
   console.log(`PR gate: ${newestOld} -> ${targetSha.slice(0, 8)}`);
   const { failures, skipped } = runLeg({ oldTag: newestOld, targetSha });
   // THREE states, never two: a skipped leg qualified nothing, so calling it
   // GREEN would report a pass that never ran.
   console.log(skipped ? 'SKIPPED: nothing in the managed set changed — this leg qualified nothing'
     : failures.length ? `RED: ${failures.length} failure(s)` : 'GREEN');
-  process.exit(failures.length ? 1 : 0);
+  process.exitCode = failures.length ? 1 : 0;
 }
 
 /** Canary: plant a user-file clobber in the mirror; the harness MUST go red.
@@ -252,7 +257,7 @@ function prGate() {
 function canary() {
   const targetSha = git(ROOT, 'rev-parse', 'HEAD');
   const newestOld = newestAncestorTag(targetSha);
-  if (!newestOld) { console.error('No release tag is an ancestor of HEAD'); process.exit(1); }
+  if (!newestOld) { console.error('No release tag is an ancestor of HEAD'); process.exitCode = 1; return; }
   const { failures } = runLeg({
     oldTag: newestOld, targetSha, label: 'canary',
     mutateMirror: (mirror, work) => {
@@ -274,9 +279,9 @@ function canary() {
     },
   });
   const clobbered = failures.some((f) => f.startsWith('user file byte-identical: cv.md'));
-  if (clobbered) { console.log('CANARY GREEN: harness detected the planted user-file clobber'); process.exit(0); }
+  if (clobbered) { console.log('CANARY GREEN: harness detected the planted user-file clobber'); return; }
   console.error('CANARY RED: planted clobber was NOT detected — the harness cannot fail; do not trust its green');
-  process.exit(1);
+  process.exitCode = 1;
 }
 
 /** Local-paths leg (#2421): a file a fork DECLARED as its own must not be
@@ -308,7 +313,7 @@ function localPathsLeg() {
   const FORK_FILE = 'run-nightly.ps1';
   const baseSha = git(ROOT, 'rev-parse', 'HEAD');
   const oldTag = newestAncestorTag(baseSha);
-  if (!oldTag) { console.error('No release tag is an ancestor of HEAD — fetch tags first (CI: fetch-depth: 0)'); process.exit(1); }
+  if (!oldTag) { console.error('No release tag is an ancestor of HEAD — fetch tags first (CI: fetch-depth: 0)'); process.exitCode = 1; return; }
 
   const work = realpathSync(mkdtempSync(join(tmpdir(), 'upgrade-localpaths-')));
   const failures = [];
@@ -374,7 +379,7 @@ function localPathsLeg() {
   }
 
   console.log(failures.length ? `RED: ${failures.length} failure(s)` : 'GREEN');
-  process.exit(failures.length ? 1 : 0);
+  process.exitCode = failures.length ? 1 : 0;
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -382,5 +387,5 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (mode === '--pr-gate') prGate();
   else if (mode === '--canary') canary();
   else if (mode === '--local-paths') localPathsLeg();
-  else { console.error('Usage: node tests/upgrade.test.mjs --pr-gate | --canary | --local-paths'); process.exit(1); }
+  else { console.error('Usage: node tests/upgrade-harness.mjs --pr-gate | --canary | --local-paths'); process.exitCode = 1; }
 }

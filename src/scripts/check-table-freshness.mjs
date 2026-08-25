@@ -60,7 +60,7 @@ import { flagValue, hasFlag } from '../core/flags.js';
 import { validateFlags } from '../../lib/cli-flags.mjs';
 import { localToday } from '../../lib/local-today.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const TEMPLATES_DIR = join(CAREER_OPS, 'templates');
 const DEFAULT_MAX_AGE_MONTHS = 12;
 

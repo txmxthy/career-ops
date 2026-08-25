@@ -33,7 +33,7 @@ import { parseRow, isSeparatorRow } from '../core/table.js';
 import { resolveTrackerPath, resolvePipelinePath, readText } from '../core/store.js';
 import { flagValue, hasFlag } from '../core/flags.js';
 
-const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 // Resolved rather than joined, so the snapshot and the de-dup read the same
 // files scan.mjs appends to when CAREER_OPS_* redirects the workspace.
 const APPLICATIONS_PATH = resolveTrackerPath(ROOT);

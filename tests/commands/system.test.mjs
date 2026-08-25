@@ -53,7 +53,11 @@ const sandboxes = [];
 function sandbox() {
   const root = mkdtempSync(join(tmpdir(), 'system-cmd-'));
   sandboxes.push(root);
-  for (const script of SCRIPTS) writeFileSync(join(root, script), '// stub\n');
+  for (const script of SCRIPTS) {
+    // SCRIPTS names are repo-relative, so the src/scripts/ parents have to exist.
+    mkdirSync(dirname(join(root, script)), { recursive: true });
+    writeFileSync(join(root, script), '// stub\n');
+  }
   mkdirSync(join(root, 'templates'));
   mkdirSync(join(root, 'plugins-registry'));
   mkdirSync(join(root, '.git'));

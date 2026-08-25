@@ -30,7 +30,7 @@ import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
 import { flagValue } from '../core/flags.js';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const GOLDEN_DIR = join(ROOT, 'evals', 'golden');
 
 // ---------------------------------------------------------------------------

@@ -16,9 +16,9 @@
 //   3. no bare rmSync of a lock artifact remains in any acquisition path.
 
 import { readFileSync, readdirSync, mkdirSync, existsSync, rmSync, mkdtempSync } from 'fs';
-import { join } from 'path';
+import { join, relative, sep } from 'path';
 import { tmpdir } from 'os';
-import { pass, fail, ROOT } from './helpers.mjs';
+import { pass, fail, ROOT, walkFiles } from './helpers.mjs';
 import { isMkdirContention, isRmContention, rmLockArtifactSync } from '../src/lib/pipeline-lock.mjs';
 
 console.log('\n🔒 lock artifacts: rm contention is contention, not death (#2777)');
@@ -29,9 +29,12 @@ const ok = (cond, msg) => (cond ? pass(msg) : fail(msg));
 // lista a mano envejece en silencio y así es como #2984 arregló dos copias
 // creyendo que eran todas. La firma es `recoverGuardDir`, el segundo directorio
 // atómico que no usa ningún otro código de este repo.
-const protocolImplementors = () => readdirSync(ROOT)
-  .filter((f) => f.endsWith('.mjs'))
-  .filter((f) => readFileSync(join(ROOT, f), 'utf-8').includes('recoverGuardDir'));
+// El barrido cubre la raíz y src/, porque el protocolo se reparte entre ambos:
+// mirar sólo la raíz volvería a la lista corta que #2984 creyó completa.
+const protocolImplementors = () => [
+  ...readdirSync(ROOT).filter((f) => f.endsWith('.mjs')),
+  ...walkFiles(join(ROOT, 'src'), /\.mjs$/).map((f) => relative(ROOT, f).split(sep).join('/')),
+].filter((f) => readFileSync(join(ROOT, f), 'utf-8').includes('recoverGuardDir'));
 const mkErr = (code) => Object.assign(new Error(code), { code });
 
 // ── 1. Classifier tables ─────────────────────────────────────────────
@@ -82,7 +85,7 @@ const mkErr = (code) => Object.assign(new Error(code), { code });
   for (const file of implementors.filter((f) => f !== 'src/lib/pipeline-lock.mjs')) {
     const src = readFileSync(join(ROOT, file), 'utf-8');
     ok(
-      /import\s*\{[^}]*isMkdirContention[^}]*\}\s*from\s*'\.\/pipeline-lock\.mjs'/.test(src),
+      /import\s*\{[^}]*isMkdirContention[^}]*\}\s*from\s*'[^']*pipeline-lock\.mjs'/.test(src),
       `${file} imports the contention classifiers from pipeline-lock`,
     );
     ok(
@@ -94,7 +97,7 @@ const mkErr = (code) => Object.assign(new Error(code), { code });
       `${file} does not treat a non-EEXIST mkdir answer as fatal (Windows says EPERM under contention)`,
     );
     ok(
-      /import\s*\{[^}]*lockRecoveryVerdict[^}]*\}\s*from\s*'\.\/pipeline-lock\.mjs'/.test(src),
+      /import\s*\{[^}]*lockRecoveryVerdict[^}]*\}\s*from\s*'[^']*pipeline-lock\.mjs'/.test(src),
       `${file} imports the recovery judgment from pipeline-lock`,
     );
     ok(

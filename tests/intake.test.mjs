@@ -315,6 +315,16 @@ if (process.platform !== 'win32' && process.getuid?.() !== 0) {
   const gitignoreDoc = readFileSync(join(ROOT, '.gitignore'), 'utf-8');
   const updaterSrc = readFileSync(join(ROOT, 'update-system.mjs'), 'utf-8');
   const agentsDoc = readFileSync(join(ROOT, 'AGENTS.md'), 'utf-8');
+  // SYSTEM_PATHS ships src/ as one directory entry, so a file under it is
+  // registered without being named — the pathspec semantics git checkout
+  // applies, and the same rule covers() encodes in updater-migration.
+  const systemPaths = Array.from(
+    (updaterSrc.match(/const\s+SYSTEM_PATHS\s*=\s*\[([\s\S]*?)\];/)?.[1] ?? '').matchAll(/'([^']+)'/g),
+    (m) => m[1]
+  );
+  const shipsIntakeScript = systemPaths.some((entry) =>
+    entry.endsWith('/') ? 'src/scripts/intake.mjs'.startsWith(entry) : entry === 'src/scripts/intake.mjs'
+  );
   if (
     dataContractDoc.includes('documents/*')
     && dataContractDoc.includes('data/intake-state.json')
@@ -324,7 +334,7 @@ if (process.platform !== 'win32' && process.getuid?.() !== 0) {
     && gitignoreDoc.includes('data/intake-state.json')
     && updaterSrc.includes("'documents/'")
     && updaterSrc.includes("'modes/intake.md'")
-    && updaterSrc.includes("'src/scripts/intake.mjs'")
+    && shipsIntakeScript
     && agentsDoc.includes('`intake`')
   ) {
     pass('intake registered in data contract, gitignore, updater manifest, and AGENTS.md routing');

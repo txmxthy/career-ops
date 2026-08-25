@@ -19,7 +19,7 @@ import {
   loadCanonicalStates, resolveCanonicalState,} from '../../tracker-utils.mjs';
 import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const APPS_FILE = resolveTrackerPath(CAREER_OPS);
 const DRY_RUN = process.argv.includes('--dry-run');
 

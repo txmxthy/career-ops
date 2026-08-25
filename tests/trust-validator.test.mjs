@@ -20,20 +20,13 @@ import {
   companyMatchesHostname,
   classifyTrustLevel,
 } from '../providers/_trust-validator.mjs';
+import { pass, fail } from './helpers.mjs';
 
 // ── Test runner ──────────────────────────────────────────────────────
 
-let passed = 0;
-let failed = 0;
-
 function assert(condition, testName) {
-  if (condition) {
-    passed++;
-    console.log(`  ✓ ${testName}`);
-  } else {
-    failed++;
-    console.error(`  ✗ FAIL: ${testName}`);
-  }
+  if (condition) pass(testName);
+  else fail(testName);
 }
 
 function section(name) {
@@ -440,19 +433,4 @@ section('buildTrustValidator — config without enabled key');
   const v = buildTrustValidator({});
   const r = v({ url: 'not-a-url', company: 'Test' });
   assert(r.flags.includes('invalid_url'), 'empty config (no enabled key) → defaults to enabled');
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// Summary
-// ══════════════════════════════════════════════════════════════════════
-
-console.log(`\n${'═'.repeat(50)}`);
-console.log(`  Results: ${passed} passed, ${failed} failed, ${passed + failed} total`);
-console.log(`${'═'.repeat(50)}`);
-
-if (failed > 0) {
-  console.error(`\n❌ ${failed} test(s) FAILED`);
-  process.exit(1);
-} else {
-  console.log(`\n✅ All ${passed} tests passed!`);
 }

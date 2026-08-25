@@ -31,7 +31,7 @@ import { parseRow } from '../core/table.js';
 import { readFile } from '../core/store.js';
 import { validateFlags } from '../../lib/cli-flags.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const APPS_FILE = existsSync(join(CAREER_OPS, 'data/applications.md'))
   ? join(CAREER_OPS, 'data/applications.md')
   : join(CAREER_OPS, 'applications.md');

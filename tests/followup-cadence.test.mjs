@@ -7,10 +7,9 @@
  * Run: node tests/followup-cadence.test.mjs
  */
 
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
+import { pass, fail, ROOT } from './helpers.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_CADENCE_PROFILE = join(ROOT, 'tests', 'fixtures', 'profile-default-cadence.yml');
 const CUSTOM_CADENCE_PROFILE = join(ROOT, 'tests', 'fixtures', 'profile-custom-cadence.yml');
 
@@ -23,6 +22,7 @@ const CUSTOM_CADENCE_PROFILE = join(ROOT, 'tests', 'fixtures', 'profile-custom-c
 // The import below must stay DYNAMIC: ESM hoists static imports above every
 // statement in this file, so a static import would run the module before this
 // assignment and the pin would do nothing.
+const priorProfile = process.env.CAREER_OPS_PROFILE;
 process.env.CAREER_OPS_PROFILE = DEFAULT_CADENCE_PROFILE;
 
 const {
@@ -38,22 +38,19 @@ const {
   parseAppliedDaysOverride,
 } = await import('../followup-cadence.mjs');
 
-let passed = 0;
-let failed = 0;
-const failures = [];
+// Restored as soon as the pin has done its job. This suite is imported
+// IN-PROCESS by tests/run-all.mjs's discovery, so leaving it set leaks the
+// fixture into every suite that sorts after it — providers/_profile-keywords.mjs
+// reads the same variable, and three provider suites read the fixture instead of
+// their own temp config/profile.yml.
+if (priorProfile === undefined) delete process.env.CAREER_OPS_PROFILE;
+else process.env.CAREER_OPS_PROFILE = priorProfile;
 
 function eq(label, actual, expected) {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
-  if (a === e) {
-    passed++;
-  } else {
-    failed++;
-    failures.push(label);
-    console.log(`  FAIL: ${label}`);
-    console.log(`    expected: ${e}`);
-    console.log(`    actual:   ${a}`);
-  }
+  if (a === e) pass(label);
+  else fail(`${label} — expected ${e}, got ${a}`);
 }
 
 const APP = '2026-06-30';
@@ -247,9 +244,3 @@ eq(
   resolveCadenceConfig({ profilePath: DEFAULT_CADENCE_PROFILE, appliedDays: parseAppliedDaysOverride('10days') }).applied_first,
   DEFAULT_CADENCE.applied_first,
 );
-
-console.log(`\n${passed} passed, ${failed} failed`);
-if (failed > 0) {
-  console.log('Failures:', failures.join(', '));
-  process.exit(1);
-}

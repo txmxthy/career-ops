@@ -9,7 +9,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import * as yaml from 'js-yaml';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_TEMPLATES_DIR = resolve(__dirname, 'templates');
 const DEFAULT_PROFILE_PATH =
   process.env.CAREER_OPS_PROFILE || resolve(__dirname, 'config', 'profile.yml');

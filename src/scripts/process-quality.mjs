@@ -40,7 +40,7 @@ import { validateFlags } from '../../lib/cli-flags.mjs';
 import { flagValue } from '../core/flags.js';
 import { parseTable } from '../core/table.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_ACTIVE_INTERVIEWS_PATH = existsSync(join(CAREER_OPS, 'data/active-interviews.md'))
   ? join(CAREER_OPS, 'data/active-interviews.md')
   : join(CAREER_OPS, 'active-interviews.md');

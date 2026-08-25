@@ -28,7 +28,7 @@ import { normalizeReportLink } from './tracker-links.mjs';
 import { flagValue, hasFlag } from '../core/flags.js';
 import { readFile, readText, writeFileAtomic } from '../core/store.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ARGS = process.argv.slice(2);
 const DRY_RUN = hasFlag(ARGS, '--dry-run');
 

@@ -31,7 +31,7 @@ import { readFile, resolvePdfIndexPath } from '../core/store.js';
 import { parseFlags } from '../core/flags.js';
 import { roleFuzzyMatch } from '../lib/role-matcher.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 // "008" and "8" are the same report — zero-padded report-link form vs unpadded
 // tracker-# form (same normalization as the manifest writer in generate-pdf.mjs).

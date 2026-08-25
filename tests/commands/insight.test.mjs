@@ -504,7 +504,12 @@ function spawnBox(scripts) {
   writeFileSync(join(dir, 'data', 'applications.md'), '# Applications Tracker\n');
   writeFileSync(join(dir, 'active-interviews.md'), '| Company |\n|---|\n');
   writeFileSync(join(dir, 'data', 'salary-observations.tsv'), 'num\ttype\n');
-  for (const [name, body] of Object.entries(scripts)) writeFileSync(join(dir, name), body);
+  for (const [name, body] of Object.entries(scripts)) {
+    // Stub names are repo-relative, so a script under src/scripts/ needs its
+    // parent created before it can be written.
+    mkdirSync(dirname(join(dir, name)), { recursive: true });
+    writeFileSync(join(dir, name), body);
+  }
   return dir;
 }
 

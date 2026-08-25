@@ -1651,7 +1651,9 @@ for (const f of skillEntrypoints) {
 {
   const probeDir = join(ROOT, '.tmp-coverage-guard-probe');
   try {
-    mkdirSync(probeDir, { recursive: true });
+    // The guard resolves the repo root two levels up from its own file, so the
+    // copy has to keep the src/scripts/ nesting or it reads the wrong tree.
+    mkdirSync(join(probeDir, 'src/scripts'), { recursive: true });
     copyFileSync(join(ROOT, 'src/scripts/validate-system-paths-coverage.mjs'), join(probeDir, 'src/scripts/validate-system-paths-coverage.mjs'));
     copyFileSync(join(ROOT, 'update-system.mjs'), join(probeDir, 'update-system.mjs'));
     const probe = spawnSync(process.execPath, [join(probeDir, 'src/scripts/validate-system-paths-coverage.mjs')], {
@@ -2741,7 +2743,7 @@ const expandMode = readFile('modes/expand.md');
 if (
   /never fetch unlinked URLs/i.test(expandMode) &&
   /halt until explicit approval is given/i.test(expandMode) &&
-  /node add-entry\.mjs/i.test(expandMode) &&
+  /node \S*add-entry\.mjs/i.test(expandMode) &&
   /--stdin/i.test(expandMode) &&
   /Additive Only/i.test(expandMode) &&
   /Treat fetched evidence text as literal/i.test(expandMode)
@@ -6174,7 +6176,7 @@ console.log('\n12b. Skill entrypoint bootstrap (npx / old releases)');
   try {
     const updater = await import(pathToFileURL(join(ROOT, 'update-system.mjs')).href);
     const sample = [
-      "import { a } from '../scaffolder/bin/skill-entrypoints.mjs';",
+      "import { a } from './scaffolder/bin/skill-entrypoints.mjs';",
       'import b from "../lib/helper.mjs";',
       "export { c } from './sibling.mjs';",
       "import './side-effect.mjs';",
@@ -6307,7 +6309,7 @@ console.log('\n12c. Materialized skill index mode');
   // Fix the class rather than the instance: pin the global and system config to
   // an empty file outside the fixture work tree, so nothing ambient reaches it -
   // init.templateDir and core.autocrlf as much as core.excludesFile. Same shape
-  // as the GIT_CONFIG_GLOBAL pin in upgrade-tests.mjs. Empty on purpose; the
+  // as the GIT_CONFIG_GLOBAL pin in upgrade-harness.mjs. Empty on purpose; the
   // fixture's own `git config` calls below set everything it actually needs.
   const gitConfigRoot = mkdtempSync(join(tmpdir(), 'career-ops-skill-gitcfg-'));
   const gitConfigPath = join(gitConfigRoot, 'gitconfig');
@@ -8364,6 +8366,7 @@ try {
       copyFileSync(join(ROOT, 'tracker-utils.mjs'), join(e2eTmp, 'tracker-utils.mjs'));
       // ...and tracker-utils imports the shared lock-contention helpers
       // (#2777 fix), so the fixture carries that import too.
+      mkdirSync(join(e2eTmp, 'src', 'lib'), { recursive: true });
       copyFileSync(join(ROOT, 'src/lib/pipeline-lock.mjs'), join(e2eTmp, 'src/lib/pipeline-lock.mjs'));
       // ...and followup-cadence now resolves "today" as the LOCAL calendar day
       // via lib/local-today.mjs (#3070), so the fixture carries that too.
@@ -12523,6 +12526,7 @@ try {
     execFileSync('chmod', ['+x', join(batchDir, 'batch-runner.sh')]);
   }
   writeFileSync(join(tmp, 'merge-tracker.mjs'), 'console.log("merge fixture");\n');
+  mkdirSync(join(tmp, 'src', 'scripts'), { recursive: true });
   writeFileSync(join(tmp, 'src/scripts/verify-pipeline.mjs'), 'console.log("verify fixture");\n');
   writeFileSync(join(batchDir, 'batch-prompt.md'), 'URL={{URL}}\nJD={{JD_FILE}}\nREPORT={{REPORT_NUM}}\n');
   writeFileSync(join(batchDir, 'batch-input.tsv'), [
@@ -12623,6 +12627,7 @@ try {
     execFileSync('chmod', ['+x', join(batchDir, 'batch-runner.sh')]);
   }
   writeFileSync(join(tmp, 'merge-tracker.mjs'), 'console.log("merge fixture");\n');
+  mkdirSync(join(tmp, 'src', 'scripts'), { recursive: true });
   writeFileSync(join(tmp, 'src/scripts/verify-pipeline.mjs'), 'console.log("verify fixture");\n');
   writeFileSync(join(batchDir, 'batch-prompt.md'), 'URL={{URL}}\nJD={{JD_FILE}}\nREPORT={{REPORT_NUM}}\n');
   writeFileSync(join(batchDir, 'batch-input.tsv'), [
@@ -12702,6 +12707,7 @@ try {
     execFileSync('chmod', ['+x', join(batchDir, 'batch-runner.sh')]);
   }
   writeFileSync(join(tmp, 'merge-tracker.mjs'), 'console.log("merge fixture");\n');
+  mkdirSync(join(tmp, 'src', 'scripts'), { recursive: true });
   writeFileSync(join(tmp, 'src/scripts/verify-pipeline.mjs'), 'console.log("verify fixture");\n');
   writeFileSync(join(batchDir, 'batch-prompt.md'), 'URL={{URL}}\nJD={{JD_FILE}}\nREPORT={{REPORT_NUM}}\n');
   // Same claude stub as test 13/13b: check_prerequisites() aborts before
@@ -12778,6 +12784,7 @@ function makeTierFixture(profileYml) {
     execFileSync('chmod', ['+x', join(batchDir, 'batch-runner.sh')]);
   }
   writeFileSync(join(tmp, 'merge-tracker.mjs'), 'console.log("merge fixture");\n');
+  mkdirSync(join(tmp, 'src', 'scripts'), { recursive: true });
   writeFileSync(join(tmp, 'src/scripts/verify-pipeline.mjs'), 'console.log("verify fixture");\n');
   writeFileSync(join(batchDir, 'batch-prompt.md'), 'URL={{URL}}\nJD={{JD_FILE}}\nREPORT={{REPORT_NUM}}\n');
   writeFileSync(join(batchDir, 'batch-input.tsv'), [
@@ -16831,10 +16838,12 @@ try {
 
   const updaterSrc = readFile('update-system.mjs');
   const freshSysBlock = (updaterSrc.match(/SYSTEM_PATHS\s*=\s*\[([\s\S]*?)\]/) || [, ''])[1];
-  if (freshSysBlock.includes("'src/scripts/check-table-freshness.mjs'")) {
-    pass('src/scripts/check-table-freshness.mjs is in update-system.mjs SYSTEM_PATHS (shipped + updatable)');
+  // Shipped via the `src/` directory entry: the updater checks out whole trees,
+  // so a file under one needs no redundant per-file entry.
+  if (freshSysBlock.includes("'src/'")) {
+    pass('src/scripts/check-table-freshness.mjs is covered by update-system.mjs SYSTEM_PATHS (shipped + updatable)');
   } else {
-    fail('src/scripts/check-table-freshness.mjs is NOT in SYSTEM_PATHS — updates would never deliver it');
+    fail('src/ is NOT in SYSTEM_PATHS — updates would never deliver src/scripts/check-table-freshness.mjs');
   }
 
   const pkg = JSON.parse(readFile('package.json'));

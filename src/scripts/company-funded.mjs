@@ -16,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { decodeEntities } from '../../providers/_html-entities.mjs';
 import { BROWSER_LIKE_USER_AGENT } from '../lib/user-agent.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_LIMIT = 20;
 const DEFAULT_MONTHS = 3;
 const DEFAULT_SORT = 'date';

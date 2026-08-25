@@ -51,7 +51,7 @@ All scripts live in the project root as `.mjs` modules. Most are exposed via
 | `npm run archive` | `src/scripts/archive-posting.mjs` | Save a live job posting as PDF before it disappears |
 | `npm run prepare:application` | `src/scripts/prepare-application.mjs` | Print an ATS prefill summary (read-only, never POSTs) |
 | `npm run build:dashboard` | `src/scripts/build-dashboard.mjs` | Build the Go TUI dashboard binary cross-platform |
-| `node tests/upgrade.test.mjs --pr-gate` | `tests/upgrade.test.mjs` | Upgrade an install seeded from the newest old release to this commit and prove user data survived (CI gate; `--canary` proves the gate can fail) |
+| `node tests/upgrade-harness.mjs --pr-gate` | `tests/upgrade-harness.mjs` | Upgrade an install seeded from the newest old release to this commit and prove user data survived (CI gate; `--canary` proves the gate can fail) |
 
 ---
 
@@ -157,8 +157,8 @@ one the PR ships, not the one already installed.
 Two modes:
 
 ```bash
-node tests/upgrade.test.mjs --pr-gate    # newest release tag that is an ancestor of HEAD -> this commit
-node tests/upgrade.test.mjs --canary     # plant a user-file clobber; the harness MUST report it
+node tests/upgrade-harness.mjs --pr-gate    # newest release tag that is an ancestor of HEAD -> this commit
+node tests/upgrade-harness.mjs --canary     # plant a user-file clobber; the harness MUST report it
 ```
 
 `--pr-gate` picks the newest release tag that is an ancestor of `HEAD`, seeds an

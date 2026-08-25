@@ -25,11 +25,14 @@ const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 /** A temp checkout holding a real copy of the script and links to its imports. */
 function makeRoot() {
   const root = mkdtempSync(join(tmpdir(), 'reconcile-'));
+  // src/scripts/ is real (it holds the copy under test), so src/core/ is linked
+  // on its own rather than the whole of src/.
+  mkdirSync(join(root, 'src', 'scripts'), { recursive: true });
   copyFileSync(join(REPO, 'src/scripts/reconcile-pipeline.mjs'), join(root, 'src/scripts/reconcile-pipeline.mjs'));
   // Node resolves a symlink to its realpath before resolving that file's own
   // imports, so linking the directory is enough — src/core/store.js still finds
-  // ../../src/lib/pipeline-lock.mjs in the real checkout.
-  symlinkSync(join(REPO, 'src'), join(root, 'src'), 'dir');
+  // ../lib/pipeline-lock.mjs in the real checkout.
+  symlinkSync(join(REPO, 'src', 'core'), join(root, 'src', 'core'), 'dir');
   symlinkSync(join(REPO, 'src/scripts/tracker-links.mjs'), join(root, 'src/scripts/tracker-links.mjs'));
   for (const d of ['batch', 'data', 'reports']) mkdirSync(join(root, d), { recursive: true });
   return root;
@@ -202,7 +205,7 @@ test('--pipeline outside the repository is refused, and --help exits 0', () => {
     for (const flag of ['--help', '-h']) {
       const h = run(root, [flag]);
       assert.equal(h.code, 0);
-      assert.match(h.out, /Usage: node reconcile-pipeline\.mjs/);
+      assert.match(h.out, /Usage: node \S*reconcile-pipeline\.mjs/);
     }
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

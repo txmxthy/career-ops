@@ -65,7 +65,7 @@ import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
 import { roleFuzzyMatch } from '../lib/role-matcher.mjs';
 import { normalizeCompanyName, companySimilarity } from './invite-match.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_APPS_FILE = existsSync(join(CAREER_OPS, 'data/applications.md'))
   ? join(CAREER_OPS, 'data/applications.md')
   : join(CAREER_OPS, 'applications.md');

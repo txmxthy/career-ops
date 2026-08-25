@@ -45,7 +45,7 @@ import { normalizeTextKey } from '../../tracker-parse.mjs';
 import { validateFlags } from '../../lib/cli-flags.mjs';
 import { readFile } from '../core/store.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const CV_FILE = process.env.CAREER_OPS_CV || join(CAREER_OPS, 'cv.md');
 const ARTICLE_DIGEST_FILE = process.env.CAREER_OPS_ARTICLE_DIGEST || join(CAREER_OPS, 'article-digest.md');

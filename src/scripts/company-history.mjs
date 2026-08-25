@@ -68,7 +68,7 @@ import {
   normalizeStatus,
 } from '../../followup-cadence.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PROFILE_FILE = process.env.CAREER_OPS_PROFILE || join(CAREER_OPS, 'config/profile.yml');
 const PACKAGE_JSON = join(CAREER_OPS, 'package.json');
 

@@ -162,6 +162,7 @@ console.log('\n🧪 Testing updater rollback behavior (#2015)...');
   g('add', '-A');
   g('commit', '-qm', 'base');
 
+  mkdirSync(join(dir, 'src', 'scripts'), { recursive: true });
   writeFileSync(join(dir, 'src/scripts/browser-extract.mjs'), 'added by update');
   g('add', 'src/scripts/browser-extract.mjs');
 

@@ -51,7 +51,7 @@ import pinpoint from '../../providers/pinpoint.mjs';
 import rippling from '../../providers/rippling.mjs';
 import joinProvider from '../../providers/join.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PORTALS_PATH = process.env.CAREER_OPS_PORTALS || join(CAREER_OPS, 'portals.yml');
 
 // Safe charset for a slug that will be interpolated into an ATS URL. Consistent

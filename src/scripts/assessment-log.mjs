@@ -32,7 +32,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { localToday } from '../../lib/local-today.mjs';
 import { ensureDir, readFile, readText } from '../core/store.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const LOG_PATH = join(CAREER_OPS, 'data/assessments.tsv');
 
 const KNOWN_FLAGS = ['--self-test', '--summary', '--help', '-h'];

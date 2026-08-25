@@ -225,7 +225,7 @@ console.log('\n🧪 Testing updater upgrade safety (#2337, #2007)...');
   g('commit', '-qm', 'base');
 
   const userShaBefore = Object.fromEntries(userFiles.map(f => [f, sha256(dir, f)]));
-  const sysBlobBefore = g('rev-parse', 'HEAD:generate-cover-letter.mjs');
+  const sysBlobBefore = g('rev-parse', 'HEAD:src/scripts/generate-cover-letter.mjs');
 
   // Upstream branch changes BOTH system and user files. Only system paths are
   // checked out below, so the divergent upstream user content must never appear.
@@ -260,7 +260,7 @@ console.log('\n🧪 Testing updater upgrade safety (#2337, #2007)...');
   if (userIntact) {
     pass('user-layer byte-identity: cv.md, data/applications.md, modes/_profile.md are SHA-256 identical after the system-path checkout');
   }
-  const sysBlobAfter = g('rev-parse', 'HEAD:generate-cover-letter.mjs'); // HEAD unchanged; worktree/index updated
+  const sysBlobAfter = g('rev-parse', 'HEAD:src/scripts/generate-cover-letter.mjs'); // HEAD unchanged; worktree/index updated
   if (readFileSync(join(dir, 'src/scripts/generate-cover-letter.mjs'), 'utf-8').includes('UPSTREAM')) {
     pass('control: the system-layer sentinel DID change (proving the checkout actually ran)');
   } else {
@@ -277,7 +277,7 @@ console.log('\n🧪 Testing updater upgrade safety (#2337, #2007)...');
   revertPaths([...fixtureSystemPaths], initialStaged, ctx);
 
   const sysWorktreeReverted = readFileSync(join(dir, 'src/scripts/generate-cover-letter.mjs'), 'utf-8');
-  const sysBlobReverted = g('rev-parse', ':generate-cover-letter.mjs'); // index blob after revert
+  const sysBlobReverted = g('rev-parse', ':src/scripts/generate-cover-letter.mjs'); // index blob after revert
   if (sysBlobReverted === sysBlobBefore && sysWorktreeReverted.includes('SYS base')
       && !sysWorktreeReverted.includes('UPSTREAM')) {
     pass('rollback round-trip: revertPaths returns the system file to its prior blob');

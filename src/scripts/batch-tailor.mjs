@@ -6,7 +6,7 @@ import { flagValue, hasFlag, validateFlags } from '../../lib/cli-flags.mjs';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const __dirname = fileURLToPath(new URL('../..', import.meta.url));
 // CAREER_OPS_BATCH_STATE overrides the batch-state.tsv path — the same override
 // merge-tracker.mjs already honours, so tests can drive this script against a
 // sandbox instead of the developer's real batch run.

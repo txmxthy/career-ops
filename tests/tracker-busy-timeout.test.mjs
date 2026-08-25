@@ -17,6 +17,7 @@ console.log('\ntracker.mjs — SQLite busy_timeout (#1957)');
 // openDb reads DB_PATH once at import time, so point it at a throwaway file
 // before importing tracker.mjs — the test never touches a real applications.db.
 const work = mkdtempSync(join(tmpdir(), 'cops-busy-'));
+const priorDbPath = process.env.CAREER_OPS_TRACKER_DB;
 process.env.CAREER_OPS_TRACKER_DB = join(work, 'applications.db');
 
 try {
@@ -36,4 +37,8 @@ try {
   fail(`tracker busy_timeout test crashed: ${e.message}`);
 } finally {
   rmSync(work, { recursive: true, force: true });
+  // This suite is imported in-process by the runner, so the pin must not
+  // outlive it and redirect a later suite's database.
+  if (priorDbPath === undefined) delete process.env.CAREER_OPS_TRACKER_DB;
+  else process.env.CAREER_OPS_TRACKER_DB = priorDbPath;
 }

@@ -277,7 +277,7 @@ test('a runner that will not start is could-not-verify', async (t) => {
   const res = await commands.golden.run(['--golden', dir], { env: BARE_ENV, spawnFn, capture: true });
   assert.equal(res.code, 3);
   assertEnvelope(res.envelope, { command: 'eval golden', ok: false });
-  assert.match(res.envelope.errors[0].message, /could not start eval-golden\.mjs/);
+  assert.match(res.envelope.errors[0].message, /could not start src\/scripts\/eval-golden\.mjs/);
 });
 
 // ── exit 4: config / environment ────────────────────────────────────

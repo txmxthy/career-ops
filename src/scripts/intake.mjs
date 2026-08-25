@@ -43,7 +43,7 @@ import {
   ensureDir, readFile, requireText, workspaceDir, writeFileAtomic,
 } from '../core/store.js';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // workspaceDir keeps the legacy root layout for installs that already have
 // documents/ and data/, and puts a fresh install under workspace/ (ADR 0007).
 const DOCS_DIR = process.env.CAREER_OPS_DOCUMENTS_DIR || workspaceDir('documents', ROOT);

@@ -31,7 +31,7 @@ import { TokenAccumulator, formatBreakdown, normalizeOpenAIUsage } from '../../u
 import { DEFAULT_USER_AGENT } from '../lib/user-agent.mjs';
 import { buildTitleFilter } from '../lib/title-keywords.mjs';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const tracker = new TokenAccumulator();
 let activeModel = null;
 

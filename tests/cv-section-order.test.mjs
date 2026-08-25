@@ -740,12 +740,13 @@ try {
   try {
     const script = join(sandbox, 'generate-pdf.mjs');
     for (const f of [
-      'generate-pdf.mjs', 'src/lib/theme-style.mjs', 'tracker-utils.mjs',
-      'tracker-parse.mjs', 'tracker-aliases.json', 'src/lib/pipeline-lock.mjs',
+      'generate-pdf.mjs', 'tracker-utils.mjs', 'tracker-parse.mjs', 'tracker-aliases.json',
     ]) {
       copyFileSync(join(ROOT, f), join(sandbox, f));
     }
-    // Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
+    // Everything generate-pdf.mjs imports under src/ -- src/core/*, plus
+    // src/lib/theme-style.mjs and src/lib/pipeline-lock.mjs. Copied as one tree
+    // so the hand-list above never has to track which module lives where.
     copyCoreModules(sandbox);
 
     // src/lib/theme-style.mjs and tracker-utils.mjs both `import * as yaml from
@@ -871,12 +872,13 @@ export const chromium = {
   try {
     const script = join(sandbox, 'generate-pdf.mjs');
     for (const f of [
-      'generate-pdf.mjs', 'src/lib/theme-style.mjs', 'tracker-utils.mjs',
-      'tracker-parse.mjs', 'tracker-aliases.json', 'src/lib/pipeline-lock.mjs',
+      'generate-pdf.mjs', 'tracker-utils.mjs', 'tracker-parse.mjs', 'tracker-aliases.json',
     ]) {
       copyFileSync(join(ROOT, f), join(sandbox, f));
     }
-    // Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
+    // Everything generate-pdf.mjs imports under src/ -- src/core/*, plus
+    // src/lib/theme-style.mjs and src/lib/pipeline-lock.mjs. Copied as one tree
+    // so the hand-list above never has to track which module lives where.
     copyCoreModules(sandbox);
 
     // src/lib/theme-style.mjs and tracker-utils.mjs both `import * as yaml from

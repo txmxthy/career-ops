@@ -17,7 +17,8 @@ import * as yaml from 'js-yaml';
 import { flagValue, hasFlag } from '../core/flags.js';
 import { readFile } from '../core/store.js';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+// repo root (src/scripts/ lives two levels down)
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PROVIDERS_DIR = join(ROOT, 'providers');
 const DEFAULT_PORTALS_PATH = process.env.CAREER_OPS_PORTALS || 'portals.yml';
 

@@ -45,7 +45,7 @@ import * as yaml from 'js-yaml';
 import { validateFlags } from '../../lib/cli-flags.mjs';
 import { flagValue } from '../core/flags.js';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_SESSIONS_DIR = join(CAREER_OPS, 'interview-prep', 'sessions');
 const DEFAULT_QUESTION_BANK_PATH = join(CAREER_OPS, 'interview-prep', 'question-bank.md');
 

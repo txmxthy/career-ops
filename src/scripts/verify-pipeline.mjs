@@ -30,7 +30,8 @@ import {
 import { checkTrackerSync } from './tracker-sync-check.mjs';
 import { checkFollowupsSchema } from './stats.mjs';
 
-const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
+// repo root (src/scripts/ lives two levels down)
+const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // Support both layouts: data/applications.md (boilerplate) and applications.md (original).
 // CAREER_OPS_TRACKER overrides the path (used by tests and non-standard layouts).
 const APPS_FILE = process.env.CAREER_OPS_TRACKER
