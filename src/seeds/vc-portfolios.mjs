@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * seeds/vc-portfolios.mjs — VC portfolio seed fetchers for career-ops.
+ * src/seeds/vc-portfolios.mjs — VC portfolio seed fetchers for career-ops.
  *
  * Pulls public VC portfolio company lists (Y Combinator, Andreessen Horowitz)
  * and emits company entries compatible with the existing ATS scan/discovery
@@ -24,7 +24,7 @@
  *   const companies = await fetchYCCompanies();
  */
 
-import { DEFAULT_USER_AGENT } from '../src/lib/user-agent.mjs';
+import { DEFAULT_USER_AGENT } from '../lib/user-agent.mjs';
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -59,7 +59,7 @@ const YC_API_URL = 'https://api.ycombinator.com/v0.1/companies?page=1&per_page=1
  */
 const A16Z_PORTFOLIO_URL = 'https://a16z.com/portfolio/';
 
-// ── HTTP helper (local — avoids importing providers/_http.mjs to keep seeds/ self-contained) ──
+// ── HTTP helper (local — avoids importing providers/_http.mjs to keep src/seeds/ self-contained) ──
 
 /**
  * Minimal fetch wrapper with timeout + user-agent header.

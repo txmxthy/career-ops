@@ -160,7 +160,7 @@ const SYSTEM_PATHS = [
   'scan-ats-full.mjs',
   'bin/',
   'providers/',
-  'seeds/',
+  'src/seeds/',
   'src/',
   'tests/',
   'doctor.mjs',

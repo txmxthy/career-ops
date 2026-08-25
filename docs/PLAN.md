@@ -127,7 +127,7 @@ frozen contracts against their `web/` and `dashboard/` call sites still hold, an
 ### What did not land
 
 - **ADR 0007's `workspace/` migration.** The 8 user-data directories (`data/`, `documents/`,
-  `jds/`, `output/`, `reports/`, `interview-prep/`, `writing-samples/`, `seeds/`) are still at
+  `jds/`, `output/`, `reports/`, `interview-prep/`, `writing-samples/`, `src/seeds/`) are still at
   the root, and `src/core/store.js` has no `workspaceDir()` resolver. This is the whole gap
   between 23 visible root directories and the ADR's target of 14. It is the one move in that
   ADR with a behavioural fallback, and it touches where users keep their CV — it wants its own

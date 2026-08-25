@@ -4723,7 +4723,7 @@ try {
 // parseA16zPayload(), toPortalEntry(), and the SEED_SOURCES registry.
 // Inline fixtures — no HTTP calls, CI-safe.
 
-console.log('\n9b. VC portfolio seed fetcher (seeds/vc-portfolios.mjs)');
+console.log('\n9b. VC portfolio seed fetcher (src/seeds/vc-portfolios.mjs)');
 
 try {
   const {
@@ -4733,7 +4733,7 @@ try {
     toPortalEntry,
     SEED_SOURCES,
     SLUG_RE,
-  } = await import(pathToFileURL(join(ROOT, 'seeds/vc-portfolios.mjs')).href);
+  } = await import(pathToFileURL(join(ROOT, 'src/seeds/vc-portfolios.mjs')).href);
 
   // ── 1. YC payload parsing ──────────────────────────────────────────
   const ycFixture = {

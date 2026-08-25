@@ -55,7 +55,7 @@ const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PORTALS_PATH = process.env.CAREER_OPS_PORTALS || join(CAREER_OPS, 'portals.yml');
 
 // Safe charset for a slug that will be interpolated into an ATS URL. Consistent
-// with the SLUG_RE guard in scan-ats-full.mjs and seeds/vc-portfolios.mjs — a
+// with the SLUG_RE guard in scan-ats-full.mjs and src/seeds/vc-portfolios.mjs — a
 // tampered or malformed input can never inject unexpected characters into a URL.
 // Mixed case is intentional: Ashby boards are case-sensitive (AlephAlpha, DeepL).
 export const SLUG_RE = /^[A-Za-z0-9._-]+$/;
@@ -153,7 +153,7 @@ Input YAML shape:
 // ── Pure functions (exported for tests) ──────────────────────────────
 
 /**
- * Derive a URL-safe slug from a company name. Mirrors seeds/vc-portfolios.mjs.
+ * Derive a URL-safe slug from a company name. Mirrors src/seeds/vc-portfolios.mjs.
  * Lowercases — so camelCase Ashby boards (AlephAlpha, DeepL) need an explicit
  * `slug` in the input; a derived slug will miss them.
  * @param {string} name
