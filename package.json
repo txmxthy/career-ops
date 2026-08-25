@@ -17,7 +17,7 @@
     "or:eval": "node src/scripts/openrouter-runner.mjs evaluate",
     "or:apply": "node src/scripts/openrouter-runner.mjs apply",
     "verify": "node src/scripts/verify-pipeline.mjs",
-    "lint": "node scripts/check-syntax.mjs",
+    "lint": "node src/scripts/check-syntax.mjs",
     "normalize": "node src/scripts/normalize-statuses.mjs",
     "dedup": "node src/scripts/dedup-tracker.mjs",
     "merge": "node merge-tracker.mjs",

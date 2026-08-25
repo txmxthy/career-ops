@@ -8,7 +8,7 @@
 // silently falls through to live behavior" failure class already fixed
 // (identically) in scan-ats-full.mjs (#1633/#1635), src/scripts/reply-watch.mjs
 // (#2743/#2745) and src/scripts/dedup-tracker.mjs (#2744/#2746), now shared via
-// lib/cli-flags.mjs's validateFlags() (#2775).
+// src/lib/cli-flags.mjs's validateFlags() (#2775).
 //
 // HERMETIC: every run pins CAREER_OPS_PORTALS at a path that does not exist.
 // If --help or an unrecognized flag were NOT handled before the portals

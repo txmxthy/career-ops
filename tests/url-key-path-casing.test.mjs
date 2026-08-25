@@ -4,35 +4,28 @@
 // docs/audit/duplicate-functionality.md records two contradictory contracts for
 // the same question, each citing a real incident:
 //
-//   scan.mjs:1039-1041   "path casing is not meaningfully distinct for any
-//                         provider these scanners target" — and lowercases the
-//                         path at :1067.
-//   src/lib/url-key.mjs:6-36     calls exactly that the over-normalization that
-//                         collapsed two different Greenhouse postings into one
-//                         key, and preserves path case.
+//   scan.mjs               argued "path casing is not meaningfully distinct for
+//                          any provider these scanners target", and lowercased
+//                          the path — until this change.
+//   src/lib/url-key.mjs    calls exactly that the over-normalization that
+//                          collapsed two different Greenhouse postings into one
+//                          key, and preserves path case.
 //
 // ADR 0004 resolves it: PRESERVE PATH CASE. The failure modes are asymmetric.
 // Lowercasing risks MERGING two distinct postings — silent, unrecoverable data
 // loss. Preserving risks a DUPLICATE ROW for one posting — visible, and the
-// user can fix it. src/lib/url-key.mjs:55 is the winner; scan.mjs's lowercasing is the
-// loser and is scheduled for removal when the two normalizers consolidate.
+// user can fix it.
 //
-// This file is the characterisation test that consolidation will be refactored
-// against. It has two halves:
+// The casing half of that decision is now IMPLEMENTED, in the commit that also
+// added src/core/text.js `urlKey`. This file has two halves:
 //
-//   1. The WINNER's contract, asserted directly. These assertions survive the
-//      consolidation unchanged — they are what the merged implementation must
-//      keep doing.
-//   2. The LOSER's current behaviour, recorded so the change is visible in a
-//      diff rather than inferred from a passing suite. Each is labelled
-//      PRE-CONSOLIDATION; when scan.mjs adopts the winner these flip, and they
-//      must flip in the same commit that makes the change.
-//
-// The two normalizers also disagree on three further points that ADR 0004 has
-// already decided (empty-key contract #8, the `ref`/`src`/`source` denylist,
-// forced https). Those are pinned here too, because the same consolidation
-// moves all of them at once and a test that covered only the casing question
-// would let the others change unremarked.
+//   1. The WINNER's contract, asserted directly — what the canonical key does.
+//   2. scan.mjs's key, asserted as it stands. Its path casing has flipped to
+//      match the winner; the other four divergences (the empty-key contract #8,
+//      the wider `ref`/`src`/`source` denylist, the untouched scheme, the greedy
+//      trailing-slash strip) have NOT, and are pinned below as
+//      PRE-CONSOLIDATION so the next step is visible in a diff rather than
+//      inferred from a passing suite.
 import { pass, fail } from './helpers.mjs';
 import { normalizeUrl } from '../src/lib/url-key.mjs';
 import { normalizeUrlForDedup } from '../scan.mjs';
@@ -89,12 +82,25 @@ eq('winner: query order does not change the key',
 eq('winner: ref/src/source are kept',
   normalizeUrl('https://x.test/Jobs/1?ref=abc'), 'https://x.test/Jobs/1?ref=abc');
 
-// ── 2. The loser: scan.mjs, recorded as it stands today ─────────────
+// ── 2. scan.mjs, recorded as it stands today ────────────────────────
 
-eq('PRE-CONSOLIDATION loser: scan.mjs lowercases the path',
-  normalizeUrlForDedup('https://x.test/Jobs/Senior-Engineer'), 'https://x.test/jobs/senior-engineer');
-isTrue('PRE-CONSOLIDATION loser: two path spellings collapse to one key',
-  normalizeUrlForDedup(CASED) === normalizeUrlForDedup(FOLDED));
+// FLIPPED with the code change. scan.mjs lowercased the path until ADR 0004,
+// on the argument that scan.mjs and scan-ats-full.mjs run as separate processes
+// and can produce different casing for one posting (#2089), so a case-sensitive
+// key lands the same role in pipeline.md twice. That is a real failure and the
+// ADR still ruled against it, because the two failures differ in KIND: folding
+// the case MERGES two distinct postings, and the loser is never written and
+// leaves no trace, which is unrecoverable; preserving it leaves a duplicate row,
+// which is visible and the user can delete. A recoverable failure beats a silent
+// one, so the cross-source duplicate is the accepted cost.
+eq('scan.mjs preserves the path case (ADR 0004)',
+  normalizeUrlForDedup('https://x.test/Jobs/Senior-Engineer'), 'https://x.test/Jobs/Senior-Engineer');
+isTrue('scan.mjs keeps two path spellings as two keys — no silent merge',
+  normalizeUrlForDedup(CASED) !== normalizeUrlForDedup(FOLDED));
+eq('scan.mjs still folds the host — DNS is case-insensitive, safe either way',
+  normalizeUrlForDedup('https://X.TEST/Jobs/1'), 'https://x.test/Jobs/1');
+
+// Still divergent. These are the ADR 0004 items the casing flip does NOT settle.
 eq('PRE-CONSOLIDATION loser: a placeholder becomes its own key, not no key',
   normalizeUrlForDedup('N/A'), 'N/A');
 eq('PRE-CONSOLIDATION loser: ref is stripped',
@@ -108,5 +114,5 @@ eq('PRE-CONSOLIDATION loser: every trailing slash is dropped',
 // query VALUES stay cased, because they can be the posting id.
 eq('both: query values keep their case (winner)',
   normalizeUrl('https://x.test/Jobs/1?gh_jid=AbC'), 'https://x.test/Jobs/1?gh_jid=AbC');
-eq('both: query values keep their case (loser)',
-  normalizeUrlForDedup('https://x.test/jobs/1?gh_jid=AbC'), 'https://x.test/jobs/1?gh_jid=AbC');
+eq('both: query values keep their case (scan.mjs)',
+  normalizeUrlForDedup('https://x.test/Jobs/1?gh_jid=AbC'), 'https://x.test/Jobs/1?gh_jid=AbC');

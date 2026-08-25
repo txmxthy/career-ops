@@ -1,7 +1,7 @@
 // tests/tracker-flag-value-parity.test.mjs — pins the flagValue consolidation.
 //
 // tracker.mjs carried its own flagValue (one of the 3 copies ADR 0002 counts).
-// ADR 0004 D6 names lib/cli-flags.mjs's contract the winner, which src/core/
+// ADR 0004 D6 names src/lib/cli-flags.mjs's contract the winner, which src/core/
 // flags.js absorbs. The two implementations differ in exactly two ways:
 //
 //   - absent/valueless answers `undefined` rather than `null`

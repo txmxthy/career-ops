@@ -91,7 +91,7 @@ jobs:
             }
 
             await github.rest.issues.addAssignees({ owner, repo, issue_number: num, assignees: [user] });
-            await say(`It's yours, @${user}! Quick heads-up on how this works: if I don't see a linked PR or a comment from you in 7 days, this frees up for the next person, so issues never get stuck. Need more time? Just say \`/extend\`, no questions asked. CONTRIBUTING.md has the setup, and ping here if anything blocks you.`);
+            await say(`It's yours, @${user}! Quick heads-up on how this works: if I don't see a linked PR or a comment from you in 7 days, this frees up for the next person, so issues never get stuck. Need more time? Just say \`/extend\`, no questions asked. .github/CONTRIBUTING.md has the setup, and ping here if anything blocks you.`);
 
   sweep:
     if: github.event_name != 'issue_comment'

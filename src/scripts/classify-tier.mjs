@@ -16,7 +16,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { validateFlags } from '../../lib/cli-flags.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
 
 /**
  * Classifies a job title into exactly one seniority tier.
@@ -199,7 +199,7 @@ const isDirect = process.argv[1] &&
 
 // The title is the only positional, so `--help` was classified as a job title
 // and answered `mid` at exit 0 (#2852). Validated up front via
-// lib/cli-flags.mjs's validateFlags() (#2775), which also rejects unrecognized
+// src/lib/cli-flags.mjs's validateFlags() (#2775), which also rejects unrecognized
 // flags before --help so `--help --bogus` still errors.
 const KNOWN_FLAGS = ['--test', '--help', '-h'];
 

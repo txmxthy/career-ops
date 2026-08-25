@@ -1,7 +1,7 @@
 // tests/cli-flag-validation.test.mjs — CLIs must reject a mistyped flag
 // instead of answering from their defaults (#2980).
 //
-// The failure class lib/cli-flags.mjs exists to end: an unrecognized flag is
+// The failure class src/lib/cli-flags.mjs exists to end: an unrecognized flag is
 // ignored, the value flag it was meant to be falls back to its default, and
 // the script reports a result for inputs nobody asked for at exit 0. Already
 // fixed in scan-ats-full.mjs (#1633/#1635), src/scripts/reply-watch.mjs (#2743/#2745),

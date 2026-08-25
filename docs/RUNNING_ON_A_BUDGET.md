@@ -321,7 +321,7 @@ Measure it yourself rather than trusting this paragraph, because these files gro
 
 ```bash
 node --input-type=module -e "
-import { estimateTokens } from './lib/context-budget.mjs';
+import { estimateTokens } from './src/lib/context-budget.mjs';
 import { readFileSync } from 'fs';
 for (const f of ['modes/_shared.md','modes/oferta.md','AGENTS.md'])
   console.log(f, estimateTokens(readFileSync(f,'utf8')));"

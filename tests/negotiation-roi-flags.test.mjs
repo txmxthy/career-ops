@@ -1,6 +1,6 @@
 /**
  * Characterisation of src/scripts/negotiation-roi.mjs's flag reading, taken as it moved
- * from lib/cli-flags.mjs onto src/core/flags.js.
+ * from src/lib/cli-flags.mjs onto src/core/flags.js.
  *
  * The file already states the contract it wants: "Argument validation runs
  * before any filesystem/live-data requirement, so a malformed flag fails fast

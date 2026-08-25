@@ -31,7 +31,7 @@ import { acquireTrackerLock } from '../tracker-utils.mjs';
 // value with toISOString() here would compare a local date against a UTC one
 // and fail for the hours of the day where they differ — a test that passes
 // only in part of the UTC day.
-import { localToday } from '../lib/local-today.mjs';
+import { localToday } from '../src/lib/local-today.mjs';
 
 const NODE = process.execPath;
 
@@ -1325,7 +1325,7 @@ for (const bad of ['correction', 'backfill', 'cell-edit', 'nonsense']) {
   // the UTC-day form would write tomorrow into status-log.tsv.
   // Absolute file URL: `node -e` resolves a relative specifier against the
   // child's cwd, not against this file.
-  const localTodayUrl = pathToFileURL(join(ROOT, 'lib/local-today.mjs')).href;
+  const localTodayUrl = pathToFileURL(join(ROOT, 'src/lib/local-today.mjs')).href;
   const probe = execFileSync(NODE, ['-e',
     `const {localToday}=await import(${JSON.stringify(localTodayUrl)});` +
     "const i=new Date('2026-08-16T01:30:00Z');" +

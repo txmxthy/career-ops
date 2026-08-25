@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { localToday } from '../lib/local-today.mjs';
+import { localToday } from '../src/lib/local-today.mjs';
 import { shouldDedupScanHistoryRow } from '../scan.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -92,7 +92,7 @@ test('the premise: at this instant the UTC day is tomorrow in New York', () => {
 
 test('localToday resolves the local day, not the UTC one', () => {
   const out = inFrozenTz('America/New_York',
-    `import {localToday} from '${spec('lib/local-today.mjs')}';` +
+    `import {localToday} from '${spec('src/lib/local-today.mjs')}';` +
     `const i=new Date('${INSTANT}');` +
     `process.stdout.write(localToday(i)+' '+i.toISOString().slice(0,10));`);
   assert.equal(out, `${NY_DAY} ${UTC_DAY}`);

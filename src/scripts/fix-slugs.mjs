@@ -35,7 +35,7 @@ import { resolve } from 'path';
 import { pathToFileURL } from 'url';
 
 import { verifyPortalsFile } from '../../verify-portals.mjs';
-import { flagValue, hasFlag, validateFlags } from '../../lib/cli-flags.mjs';
+import { flagValue, hasFlag, validateFlags } from '../lib/cli-flags.mjs';
 import { readFile } from '../core/store.js';
 
 const DEFAULT_PORTALS_PATH = process.env.CAREER_OPS_PORTALS || 'portals.yml';

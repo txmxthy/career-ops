@@ -42,8 +42,8 @@ import { computeFunnel, computeTrackerStats } from './stats.mjs';
 import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
 import { resolveTrackerPath, loadCanonicalStates, resolveCanonicalState } from '../../tracker-utils.mjs';
 import { parseAppliedDate, normalizeStatus } from '../../followup-cadence.mjs';
-import { flagValue, validateFlags } from '../../lib/cli-flags.mjs';
-import { localToday } from '../../lib/local-today.mjs';
+import { flagValue, validateFlags } from '../lib/cli-flags.mjs';
+import { localToday } from '../lib/local-today.mjs';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const STATES_FILE = join(CAREER_OPS, 'templates/states.yml');

@@ -53,9 +53,9 @@ import { normalizeCompany } from './tracker-utils.mjs';
 import { normalizeCompanyName } from './src/scripts/invite-match.mjs';
 import { withPipelineLock } from './src/lib/pipeline-lock.mjs';
 import { compileKeyword, compilePositiveKeyword, buildTitleFilter } from './src/lib/title-keywords.mjs';
-import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
+import { flagValue, hasFlag, validateFlags } from './src/lib/cli-flags.mjs';
 import { withPortalHealthLock } from './src/lib/portal-health-lock.mjs';
-import { localToday } from './lib/local-today.mjs';
+import { localToday } from './src/lib/local-today.mjs';
 import { parseRow } from './src/core/table.js';
 
 try {
@@ -1028,18 +1028,28 @@ const DEDUP_STRIP_PARAMS = new Set([
  * Normalize a job posting URL into a stable dedup key.
  *
  * Strips cosmetic query params (locale/tracking), drops a trailing slash,
- * and lowercases scheme, host, and path. Only used to compute the
- * *comparison* key — callers keep writing/displaying the original URL so
- * links stay clickable and scan-history/pipeline.md stay faithful to what
- * the provider returned.
+ * and lowercases the host. Only used to compute the *comparison* key —
+ * callers keep writing/displaying the original URL so links stay clickable
+ * and scan-history/pipeline.md stay faithful to what the provider returned.
  *
- * The path is lowercased because scan.mjs and scan-ats-full.mjs run as
- * separate processes and can independently produce different casing for the
- * identical posting — a Workday tenant/site path segment reached via the
- * curated portals.yml entry vs. the reverse-ATS dataset, for instance. A
- * case-sensitive key silently treats those as two distinct URLs, so the same
- * role lands in pipeline.md twice. Path casing is not meaningfully distinct
- * for any provider these scanners target.
+ * The path is NOT lowercased. It was until ADR 0004, on the argument that
+ * scan.mjs and scan-ats-full.mjs run as separate processes and can produce
+ * different casing for the identical posting (#2089), so a case-sensitive key
+ * lands the same role in pipeline.md twice. That failure is real, and the ADR
+ * still ruled against it, because the two failures are not equal in kind:
+ *
+ *   - lowercasing MERGES two distinct postings that differ only in path case
+ *     into one key. The loser is never written, and nothing in the tracker
+ *     records that it existed — the loss is silent and unrecoverable.
+ *   - preserving leaves two rows for one posting. Visible, and the user can
+ *     delete one.
+ *
+ * A recoverable failure beats a silent one, so the cross-source duplicate is
+ * accepted as the lesser cost. The host IS still folded: DNS is
+ * case-insensitive, so that half is RFC 3986 §6.2.2 syntax-based
+ * normalization and is safe under either contract.
+ *
+ * src/core/text.js `urlKey` is the canonical form of this rule.
  *
  * Query *values* keep their original casing — those can be identity-bearing
  * (Greenhouse's `gh_jid`), which is also why DEDUP_STRIP_PARAMS is an
@@ -1065,7 +1075,7 @@ export function normalizeUrlForDedup(url) {
     }
   }
   parsed.hash = '';
-  parsed.pathname = parsed.pathname.replace(/\/+$/, '').toLowerCase() || '/';
+  parsed.pathname = parsed.pathname.replace(/\/+$/, '') || '/';
   return parsed.toString();
 }
 
@@ -2248,7 +2258,7 @@ function guardStatusFor(code) {
 // pipeline.md/scan-history.tsv instead of printing usage — the flag was
 // never checked at all. Same shape as scan-ats-full.mjs (#1633/#1635),
 // src/scripts/reply-watch.mjs (#2743/#2745) and src/scripts/dedup-tracker.mjs (#2744/#2746), shared
-// via lib/cli-flags.mjs's validateFlags() (#2775).
+// via src/lib/cli-flags.mjs's validateFlags() (#2775).
 const KNOWN_FLAGS = [
   '--dry-run', '--verify', '--headed-fallback', '--throttle', '--rediscover-404',
   '--include-blacklisted', '--company', '--posted-after', '--posted-before',

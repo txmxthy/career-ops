@@ -62,8 +62,9 @@ Each step shrinks the next.
 2. Data access (pipeline/tracker/config location and I/O) — **landed** (`src/core/store.js`)
 3. Flag parsing — **landed** (`src/core/flags.js`)
 4. Command modules — **landed** (`src/cli.js`, `src/commands/`, 84 commands)
-5. Hollow root scripts into shims, one per commit — **not started**
-6. Consolidate 3 test locations and 3 naming conventions into one `tests/` — **not started**
+5. Hollow root scripts into shims, one per commit — **landed** (112 moved, 15 left at root)
+6. Consolidate 3 test locations and 3 naming conventions into one `tests/` — **landed**
+   (5 locations → 3; `test/` and `test-fixtures/` folded in, 17 loose root suites moved)
 
 Rules: characterisation tests before consolidating anything; `"type": "module"` in
 `package.json`; new files `.js`, existing root `.mjs` names stay; one logical change per
@@ -96,27 +97,55 @@ window. Not proposed here.
 
 Every number below is re-measured in `docs/audit/final-measurements.md`; none are estimated.
 
-**Root is 127 `.mjs`, unchanged. The target is 15, and that is the requirement.** Zero `git mv`
-on the branch; the 15 frozen scripts are still full implementations rather than shims. Steps 1
-to 4 landed — three core modules with 172 characterisation tests, and the `career-ops` facade
-with 350. Steps 5 and 6 did not start.
+**Root is 15 `.mjs`, down from 127. The requirement is met.** All 43 assertions of the fifteen
+frozen contracts against their `web/` and `dashboard/` call sites still hold, and
+`git log --follow` crosses the move on every file checked.
 
-Also outstanding:
+### What landed
 
-- **ADR 0001 step 5b, the updater fork** — no `REMOVED_PATHS`, no `system prune`, no doctor
-  resurrection check. Blocking: nothing may move before it exists, or the next
-  `npm run update` restores every moved file alongside its replacement.
-- **ADR 0004's URL path-casing decision** — resolved as *preserve path case*, not implemented.
-  `scan.mjs:1068` and `src/scripts/discover-ats.mjs:403` still lowercase.
-  `tests/discover-ats-url-dedup-casing.test.mjs` pins the current behaviour and fails loudly
-  when it is flipped; `web/tests/lib/url-key.test.mjs` must move with it.
-- **The duplicate-symbol lint** ADR 0005 calls "the mechanism that makes it stay finished" —
-  not written. 84 root scripts still hand-parse `process.argv` beside a shared flags module,
-  which is the same drift the fork exists to stop.
-- **`followup-cadence.mjs --json` is rejected** (`:939` `KNOWN_FLAGS` omits it) while both web
-  routes send it. The web swallows the error and renders "no follow-ups due" — a live instance
-  of the "nothing found" vs "could not verify" collapse ADR 0006 forbids. Pre-existing, not
-  from this branch; needs a characterisation test with its fix.
+- **Phase 2 steps 5 and 6.** 112 scripts moved (72 → `src/scripts/`, 20 → `src/lib/`,
+  19 tests + the runner → `tests/`), every relative import repointed. Root files 189 → 51,
+  root LOC 92,476 → 22,053.
+- **ADR 0007, the directory half.** `test/`, `test-fixtures/` → `tests/`; `lib/`, `utils/`,
+  `scripts/` → `src/`; the 16 translated READMEs → `docs/i18n/`; governance docs split between
+  `docs/` and `.github/`; `evals/` → `tests/evals/`; `examples/` → `docs/examples/`;
+  `fonts/` → `templates/fonts/`. Root directories 38 → 33 (visible 28 → 23).
+  `lib/cli-flags.mjs` and `lib/local-today.mjs` remain as re-export shims because `web/`
+  resolves them by literal path.
+- **ADR 0001 step 5b, the updater fork.** `REMOVED_PATHS` (157 entries, both ADRs),
+  `subtractRemovedPaths` inside `apply()`, a prune of the in-memory manifest after the re-exec
+  returns, `career-ops system prune` (exit 3 for "could not verify"), and a doctor check that
+  reads the manifest back out of the target's own source. `SYSTEM_PATHS` 197 → 152, with every
+  remaining entry present on disk.
+- **ADR 0004's URL path-casing decision.** `src/lib/url-key.mjs` now lowercases the hostname
+  only; path case is preserved.
+- **`src/core/text.js`**, the fourth core module.
+- **`followup-cadence.mjs --json`** — accepted, and `tests/frozen-flag-surface.test.mjs` pins
+  the flags every out-of-tree consumer actually sends, transcribed from the call sites. The
+  home dashboard no longer renders "all caught up" when the cadence engine did not run.
+
+### What did not land
+
+- **ADR 0007's `workspace/` migration.** The 8 user-data directories (`data/`, `documents/`,
+  `jds/`, `output/`, `reports/`, `interview-prep/`, `writing-samples/`, `seeds/`) are still at
+  the root, and `src/core/store.js` has no `workspaceDir()` resolver. This is the whole gap
+  between 23 visible root directories and the ADR's target of 14. It is the one move in that
+  ADR with a behavioural fallback, and it touches where users keep their CV — it wants its own
+  commit and its own test, not a tail-end of this one.
+- **The `tests/` prune loop** (`update-system.mjs:1948`). It deletes every tracked file under
+  `tests/` that is absent from `FETCH_HEAD`. That was near-harmless while `tests/` was
+  upstream-owned; after the move it is 40+ fork-owned suites, so an `npm run update` would take
+  them all. The code predates this branch but the move is what armed it. Fixing it changes
+  prune semantics broadly and needs a decision, not a patch — it is the same class of hole as
+  the one `REMOVED_PATHS` closed.
+- **`BOOTSTRAP_PATHS`** was repointed at `src/` paths by the move and can now never resolve
+  against any upstream ref. Harmless — the entries skip — but the fallback is dead weight.
+- **The duplicate-symbol lint** ADR 0005 calls "the mechanism that makes it stay finished".
+- **`src/core/table.js` adoption.** 37 files still split tracker rows on `|` by hand, down only
+  3. The module exists and is tested; nothing was migrated onto it beyond the first three.
+- **`src/lib/context-budget.test.mjs` runs nowhere** — outside the `tests/**` glob and
+  unregistered in `tests/run-all.mjs`. Pre-existing: it was orphaned at `lib/` too.
+- **`package.json` has no `test` script.** CI invokes the runner by path. Pre-existing.
 
 ## Final phase — writeup
 

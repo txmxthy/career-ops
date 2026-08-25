@@ -2,7 +2,7 @@
 //
 // The script hand-rolled its argv parsing and matched tokens EXACTLY against a
 // local `FLAGS` set, which left three distinct failures on `main` (#3004). All
-// three are the class lib/cli-flags.mjs exists to end (#2401/#2402, #2775):
+// three are the class src/lib/cli-flags.mjs exists to end (#2401/#2402, #2775):
 //
 //   --max-chars=50000        → not in FLAGS, not the URL either: dropped, and
 //                              the run returned a JD truncated at the 12000

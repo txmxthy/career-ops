@@ -57,7 +57,7 @@ import { parseScanHistory, detectReposts, loadAggregatorCompanies, isKeyLookup }
 import { normalizeCompanyName } from './invite-match.mjs';
 import { normalizeCompany, resolveTrackerPath } from '../../tracker-utils.mjs';
 import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
-import { localToday } from '../../lib/local-today.mjs';
+import { localToday } from '../lib/local-today.mjs';
 import { flagValue } from '../core/flags.js';
 import {
   parseFollowups,

@@ -36,7 +36,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 import { LIVENESS_CONTEXT_OPTIONS, rejectPrivateOrInvalid } from '../lib/liveness-browser.mjs';
-import { flagValue, hasFlag, validateFlags } from '../../lib/cli-flags.mjs';
+import { flagValue, hasFlag, validateFlags } from '../lib/cli-flags.mjs';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -142,13 +142,13 @@ const USAGE = `Usage:
 /**
  * Parse CLI args into { url, mode, max, maxChars, timeout }.
  *
- * Value reads go through lib/cli-flags.mjs so BOTH accepted forms reach the
+ * Value reads go through src/lib/cli-flags.mjs so BOTH accepted forms reach the
  * extractor. The hand-rolled loop this replaces matched tokens exactly against
  * its own `FLAGS` set, so `--max-chars=50000` was never recognized as a flag:
  * it fell to the `!tok.startsWith('--')` branch, was not the URL either, and
  * the run silently proceeded at the 12000 default — a JD truncated at the tail
  * for a caller who explicitly asked for more. Same silent-wrong-answer shape as
- * the `--from=…` class in #2401/#2402 that lib/cli-flags.mjs exists to end.
+ * the `--from=…` class in #2401/#2402 that src/lib/cli-flags.mjs exists to end.
  *
  * The URL is still found positionally, and an explicit `0` is still honored
  * rather than silently replaced by the default.

@@ -145,16 +145,8 @@ const SYSTEM_PATHS = [
   'GEMINI.md',
   'KIMI.md',
   'generate-pdf.mjs',
-  'lib/ascii-fold.mjs',
   'lib/cli-flags.mjs',
-  'lib/gemini-node-floor.mjs',
   'lib/local-today.mjs',
-  'lib/latex-escape.mjs',
-  'scripts/check-syntax.mjs',
-  'lib/latex-content.mjs',
-  'lib/context-budget.mjs',
-  'lib/context-budget.test.mjs',
-  'lib/golden-budget-analysis.mjs',
   'merge-tracker.mjs',
   'tracker.mjs',
   'tracker-utils.mjs',
@@ -174,19 +166,15 @@ const SYSTEM_PATHS = [
   'doctor.mjs',
   'followup-cadence.mjs',
   'followup-seed.mjs',
-  'evals/',
   'verify-portals.mjs',
   'tests/outcome.test.mjs',
   'batch/batch-prompt.md',
   'batch/batch-runner.sh',
   'batch/aggregate-tokens.mjs',
   'batch/README.md',
-  'utils/token-tracker.mjs',
   'dashboard/',
   'templates/',
   'config/cv-facts.example.json',
-  'fonts/',
-  'examples/',
   'config/profile.example.yml',
   'config/local-paths.example.txt',
   '.env.example',
@@ -205,12 +193,180 @@ const SYSTEM_PATHS = [
   'writing-samples/README.md',
   'VERSION',
   'DATA_CONTRACT.md',
+  'ARCHITECTURE.md',
+  'README.md',
+  'CHANGELOG.md',
+  'CONTRIBUTORS.md',
+  '.all-contributorsrc',
+  'LICENSE',
+  'CITATION.cff',
+  '.editorconfig',
+  '.github/',
+  'package.json',
+  'templates/cv-template.zh-minimal.html',
+  'scaffolder/',
+  'Dockerfile',
+  'docker-compose.yml',
+  '.dockerignore',
+  'cops',
+  'DOCKER.md',
+  'plugins/',
+  'plugins-registry/',
+  'config/plugins.example.yml',
+  'opencode.example.json',
+];
+
+// Paths THIS FORK removed (ADR 0001 and ADR 0007). Subtracted from the merged
+// update set after mergePathLists(), which is a de-duplicating concatenation
+// that never subtracts: upstream still ships every one of these at the repo
+// root, so its SYSTEM_PATHS would check them all back in beside their
+// replacements under src/, tests/, docs/, templates/ and .github/.
+//
+// Every entry is a path the move relocated, and none may exist at the root
+// again. Removing an entry re-opens the resurrection it closes, so this list
+// only ever shrinks when a path genuinely comes back.
+//
+// Three consumers, because subtraction alone can be bypassed:
+//   1. apply() subtracts it from updatePaths (the normal path);
+//   2. `update-system.mjs prune` deletes any that exist on disk (the path that
+//      survives apply() re-execing upstream's copy of this file);
+//   3. doctor.mjs reads it back out of this source and warns about survivors.
+const REMOVED_PATHS = [
+  'add-entry.mjs',
+  'agent-inbox-tests.mjs',
+  'agent-inbox.mjs',
+  'analyze-patterns.mjs',
+  'application-answers.mjs',
+  'application-artifacts.mjs',
+  'archive-posting.mjs',
+  'assessment-log.mjs',
+  'batch-evaluate-gemini.mjs',
+  'batch-tailor.mjs',
+  'browser-extract.mjs',
+  'build-cv-html.mjs',
+  'build-cv-latex.mjs',
+  'build-dashboard.mjs',
+  'check-liveness.mjs',
+  'check-table-freshness.mjs',
+  'classify-tier.mjs',
+  'company-funded.mjs',
+  'company-history.mjs',
+  'company-history.test.mjs',
+  'contacts.mjs',
+  'contacts.test.mjs',
+  'cv-sections-core.mjs',
+  'cv-sync-check.mjs',
+  'cv-templates.mjs',
+  'dedup-tracker.mjs',
+  'detect-reposts.mjs',
+  'detect-reposts.test.mjs',
+  'discover-ats.mjs',
+  'discover-ats.test.mjs',
+  'eval-golden.mjs',
+  'extract-latex-content.mjs',
+  'find.mjs',
+  'fingerprint-core.mjs',
+  'fix-slugs.mjs',
+  'followup-cadence.test.mjs',
+  'followup-seed-tests.mjs',
+  'funnel-velocity.mjs',
+  'gemini-eval.mjs',
+  'generate-cover-letter.mjs',
+  'generate-latex.mjs',
+  'img-to-pdf.mjs',
+  'intake.mjs',
+  'invite-match.mjs',
+  'invite-match.test.mjs',
+  'jd-capture.mjs',
+  'jd-similarity.mjs',
+  'jd-similarity.test.mjs',
+  'jd-skill-gap.mjs',
+  'jsonc-parse.mjs',
+  'liveness-api.mjs',
+  'liveness-browser.mjs',
+  'liveness-core.mjs',
+  'manifesto.mjs',
+  'match-star.mjs',
+  'negotiation-roi.mjs',
+  'normalize-statuses.mjs',
+  'ollama-eval.mjs',
+  'openai-eval.mjs',
+  'openai-tailor.mjs',
+  'openrouter-runner.mjs',
+  'outcome.mjs',
+  'paste-reply-tests.mjs',
+  'paste-reply.mjs',
+  'patch-latex-content.mjs',
+  'pipeline-lock.mjs',
+  'playwright.cv.config.mjs',
+  'plugin-audit.mjs',
+  'plugin-install.mjs',
+  'plugins.mjs',
+  'portal-health-lock.mjs',
+  'prepare-application.mjs',
+  'process-quality.mjs',
+  'process-quality.test.mjs',
+  'profile-language.mjs',
+  'rank-pipeline.mjs',
+  'reconcile-pipeline.mjs',
+  'rejection-latency.mjs',
+  'reply-matcher.mjs',
+  'reply-matcher.test.mjs',
+  'reply-watch.mjs',
+  'role-matcher.mjs',
+  'salary-gap.mjs',
+  'scan-hn.mjs',
+  'scan-interamt.mjs',
+  'seed-fixture.mjs',
+  'set-status-tests.mjs',
+  'skill-extract.mjs',
+  'stats.mjs',
+  'story-provenance-check.mjs',
+  'sync-pdf-flags.mjs',
+  'test-all.mjs',
+  'test-salary-filter.mjs',
+  'test-trust-validator.mjs',
+  'theme-style.mjs',
+  'title-keywords.mjs',
+  'tracker-columns-tests.mjs',
+  'tracker-links.mjs',
+  'tracker-sync-check.mjs',
+  'tracker-writer-lock-tests.mjs',
+  'updater-migration-tests.mjs',
+  'upgrade-tests.mjs',
+  'upskill.mjs',
+  'url-key.mjs',
+  'user-agent.mjs',
+  'validate-plugin-registry.mjs',
+  'validate-portals.mjs',
+  'validate-system-paths-coverage.mjs',
+  'validate-untrusted-content-coverage.mjs',
+  'verify-cv-facts.mjs',
+  'verify-pipeline.mjs',
+  'weekly-digest.mjs',
+
+  // ADR 0007 moved these out of the root too — directories and non-.mjs files
+  // this time. Same hazard as the block above: upstream still ships every one
+  // at the old path, so an update without this subtraction rebuilds lib/,
+  // fonts/, examples/, evals/, test/ and the 16 translated READMEs at the root
+  // the move just emptied. The five directory entries are why prune() and
+  // resurrectedPaths() handle a trailing slash.
+  'lib/ascii-fold.mjs',
+  'lib/gemini-node-floor.mjs',
+  'lib/latex-escape.mjs',
+  'scripts/check-syntax.mjs',
+  'lib/latex-content.mjs',
+  'lib/context-budget.mjs',
+  'lib/context-budget.test.mjs',
+  'lib/golden-budget-analysis.mjs',
+  'evals/',
+  'utils/token-tracker.mjs',
+  'fonts/',
+  'examples/',
   'MANIFESTO.md',
   'SIGNATURES.md',
   'CONTRIBUTING.md',
   'MAINTAINERS.md',
-  'ARCHITECTURE.md',
-  'README.md',
   'README.ar.md',
   'README.cn.md',
   'README.da.md',
@@ -227,37 +383,18 @@ const SYSTEM_PATHS = [
   'README.ua.md',
   'README.zh-TW.md',
   'README.tr.md',
-  'CHANGELOG.md',
   'CODE_OF_CONDUCT.md',
-  'CONTRIBUTORS.md',
-  '.all-contributorsrc',
   'GOVERNANCE.md',
   'LEGAL_DISCLAIMER.md',
   'SECURITY.md',
   'SUPPORT.md',
   'TRADEMARK.md',
-  'LICENSE',
-  'CITATION.cff',
-  '.editorconfig',
-  '.github/',
-  'package.json',
   'test/cv-templates.test.mjs',
   'test/cover-resolver.test.mjs',
   'test/pipeline-lock.test.mjs',
   'test/profile-photo.test.mjs',
-  'templates/cv-template.zh-minimal.html',
   'test/zh-minimal-template.test.mjs',
   'test/cv-visual/',
-  'scaffolder/',
-  'Dockerfile',
-  'docker-compose.yml',
-  '.dockerignore',
-  'cops',
-  'DOCKER.md',
-  'plugins/',
-  'plugins-registry/',
-  'config/plugins.example.yml',
-  'opencode.example.json',
   'test-fixtures/',
 ];
 
@@ -580,20 +717,21 @@ function git(...args) {
 }
 
 /**
- * git(), but with the child's stderr piped instead of inherited.
+ * gitIn(), but with the child's stderr piped instead of inherited.
  *
  * execFileSync inherits stderr by default, so a command whose failure is
  * expected and handled still prints git's raw error to the console. Use this
  * where a non-zero exit is a normal outcome the caller reports itself.
  *
+ * @param {string} root - Repo to run in.
  * @param {...string} args - git arguments.
  * @returns {string} Trimmed stdout.
  */
-function gitQuiet(...args) {
+function gitQuietIn(root, ...args) {
   const timeout = gitTimeoutMs(args);
   try {
     return execFileSync('git', args, {
-      cwd: ROOT, encoding: 'utf-8', timeout, stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: root, encoding: 'utf-8', timeout, stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
   } catch (err) {
     if (isTimeoutLikeError(err)) {
@@ -601,6 +739,11 @@ function gitQuiet(...args) {
     }
     throw err;
   }
+}
+
+/** gitQuietIn() bound to this checkout. */
+function gitQuiet(...args) {
+  return gitQuietIn(ROOT, ...args);
 }
 
 /**
@@ -705,6 +848,13 @@ function normalizeRepoPath(value) {
   return String(value || '').replace(/\\/g, '/').replace(/^\.\//, '');
 }
 
+// Manifest entries and update-set paths spell the same directory both ways
+// ('evals' / 'evals/'). Compare on the slash-stripped form so the subtraction
+// cannot miss a directory over punctuation.
+function manifestKey(value) {
+  return normalizeRepoPath(value).replace(/\/$/, '');
+}
+
 function pathMatchesManifest(file, entry) {
   const normalizedFile = normalizeRepoPath(file);
   const normalizedEntry = normalizeRepoPath(entry).replace(/\/$/, '');
@@ -719,6 +869,121 @@ export function staleSystemFiles(localFiles, remoteFiles, systemPaths, userPaths
     .filter((file) => !remote.has(file))
     .filter((file) => systemPaths.some((entry) => pathMatchesManifest(file, entry)))
     .filter((file) => !userPaths.some((entry) => pathMatchesManifest(file, entry)));
+}
+
+/**
+ * Drop this fork's REMOVED_PATHS from a merged update set.
+ *
+ * mergePathLists() unions the local and remote manifests, so upstream's
+ * SYSTEM_PATHS — which still lists every root path ADR 0001 and ADR 0007 moved
+ * out of the root — puts all of them back into the checkout set. Subtracting
+ * here is what stops `apply` restoring a path this fork deliberately removed.
+ *
+ * Matching is exact on the manifest key (normalized, trailing slash ignored),
+ * because a removed entry names the same pathspec upstream ships — a file, or
+ * a whole directory ADR 0007 moved. A removed file covered ONLY by some
+ * broader directory entry cannot be subtracted this way — the checkout is
+ * per-pathspec, not per-file — which is why `prune` and doctor's check exist.
+ * No current entry is in that position: upstream lists every one of them
+ * individually.
+ *
+ * @param {string[]} paths - Merged update set, from mergePathLists().
+ * @param {string[]} [removed=REMOVED_PATHS] - Manifest to subtract.
+ * @returns {string[]} `paths` minus every entry naming a removed file.
+ */
+export function subtractRemovedPaths(paths, removed = REMOVED_PATHS) {
+  const gone = new Set(removed.map(manifestKey));
+  return paths.filter((path) => !gone.has(manifestKey(path)));
+}
+
+/**
+ * REMOVED_PATHS entries that contradict the shipped manifest.
+ *
+ * A path that is both removed and shipped is a manifest bug, and acting on it
+ * means deleting a file the system layer is supposed to install. prune()
+ * refuses to run at all when this is non-empty rather than delete a shipped
+ * file, and the test suite pins it empty.
+ *
+ * @param {string[]} [removed=REMOVED_PATHS]
+ * @param {string[]} [systemPaths=SYSTEM_PATHS]
+ * @returns {string[]} Contradictory entries, sorted.
+ */
+export function removedPathConflicts(removed = REMOVED_PATHS, systemPaths = SYSTEM_PATHS) {
+  return removed
+    .filter((path) => systemPaths.some((entry) => pathMatchesManifest(path, entry)))
+    .sort();
+}
+
+/**
+ * Removed paths that are back on disk.
+ *
+ * @param {string} [root=ROOT] - Checkout to inspect.
+ * @param {string[]} [removed=REMOVED_PATHS] - Manifest to look for.
+ * @returns {string[]} Repo-relative paths that exist, sorted.
+ */
+export function resurrectedPaths(root = ROOT, removed = REMOVED_PATHS) {
+  return removed.filter((path) => existsSync(join(root, ...manifestKey(path).split('/')))).sort();
+}
+
+/**
+ * Delete every removed path that is back on disk.
+ *
+ * `git rm` first, then rmSync: an upstream checkout writes the file AND stages
+ * it, so unlinking alone would leave the index holding a blob the next
+ * `git checkout` puts straight back. The rmSync covers the untracked case (a
+ * crashed apply, or a hand-copied file) and a repo git cannot read. Same pair
+ * rollback() uses for paths added after its backup.
+ *
+ * Trackedness is checked before `git rm`, not inferred from it: `git rm
+ * --ignore-unmatch` exits 0 on an untracked path, so reporting `staged` from
+ * its exit code would claim an index change that never happened.
+ *
+ * Nothing is committed here. The removals are left staged so they land in the
+ * user's own commit rather than in an update this function did not make.
+ *
+ * @param {string} [root=ROOT] - Checkout to prune.
+ * @param {{dryRun?: boolean}} [opts] - dryRun reports without deleting.
+ * @returns {{scanned: number, found: string[], pruned: string[], staged: string[],
+ *   failed: Array<{path: string, reason: string}>}}
+ */
+export function pruneRemovedPaths(root = ROOT, { dryRun = false } = {}) {
+  const found = resurrectedPaths(root);
+  const pruned = [];
+  const staged = [];
+  const failed = [];
+  for (const path of found) {
+    const key = manifestKey(path);
+    const absolute = join(root, ...key.split('/'));
+    if (dryRun) {
+      pruned.push(path);
+      continue;
+    }
+    try {
+      let tracked = false;
+      try {
+        tracked = gitQuietIn(root, 'ls-files', '--', key) !== '';
+      } catch {
+        // Not a git checkout, or git is unavailable — rmSync still applies.
+      }
+      if (tracked) {
+        try {
+          // -r for the ADR 0007 directory entries; a no-op on a plain file.
+          gitQuietIn(root, 'rm', '-r', '-f', '--', key);
+          staged.push(path);
+        } catch {
+          // Index locked, or a hook refused it. The file still comes off disk
+          // below; the deletion just is not staged, and is not reported as if
+          // it were.
+        }
+      }
+      rmSync(absolute, { recursive: true, force: true });
+      if (existsSync(absolute)) failed.push({ path, reason: 'still present after removal' });
+      else pruned.push(path);
+    } catch (err) {
+      failed.push({ path, reason: err.message });
+    }
+  }
+  return { scanned: REMOVED_PATHS.length, found, pruned, staged, failed };
 }
 
 // Files the self-reexec stage must check out so the TARGET update-system.mjs
@@ -1520,6 +1785,21 @@ async function apply() {
             ...(updateForce ? { CAREER_OPS_UPDATE_FORCE: '1' } : {}),
           },
         });
+        // The child that just finished is the TARGET updater — checked out
+        // from FETCH_HEAD five lines above, so on a fork it is UPSTREAM's
+        // copy, running upstream's SYSTEM_PATHS with no REMOVED_PATHS to
+        // subtract. It has already put the removed root scripts back and
+        // overwritten this file on disk with its own. This process still holds
+        // the fork's manifest in memory, and this is the last moment anything
+        // does, so the prune has to happen here rather than on the next run.
+        try {
+          printPruneResult(pruneRemovedPaths(ROOT));
+        } catch (pruneErr) {
+          // Never fail a successful update over the cleanup, but never hide it
+          // either: doctor's check is what catches whatever is left behind.
+          console.error(`Could not prune removed paths after the update: ${pruneErr.message}`);
+          console.error('Run `node update-system.mjs prune` (or `career-ops system prune`) to retry.');
+        }
         return;
       } catch (err) {
         if (isTimeoutLikeError(err)) {
@@ -1545,7 +1825,13 @@ async function apply() {
 
     // 3a. Keep bootstrap paths as a fallback for very old targets, but the
     // target updater's SYSTEM_PATHS is now the source of truth for new files.
-    const updatePaths = mergePathLists(SYSTEM_PATHS, remoteSystemPaths, BOOTSTRAP_PATHS);
+    // subtractRemovedPaths LAST: mergePathLists is a de-duplicating
+    // concatenation, so upstream's SYSTEM_PATHS — which still lists every root
+    // path ADR 0001 and ADR 0007 moved out — would otherwise check all of them
+    // back in beside their replacements.
+    const updatePaths = subtractRemovedPaths(
+      mergePathLists(SYSTEM_PATHS, remoteSystemPaths, BOOTSTRAP_PATHS),
+    );
 
     // 3b. Local edits to system files (#2337). The checkout is a raw overwrite,
     // so anything this install fixed locally and upstream has not adopted is
@@ -1665,17 +1951,18 @@ async function apply() {
       console.error(`Stale system-file prune step failed: ${err.message}`);
     }
 
-    // tests/ and test-fixtures/ are both auto-discovered and EXECUTED
-    // (tests/**/*.test.mjs run directly; test-fixtures/upgrade/<state>/ dirs are
-    // enumerated by src/lib/seed-fixture.mjs's listStates() and exercised by its
-    // --self-test, which fails if a stale state lacks expected.json/required
-    // files). Stale files left behind by upstream renames would run twice,
-    // crash the suite, or make the self-test iterate a state that no longer
-    // ships upstream. `git checkout` never deletes upstream-removed files (see
+    // tests/ is auto-discovered and EXECUTED (tests/**/*.test.mjs run directly;
+    // tests/fixtures/upgrade/<state>/ dirs are enumerated by
+    // src/lib/seed-fixture.mjs's listStates() and exercised by its --self-test,
+    // which fails if a stale state lacks expected.json/required files). ADR 0007
+    // folded the old root test-fixtures/ in here, so one prefix now covers both.
+    // Stale files left behind by upstream renames would run twice, crash the
+    // suite, or make the self-test iterate a state that no longer ships
+    // upstream. `git checkout` never deletes upstream-removed files (see
     // the limitation note in rollback below) — prune tracked extras against
     // FETCH_HEAD. Only git-tracked files are removed: a user's untracked local
     // experiments in these dirs are never touched.
-    for (const prunePrefix of ['tests/', 'test-fixtures/']) {
+    for (const prunePrefix of ['tests/']) {
       try {
         let remoteFiles = new Set();
         try {
@@ -2076,6 +2363,79 @@ function rollback() {
   }
 }
 
+// ── PRUNE ───────────────────────────────────────────────────────
+
+/**
+ * Print a prune result as prose. Shared by the CLI verb and apply()'s
+ * post-reexec call so both say the same thing about the same outcome.
+ *
+ * @param {ReturnType<typeof pruneRemovedPaths>} result
+ * @param {{dryRun?: boolean}} [opts]
+ * @returns {void}
+ */
+function printPruneResult(result, { dryRun = false } = {}) {
+  if (result.found.length === 0) {
+    console.log(`Prune: none of the ${result.scanned} removed path(s) are on disk.`);
+    return;
+  }
+  const verb = dryRun ? 'Would remove' : 'Removed';
+  console.log(`${verb} ${result.pruned.length} resurrected path(s):`);
+  for (const path of result.pruned) console.log(`  ${path}`);
+  for (const { path, reason } of result.failed) {
+    console.error(`Failed to prune ${path}: ${reason}`);
+  }
+  if (!dryRun && result.staged.length > 0) {
+    console.log(`${result.staged.length} removal(s) are staged, not committed — commit them with your own changes.`);
+  }
+}
+
+/**
+ * `prune` — delete files this fork removed that something put back.
+ *
+ * ADR 0001 part 2. apply() subtracts REMOVED_PATHS from its checkout set, but
+ * that only binds the copy of this file that actually runs the update: the
+ * re-exec stage checks the TARGET updater out of FETCH_HEAD and runs THAT, so
+ * an update normally executes upstream's merge logic, which has no
+ * REMOVED_PATHS at all. This verb is the repair for that case, and for any
+ * other route that puts a removed file back.
+ *
+ * Exit codes follow the CLI contract (ADR 0006): 0 ran and found nothing to do
+ * or cleaned up, 1 ran and could not remove something, 3 could not verify.
+ * "No manifest" is 3, never a clean 0 — an empty REMOVED_PATHS means this
+ * file was replaced by a copy that does not know what was removed, which is
+ * exactly the state the check exists to catch.
+ *
+ * @returns {void}
+ */
+function prune() {
+  const jsonOut = process.argv.includes('--json');
+  const dryRun = process.argv.includes('--dry-run');
+
+  const unverified = (reason) => {
+    // stderr in BOTH modes: the command adapter reads its message from the
+    // first stderr line, so a JSON-only reason surfaces the whole blob as the
+    // message instead of the sentence.
+    console.error(`prune: could not verify — ${reason}`);
+    if (jsonOut) console.log(JSON.stringify({ ok: false, reason }));
+    process.exit(3);
+  };
+
+  if (REMOVED_PATHS.length === 0) {
+    unverified('REMOVED_PATHS is empty, so there is no manifest to prune against. '
+      + 'This copy of update-system.mjs is not the fork\'s — restore it before trusting an update.');
+  }
+  const conflicts = removedPathConflicts();
+  if (conflicts.length > 0) {
+    unverified(`REMOVED_PATHS names ${conflicts.length} path(s) that SYSTEM_PATHS also ships, `
+      + `so pruning would delete a system file: ${conflicts.join(', ')}`);
+  }
+
+  const result = pruneRemovedPaths(ROOT, { dryRun });
+  if (jsonOut) console.log(JSON.stringify({ ok: result.failed.length === 0, dryRun, ...result }));
+  else printPruneResult(result, { dryRun });
+  if (result.failed.length > 0) process.exit(1);
+}
+
 // ── DISMISS ─────────────────────────────────────────────────────
 
 function dismiss() {
@@ -2097,8 +2457,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       case 'apply': await apply(); break;
       case 'rollback': rollback(); break;
       case 'dismiss': dismiss(); break;
+      case 'prune': prune(); break;
       default:
-        console.log('Usage: node update-system.mjs [check|apply [--force]|rollback|dismiss]');
+        console.log('Usage: node update-system.mjs [check|apply [--force]|rollback|dismiss|prune [--dry-run] [--json]]');
         process.exit(1);
     }
   } catch (err) {

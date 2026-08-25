@@ -52,7 +52,7 @@ import icims from './providers/icims.mjs';
 import { buildTitleFilter, buildLocationFilter, buildContentFilter, matchedTitleKeywords, loadSeenUrls, normalizeUrlForDedup, appendToPipeline, appendToScanHistory, loadBlacklist, parseSinceDays } from './scan.mjs';
 import { SEED_SOURCES, toPortalEntry } from './seeds/vc-portfolios.mjs';
 import { normalizeCompany } from './tracker-utils.mjs';
-import { validateFlags } from './lib/cli-flags.mjs';
+import { validateFlags } from './src/lib/cli-flags.mjs';
 import { flagValue } from './src/core/flags.js';
 
 // ── Config ──────────────────────────────────────────────────────────
@@ -255,7 +255,7 @@ function parseArgs(argv) {
   const args = argv.slice(2);
 
   // Shared with reply-watch.mjs/dedup-tracker.mjs/scan.mjs via
-  // lib/cli-flags.mjs (#2775). This also fixes a latent ordering bug this
+  // src/lib/cli-flags.mjs (#2775). This also fixes a latent ordering bug this
   // script had before the pattern was consolidated: the unrecognized-flag
   // check now runs BEFORE --help, so `--help --bogus` still errors instead
   // of exiting 0 having never looked at `--bogus` (the same ordering

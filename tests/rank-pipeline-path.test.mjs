@@ -55,7 +55,7 @@ check('a failed batch is reported on stderr, not swallowed',
   all.stderr.includes('entries left un-annotated'));
 
 // PRESERVED: both spellings of a value flag work, and the ceiling logic is
-// unchanged. lib/cli-flags.mjs and src/core/flags.js agree on `--flag=value`;
+// unchanged. src/lib/cli-flags.mjs and src/core/flags.js agree on `--flag=value`;
 // this pins that the swap did not lose it.
 const spaced = rank('--limit', '2');
 check('--limit N caps the selection', spaced.stdout.includes('of 2 selected entr'));

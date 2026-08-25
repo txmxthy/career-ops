@@ -30,11 +30,11 @@
       - any-glob-to-any-file:
           - docs/**
           - "README*.md"
-          - CONTRIBUTING.md
-          - GOVERNANCE.md
-          - CODE_OF_CONDUCT.md
-          - SECURITY.md
-          - SUPPORT.md
+          - .github/CONTRIBUTING.md
+          - docs/GOVERNANCE.md
+          - .github/CODE_OF_CONDUCT.md
+          - .github/SECURITY.md
+          - .github/SUPPORT.md
 
 "🌐 i18n":
   - changed-files:

@@ -8,7 +8,7 @@
  * compare it to the reference label, and exit 0/1 on an aggregate threshold.
  *
  * Labels are frozen reference (Claude-tier) verdicts — the metric is
- * agreement-with-reference, not absolute correctness (see evals/README.md).
+ * agreement-with-reference, not absolute correctness (see tests/evals/README.md).
  * ARCHETYPE agreement is the gate; SCORE is a secondary tolerance-banded signal.
  *
  * The remaining knobs are surfaced as named constants so they stay trivial to
@@ -31,10 +31,10 @@ import { spawnSync } from 'child_process';
 import { flagValue } from '../core/flags.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const GOLDEN_DIR = join(ROOT, 'evals', 'golden');
+const GOLDEN_DIR = join(ROOT, 'tests', 'evals', 'golden');
 
 // ---------------------------------------------------------------------------
-// Tunable knobs (#1354), with safe v1 defaults — see evals/README.md.
+// Tunable knobs (#1354), with safe v1 defaults — see tests/evals/README.md.
 // ---------------------------------------------------------------------------
 
 /** Max |candidate.score - label.score| still counted as agreement.
@@ -60,7 +60,7 @@ if (args.includes('--help') || args.includes('-h')) {
   --replay         Replay recorded fixtures (default; offline, $0, deterministic)
   --live           Call the model live via src/scripts/openai-eval.mjs (needs key + cv.md)
   --model <id>     Candidate model id to evaluate (default: cheap-stub)
-  --golden <dir>   Golden-set directory (default: evals/golden)
+  --golden <dir>   Golden-set directory (default: tests/evals/golden)
   --fixtures <dir> Replay fixtures directory (default: sibling of --golden)
   --help           Show this help
 `);
@@ -71,7 +71,7 @@ const mode  = args.includes('--live') ? 'live' : 'replay';
 const model = flagValue(args, '--model') || 'cheap-stub';
 const goldenDir = flagValue(args, '--golden') || GOLDEN_DIR;
 // Keep fixtures next to the golden set so a custom --golden dir resolves its
-// own fixtures (the default lands on evals/fixtures); override with --fixtures.
+// own fixtures (the default lands on tests/evals/fixtures); override with --fixtures.
 const fixtureDir = flagValue(args, '--fixtures') || join(dirname(goldenDir), 'fixtures');
 
 /**

@@ -17,7 +17,7 @@ import { readFile, writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { pathToFileURL } from 'url';
-import { applyPatches } from '../../lib/latex-content.mjs';
+import { applyPatches } from './latex-content.mjs';
 
 async function main() {
   const args = process.argv.slice(2).filter(a => a !== '--help');

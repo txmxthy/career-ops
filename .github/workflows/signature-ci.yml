@@ -2,12 +2,12 @@
 # Destino: .github/workflows/signature-ci.yml
 # v2.2 (final): el firmante SOLO añade 1 línea al FINAL (un guion o su
 # frase). Cero formato que validar: 1 línea añadida / 0 borradas / solo
-# SIGNATURES.md / al final del fichero / ≤200 chars / sin bidi/zero-width.
+# docs/SIGNATURES.md / al final del fichero / ≤200 chars / sin bidi/zero-width.
 # La identidad es ESTRUCTURAL (autor del PR) — la línea canónica la escribe el bot.
 name: signature-ci
 on:
   pull_request:
-    paths: [SIGNATURES.md]
+    paths: [docs/SIGNATURES.md]
 
 permissions:
   contents: read
@@ -31,16 +31,16 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          # Solo SIGNATURES.md puede cambiar
+          # Solo docs/SIGNATURES.md puede cambiar
           CHANGED=$(git diff --name-only "$BASE_SHA...$HEAD_SHA")
-          [ "$CHANGED" = "SIGNATURES.md" ] || { echo "reason=Only SIGNATURES.md may change in a signature PR (changed: $CHANGED)" >> "$GITHUB_OUTPUT"; exit 1; }
+          [ "$CHANGED" = "docs/SIGNATURES.md" ] || { echo "reason=Only docs/SIGNATURES.md may change in a signature PR (changed: $CHANGED)" >> "$GITHUB_OUTPUT"; exit 1; }
           # Exactamente +1/-0
-          read -r ADD DEL _ <<< "$(git diff --numstat "$BASE_SHA...$HEAD_SHA" -- SIGNATURES.md)"
+          read -r ADD DEL _ <<< "$(git diff --numstat "$BASE_SHA...$HEAD_SHA" -- docs/SIGNATURES.md)"
           [ "$ADD" = "1" ] && [ "$DEL" = "0" ] || { echo "reason=Signature PRs add exactly 1 line and remove 0 (got +$ADD/-$DEL)" >> "$GITHUB_OUTPUT"; exit 1; }
-          LINE=$(git diff "$BASE_SHA...$HEAD_SHA" -- SIGNATURES.md | grep '^+' | grep -v '^+++' | sed 's/^+//')
+          LINE=$(git diff "$BASE_SHA...$HEAD_SHA" -- docs/SIGNATURES.md | grep '^+' | grep -v '^+++' | sed 's/^+//')
           # v2.2: la línea debe estar AL FINAL del fichero
-          LAST=$(tail -n 1 SIGNATURES.md)
-          [ "$LINE" = "$LAST" ] || { echo "reason=Your line must be the LAST line of SIGNATURES.md — move it to the very end" >> "$GITHUB_OUTPUT"; exit 1; }
+          LAST=$(tail -n 1 docs/SIGNATURES.md)
+          [ "$LINE" = "$LAST" ] || { echo "reason=Your line must be the LAST line of docs/SIGNATURES.md — move it to the very end" >> "$GITHUB_OUTPUT"; exit 1; }
           printf '%s' "$LINE" > /tmp/sig-line.txt
           node --input-type=module -e '
             import { readFileSync } from "node:fs";
@@ -81,5 +81,5 @@ jobs:
             const reason = `${{ steps.check.outputs.reason || 'the diff shape or line format is off' }}`;
             await github.rest.issues.createComment({
               ...context.repo, issue_number: context.payload.pull_request.number,
-              body: `Almost there — ${reason}.\n\nAdd exactly ONE line at the very END of SIGNATURES.md: one sentence about your search (or what you want hiring to become), or just a dash:\n\n\`\`\`\n-\n\`\`\`\n\nYour username, the date and the id are added automatically when your signature lands. No other file or line should change.`
+              body: `Almost there — ${reason}.\n\nAdd exactly ONE line at the very END of docs/SIGNATURES.md: one sentence about your search (or what you want hiring to become), or just a dash:\n\n\`\`\`\n-\n\`\`\`\n\nYour username, the date and the id are added automatically when your signature lands. No other file or line should change.`
             });

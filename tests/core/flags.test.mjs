@@ -8,7 +8,7 @@
  * test here. Where the module deliberately changes what one of the old parsers
  * did, the test says so and names the ADR or the audit item.
  *
- * The canonical implementation is lib/cli-flags.mjs:29; every assertion carried
+ * The canonical implementation is src/lib/cli-flags.mjs:29; every assertion carried
  * over from tests/cli-flags.test.mjs keeps its original wording so a drift is
  * visible as a diff rather than as a rewrite.
  */
@@ -90,7 +90,7 @@ test('a non-string argv entry is skipped', () => {
 });
 
 test('flagValue does not swallow the following flag as a value (ADR 0004 #6)', () => {
-  // The one deliberate change to the canonical lib/cli-flags.mjs:29 body.
+  // The one deliberate change to the canonical src/lib/cli-flags.mjs:29 body.
   // There, `--status --applied` returned the literal '--applied'; tracker.mjs:375
   // rejected it. ADR 0004 #6 adopts the rejection: `--flag --next` must NOT
   // swallow `--next`. hasFlag still separates absent from supplied-without-value.
@@ -101,7 +101,7 @@ test('flagValue does not swallow the following flag as a value (ADR 0004 #6)', (
 
 test('a single-dash value is a value, not a flag', () => {
   // `--since -5` is a negative day count. Only a `--`-prefixed token is a flag;
-  // this is the adjacency rule lib/cli-flags.mjs:100-105 hand-rolls per caller.
+  // this is the adjacency rule src/lib/cli-flags.mjs:100-105 hand-rolls per caller.
   assert.equal(flagValue(['--since', '-5'], '--since'), '-5');
 });
 
@@ -181,7 +181,7 @@ test('a repeatable flag collects every value in argv order', () => {
 });
 
 test('a repeated non-repeatable value flag is a usage error, not a silent first-wins', () => {
-  // The audit records the divergence without deciding it: lib/cli-flags.mjs:35
+  // The audit records the divergence without deciding it: src/lib/cli-flags.mjs:35
   // and every bare-indexOf site silently take the FIRST occurrence, while
   // scan.mjs:2345 requireValue() reports the repeat. Reporting it is the only
   // behaviour that cannot discard input the user typed.
@@ -200,7 +200,7 @@ test('a repeated boolean stays true rather than erroring', () => {
 // ── parseFlags — unknown flags and --help ordering ───────────────────
 
 test('an unrecognized flag fails with exit code 2, not 1 (ADR 0006)', () => {
-  // lib/cli-flags.mjs:117 exits 1 for a bad flag. ADR 0006 reserves 1 for "the
+  // src/lib/cli-flags.mjs:117 exits 1 for a bad flag. ADR 0006 reserves 1 for "the
   // check ran and failed" and gives usage errors code 2, so a caller can tell a
   // real negative finding from a typo.
   const r = parseFlags(['--dryrun'], SPEC);
@@ -231,7 +231,7 @@ test('-h requests help too', () => {
 test('--help plus an unrecognized flag still errors (A1)', () => {
   // src/scripts/company-history.mjs:123, src/scripts/discover-ats.mjs:908 and src/scripts/assessment-log.mjs:290
   // check --help FIRST, so `--help --bogus` exits 0 having never looked at
-  // --bogus. lib/cli-flags.mjs:145 checks it last, deliberately; that ordering
+  // --bogus. src/lib/cli-flags.mjs:145 checks it last, deliberately; that ordering
   // is canonical here.
   const r = parseFlags(['--help', '--bogus'], SPEC);
   assert.equal(r.ok, false);
@@ -241,7 +241,7 @@ test('--help plus an unrecognized flag still errors (A1)', () => {
 
 test('--help does not rescue a flag left without its value', () => {
   // #2961: `--since --help` printed usage and exited 0, so the malformed flag
-  // was never reported. lib/cli-flags.mjs made that check opt-in
+  // was never reported. src/lib/cli-flags.mjs made that check opt-in
   // (requireOperand); here it is unconditional.
   const r = parseFlags(['--since', '--help'], SPEC);
   assert.equal(r.ok, false);
@@ -281,7 +281,7 @@ test('a value flag at the end of argv reports a missing value', () => {
 
 test('an empty value is rejected in both forms (A7)', () => {
   // src/scripts/company-history.mjs:163-170 rejects `--company ""` and `--company=`;
-  // lib/cli-flags.mjs's requireOperand does not. The rejection wins: an empty
+  // src/lib/cli-flags.mjs's requireOperand does not. The rejection wins: an empty
   // value filters to something that cannot exist, which reads as "no results".
   const spaced = parseFlags(['--file', ''], SPEC);
   assert.equal(spaced.ok, false);
@@ -350,7 +350,7 @@ test('clustered short flags are not supported and fail loudly', () => {
 });
 
 test('a stray dash-prefixed token is an unrecognized flag', () => {
-  // lib/cli-flags.mjs:110 treats any `-`-prefixed token as a flag candidate;
+  // src/lib/cli-flags.mjs:110 treats any `-`-prefixed token as a flag candidate;
   // src/scripts/assessment-log.mjs:308 and src/scripts/company-history.mjs:139 agree. No divergence.
   assert.deepEqual(codes(parseFlags(['-5'], SPEC)), ['unknown-flag']);
   assert.deepEqual(codes(parseFlags(['-'], SPEC)), ['unknown-flag']);

@@ -72,7 +72,7 @@ import { parseRow } from './src/core/table.js';
 import { renameSyncWithRetry } from './tracker-utils.mjs';
 import { tmpdir } from 'os';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
-import { localToday } from './lib/local-today.mjs';
+import { localToday } from './src/lib/local-today.mjs';
 import {
   resolveCadenceConfig,
   normalizeStatus,

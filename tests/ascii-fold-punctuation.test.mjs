@@ -1,7 +1,7 @@
 // tests/ascii-fold-punctuation.test.mjs — the punctuation option is a
 // behaviour switch, not a spelling preference (#3040).
 //
-// _trust-validator.mjs and lib/ascii-fold.mjs carried the same folding table
+// _trust-validator.mjs and src/lib/ascii-fold.mjs carried the same folding table
 // with one difference in the final class: 'delete' removes residual
 // punctuation, 'space' turns it into a separator. Unifying them without the
 // option would have silently loosened the trust validator, because its
@@ -17,7 +17,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { asciiFold } from '../lib/ascii-fold.mjs';
+import { asciiFold } from '../src/lib/ascii-fold.mjs';
 import { companyMatchesHostname, asciiFoldForHostname } from '../providers/_trust-validator.mjs';
 
 test("'space' separates on punctuation, 'delete' does not", () => {

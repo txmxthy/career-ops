@@ -153,7 +153,7 @@ These files contain system logic, scripts, templates, and instructions that impr
 | `batch/batch-runner.sh` | Batch orchestrator |
 | `dashboard/*` | Go TUI dashboard |
 | `templates/*` | Base templates |
-| `fonts/*` | Self-hosted fonts |
+| `templates/fonts/*` | Self-hosted fonts |
 | `.claude/skills/*` | Skill definitions (Claude Code) |
 | `.cursor/skills/*` | Skill definitions (Cursor) |
 | `.opencode/skills/*` | Skill definitions (OpenCode) |
@@ -164,7 +164,7 @@ These files contain system logic, scripts, templates, and instructions that impr
 | `VERSION` | Current version number |
 | `DATA_CONTRACT.md` | This file |
 | `writing-samples/README.md` | System-owned onboarding documentation for the writing-samples directory |
-| `src/lib/seed-fixture.mjs` / `test-fixtures/*` | Upgrade-test fixtures and seeder (system layer; fictional data, never user data) |
+| `src/lib/seed-fixture.mjs` / `tests/fixtures/upgrade/*` | Upgrade-test fixtures and seeder (system layer; fictional data, never user data) |
 | `tests/upgrade-harness.mjs` | Dynamic upgrade regression harness (PR gate: old install applies the commit under test hermetically) |
 
 ## The Rule

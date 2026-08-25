@@ -263,9 +263,13 @@ try {
           && state.cli_source === 'flag'
           && Object.keys(state.playwright_mcp || {}).length === 0
           && Array.isArray(state.warnings)
-          && state.warnings.length === 1
-          && /Unknown --cli "vim"/.test(state.warnings[0])) {
-        pass('--cli vim → unknown sentinel, one warning naming the bad value');
+          // The claim is that MCP adds nothing, not that nothing else can ever
+          // warn: doctor's other checks share this array, and a bare temp dir
+          // legitimately trips the removed-root-scripts check (no updater to
+          // read). Assert the two halves the comment above actually states.
+          && state.warnings.some((w) => /Unknown --cli "vim"/.test(w))
+          && !state.warnings.some((w) => PLAYWRIGHT_RE.test(w))) {
+        pass('--cli vim → unknown sentinel, the warning names the bad value, MCP stays silent');
       } else {
         fail(`#10 unexpected state: ${JSON.stringify(state)}`);
       }
@@ -283,9 +287,10 @@ try {
           && state.cli_source === 'env'
           && Object.keys(state.playwright_mcp || {}).length === 0
           && Array.isArray(state.warnings)
-          && state.warnings.length === 1
-          && /CAREER_OPS_CLI="vim"/.test(state.warnings[0])) {
-        pass('CAREER_OPS_CLI="vim" (invalid) → unknown sentinel, one warning via env path');
+          // Same as #10: the MCP layer is what must stay silent here.
+          && state.warnings.some((w) => /CAREER_OPS_CLI="vim"/.test(w))
+          && !state.warnings.some((w) => PLAYWRIGHT_RE.test(w))) {
+        pass('CAREER_OPS_CLI="vim" (invalid) → unknown sentinel, warned via the env path, MCP silent');
       } else {
         fail(`#11 unexpected state: ${JSON.stringify(state)}`);
       }

@@ -34,8 +34,8 @@ import { outputLanguageInstruction, parseOutputLanguage } from '../lib/profile-l
 import {
   formatReportNumber, releaseReportNumbers, reserveReportNumbers,
 } from '../../reserve-report-num.mjs';
-import { TokenAccumulator, formatBreakdown, normalizeOpenAIUsage } from '../../utils/token-tracker.mjs';
-import { buildBudgetedPrompt } from '../../lib/context-budget.mjs';
+import { TokenAccumulator, formatBreakdown, normalizeOpenAIUsage } from '../lib/token-tracker.mjs';
+import { buildBudgetedPrompt } from '../lib/context-budget.mjs';
 
 const tracker = new TokenAccumulator();
 tracker.recordZeroToken('scan');

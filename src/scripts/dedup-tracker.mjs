@@ -17,7 +17,7 @@ import {
   openTrackerTransaction, rebuildRow, resolveTrackerPath, normalizeCompany,
 } from '../../tracker-utils.mjs';
 import { resolveColumns, parseTrackerRow, normalizeVia } from '../../tracker-parse.mjs';
-import { validateFlags } from '../../lib/cli-flags.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // Support both layouts: data/applications.md (boilerplate) and applications.md
@@ -29,7 +29,7 @@ const APPS_FILE = resolveTrackerPath(CAREER_OPS);
 // Same shape as scan-ats-full.mjs (#1633/PR #1635) and src/scripts/reply-watch.mjs
 // (#2743): an unrecognized flag must fail fast, never silently fall through
 // to the live-run default and write to the real tracker (#2744). Shared via
-// lib/cli-flags.mjs's validateFlags() (#2775).
+// src/lib/cli-flags.mjs's validateFlags() (#2775).
 const KNOWN_FLAGS = ['--dry-run', '--help', '-h'];
 const USAGE = `Usage: node src/scripts/dedup-tracker.mjs [--dry-run]`;
 

@@ -16,7 +16,7 @@ import { writeFile } from 'fs/promises';
 import { resolve, basename } from 'path';
 import { pathToFileURL } from 'url';
 import { readFile } from '../core/store.js';
-import { buildManifest } from '../../lib/latex-content.mjs';
+import { buildManifest } from './latex-content.mjs';
 
 async function main() {
   const args = process.argv.slice(2).filter(a => a !== '--help');

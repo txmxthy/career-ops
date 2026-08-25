@@ -29,6 +29,11 @@ export function TodayDashboard({
 }) {
   const [followups, setFollowups] = useState<FollowUp[]>([]);
   const [overdue, setOverdue] = useState(0);
+  // null until the first response lands. `false` means the cadence engine did
+  // not run — which is NOT zero follow-ups due (ADR 0006). Collapsing the two
+  // is what made this card say "all caught up" while followup-cadence.mjs was
+  // exiting 1 on every call.
+  const [cadenceOk, setCadenceOk] = useState<boolean | null>(null);
   const [fresh, setFresh] = useState<DiscoveredOffer[]>([]);
   const [freshCount, setFreshCount] = useState(0);
   const router = useRouter();
@@ -38,10 +43,11 @@ export function TodayDashboard({
     fetch("/api/followups")
       .then((r) => r.json())
       .then((d) => {
+        setCadenceOk(d.available !== false);
         setFollowups(Array.isArray(d.entries) ? d.entries : []);
         setOverdue(d.metadata?.overdue ?? d.entries?.length ?? 0);
       })
-      .catch(() => {});
+      .catch(() => setCadenceOk(false));
     fetch("/api/whats-new")
       .then((r) => r.json())
       .then((d) => {
@@ -73,7 +79,9 @@ export function TodayDashboard({
   );
 
   const newThisWeek = freshCount;
-  const allClear = newThisWeek === 0 && overdue === 0 && awaiting.length === 0;
+  // Only claim "all clear" once the cadence engine has actually reported.
+  const allClear = cadenceOk === true && newThisWeek === 0 && overdue === 0 && awaiting.length === 0;
+  const cadenceDown = cadenceOk === false;
   const inboxUrls = useMemo(() => new Set(inbox.map((j) => j.url)), [inbox]);
 
   return (
@@ -156,6 +164,15 @@ export function TodayDashboard({
             </Link>
           )}
         </Section>
+      )}
+
+      {cadenceDown && (
+        <div className="mt-8 rounded-2xl border border-border bg-surface/30 px-6 py-10 text-center">
+          <p className="mx-auto max-w-md text-sm text-muted">
+            Follow-ups could not be checked — the cadence engine (followup-cadence.mjs) returned nothing.
+            This is not the same as having none due; see your <Link href="/followups" className="text-brand hover:underline">follow-ups</Link>.
+          </p>
+        </div>
       )}
 
       {allClear && (

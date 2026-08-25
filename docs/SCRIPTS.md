@@ -210,7 +210,7 @@ The default path is `portals.yml`, overridable with `--file` or the `CAREER_OPS_
 
 ## pdf
 
-Renders an HTML file to a print-quality, ATS-parseable PDF via headless Chromium. Resolves font paths from `fonts/`, normalizes Unicode for ATS compatibility (em-dashes, smart quotes, zero-width characters), and reports page count and file size.
+Renders an HTML file to a print-quality, ATS-parseable PDF via headless Chromium. Resolves font paths from `templates/fonts/`, normalizes Unicode for ATS compatibility (em-dashes, smart quotes, zero-width characters), and reports page count and file size.
 
 ```bash
 npm run pdf -- input.html output.pdf

@@ -3,14 +3,14 @@
 //
 // src/scripts/batch-tailor.mjs spawns one agent run per matching job, so a mis-parsed
 // threshold is not a cosmetic problem: it decides how many paid runs happen and
-// on which roles. It predates lib/cli-flags.mjs and hand-rolled its own
+// on which roles. It predates src/lib/cli-flags.mjs and hand-rolled its own
 // parsing, which left three silent failures:
 //
 //   --min-score 4.5   (space form)  → ignored, ran at the 4.0 default
 //   --min-score=abc   (bad value)   → NaN, matched nothing, exited 0
 //   --min-scor=4.5    (typo)        → ignored, ran at the 4.0 default
 //
-// All three are the #2459 class that lib/cli-flags.mjs exists to end.
+// All three are the #2459 class that src/lib/cli-flags.mjs exists to end.
 //
 // The state-file path is env-overridable (CAREER_OPS_BATCH_STATE, the same
 // override merge-tracker.mjs already honours) so these cases run against a

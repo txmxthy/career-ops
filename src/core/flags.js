@@ -4,7 +4,7 @@
  * Replaces the 3 `flagValue` + 10 `parseArgs` + 3 `parseCliArgs` catalogued in
  * docs/audit/duplicate-functionality.md (Part II, CAPABILITY 2), plus the ~24
  * bare `args.indexOf('--flag')` value reads and the ad-hoc `--flag=value`-only
- * parsers that are its mirror image. The canonical body is lib/cli-flags.mjs:29
+ * parsers that are its mirror image. The canonical body is src/lib/cli-flags.mjs:29
  * — most callers, only implementation with dedicated tests, and the only one
  * whose semantics are documented with the defect IDs they close.
  *
@@ -17,7 +17,7 @@
  *
  * Pure: no argv, no exiting, no printing. A parse returns what it found and
  * what was wrong with it; the command adapter decides how to say so. That is
- * also why nothing here corresponds to lib/cli-flags.mjs's `validateFlags` —
+ * also why nothing here corresponds to src/lib/cli-flags.mjs's `validateFlags` —
  * its whole body is printing and exiting, which belongs in an adapter.
  *
  * Deliberate changes to the canonical behaviour, each pinned by a test:

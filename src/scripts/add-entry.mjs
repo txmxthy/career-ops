@@ -42,7 +42,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { normalizeTextKey } from '../../tracker-parse.mjs';
-import { validateFlags } from '../../lib/cli-flags.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
 import { readFile } from '../core/store.js';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');

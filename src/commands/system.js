@@ -65,13 +65,11 @@
  * regression, not a missing feature. Its capabilities stay reachable through
  * `system plugins add` and `system validate-plugin-registry --deep`.
  *
- * ## Not built here
+ * ## Twelve rows, not eleven
  *
- * `career-ops system prune` (ADR 0001, part 2 of the updater fork). It removes
- * files listed in `REMOVED_PATHS`, and `REMOVED_PATHS` does not exist yet —
- * `update-system.mjs` is byte-identical to HEAD. A `prune` that cannot prune
- * is the dishonest surface ADR 0006 exists to prevent, so it is left to the
- * agent that forks the updater. Wiring point: add one row to `commands` below.
+ * `system prune` (ADR 0001, part 2 of the updater fork) is the twelfth. It is
+ * the only row whose backing verb this fork wrote rather than inherited:
+ * `update-system.mjs prune` removes the root scripts an update put back.
  *
  * ## Contract with the facade
  *
@@ -722,11 +720,47 @@ const validateUntrustedCoverage = makeCommand({
   mapExit: ({ code }) => (code === 0 ? EXIT.OK : EXIT.FAILED),
 });
 
+/**
+ * `system prune` — ADR 0001 part 2 of the updater fork.
+ *
+ * `update-system.mjs apply` subtracts REMOVED_PATHS from its checkout set, but
+ * only the copy of the updater that actually runs the update binds that: the
+ * re-exec stage checks the target updater out of FETCH_HEAD and runs THAT, so
+ * on a fork an update normally executes upstream's merge logic, which restores
+ * every root script ADR 0001 moved into src/. This verb is the repair.
+ *
+ * Its 3 is load-bearing. `update-system.mjs prune` exits 3 when REMOVED_PATHS
+ * is empty or contradicts SYSTEM_PATHS, because a copy of the updater that
+ * does not know what was removed cannot report "nothing to prune" — that is
+ * the same output a clean install gives, and the two mean opposite things.
+ */
+const prune = makeCommand({
+  command: 'system prune',
+  script: 'update-system.mjs',
+  description: 'Remove root scripts this fork moved out of the root that an update put back.',
+  flags: {
+    '--dry-run': { type: 'boolean', describe: 'List what would be removed without deleting anything' },
+  },
+  timeoutMs: 60_000,
+  childArgv: (parsed) => {
+    const argv = ['prune'];
+    if (parsed.values['--dry-run']) argv.push('--dry-run');
+    if (parsed.json) argv.push('--json');
+    return argv;
+  },
+  expectJson: (parsed) => parsed.json,
+  mapExit: ({ code }) => {
+    if (code === 0) return EXIT.OK;
+    return code === EXIT.UNVERIFIED ? EXIT.UNVERIFIED : EXIT.FAILED;
+  },
+});
+
 export const noun = 'system';
 
 export const commands = {
   'doctor': doctor,
   'update': update,
+  'prune': prune,
   'check-table-freshness': checkTableFreshness,
   'fix-slugs': fixSlugs,
   'generate-latex': generateLatex,

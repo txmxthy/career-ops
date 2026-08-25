@@ -63,4 +63,4 @@ import { pass, fail, ROOT } from './helpers.mjs';    // tests/*.test.mjs
 import { pass, fail, ROOT } from '../helpers.mjs';   // tests/providers/*.test.mjs
 ```
 
-See `CONTRIBUTING.md` for the full contribution flow.
+See `.github/CONTRIBUTING.md` for the full contribution flow.

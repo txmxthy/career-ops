@@ -35,7 +35,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 import { readFile as readFileOrAbsent, ensureDir } from '../core/store.js';
-import { TokenAccumulator, formatBreakdown } from '../../utils/token-tracker.mjs';
+import { TokenAccumulator, formatBreakdown } from '../lib/token-tracker.mjs';
 
 const tracker = new TokenAccumulator();
 tracker.recordZeroToken('scan');
@@ -45,7 +45,7 @@ import { outputLanguageInstruction, parseOutputLanguage } from '../lib/profile-l
 import {
   formatReportNumber, releaseReportNumbers, reserveReportNumbers,
 } from '../../reserve-report-num.mjs';
-import { buildBudgetedPrompt } from '../../lib/context-budget.mjs';
+import { buildBudgetedPrompt } from '../lib/context-budget.mjs';
 
 // ---------------------------------------------------------------------------
 // Bootstrap: load .env before anything else

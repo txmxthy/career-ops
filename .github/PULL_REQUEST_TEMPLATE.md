@@ -17,7 +17,7 @@
 
 ## Checklist
 
-- [ ] I have read [CONTRIBUTING.md](https://github.com/santifer/career-ops/blob/main/CONTRIBUTING.md)
+- [ ] I have read [CONTRIBUTING.md](https://github.com/santifer/career-ops/blob/main/.github/CONTRIBUTING.md)
 - [ ] If this is a new feature or architecture change, I opened an issue first (bug fixes, providers, docs & translations are exempt — send those straight in)
 - [ ] My PR does not include personal data (CV, email, real names, scan results, or pipeline data)
 - [ ] I ran `node tests/run-all.mjs` and all tests pass

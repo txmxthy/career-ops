@@ -98,7 +98,7 @@ Om een ​​consistente toon te behouden als u de modi wijzigt of uitbreidt:
 
 Om een ​​vertaling te verbeteren of een modus toe te voegen:
 
-1. Open een probleem met uw voorstel (zie `CONTRIBUTING.md`)
+1. Open een probleem met uw voorstel (zie `.github/CONTRIBUTING.md`)
 2. Respecteer de bovenstaande woordenlijst om de toon consistent te houden
 3. Vertaal idiomatisch - geen woord-voor-woordvertaling
 4. Houd structurele elementen (blokken A-F, tabellen, codeblokken, gereedschapsinstructies) identiek

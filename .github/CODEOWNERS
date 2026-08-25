@@ -1,5 +1,5 @@
 # CODEOWNERS — auto-requests maintainer review on sensitive paths.
-# Last matching pattern wins. See MAINTAINERS.md for the team + ladder.
+# Last matching pattern wins. See docs/MAINTAINERS.md for the team + ladder.
 #
 # Scope principle: gate what CI can't catch (a bad change here passes the
 # tests silently) + the catastrophic updater + governance docs. Code that
@@ -17,8 +17,8 @@
 
 # Repo docs & governance
 /README*.md            @santifer
-/CONTRIBUTING.md       @santifer
-/MAINTAINERS.md        @santifer
+/.github/CONTRIBUTING.md @santifer
+/docs/MAINTAINERS.md    @santifer
 /ARCHITECTURE.md       @santifer
 /.github/CODEOWNERS    @santifer
 

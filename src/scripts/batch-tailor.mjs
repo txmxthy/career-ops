@@ -2,7 +2,7 @@
 
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { resolve, join } from 'path';
-import { flagValue, hasFlag, validateFlags } from '../../lib/cli-flags.mjs';
+import { flagValue, hasFlag, validateFlags } from '../lib/cli-flags.mjs';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
@@ -30,7 +30,7 @@ const args = process.argv.slice(2);
 // Route through the shared parser instead of hand-rolling it: this script used
 // to read only the `--min-score=N` form, so `--min-score 4.5` was dropped and a
 // typo fell through — both silently ran at the 4.0 default and spawned worker
-// runs the caller never asked for. That is the #2459 class lib/cli-flags.mjs
+// runs the caller never asked for. That is the #2459 class src/lib/cli-flags.mjs
 // exists to end.
 // requireOperand: `--min-score --help` would otherwise print usage and exit 0,
 // so the malformed flag is never reported and the numeric check below never

@@ -1,6 +1,6 @@
 ---
 name: Sign the CareerOps Manifesto
-about: Add your signature to SIGNATURES.md
+about: Add your signature to docs/SIGNATURES.md
 title: 'sign: @your-username'
 labels: manifesto-signature
 ---
@@ -15,7 +15,7 @@ labels: manifesto-signature
 
 ## My signature
 
-I added **one line at the END** of `SIGNATURES.md` — either just a dash
+I added **one line at the END** of `docs/SIGNATURES.md` — either just a dash
 (`-`), or one sentence: what changed in my search, or what I want hiring to
 become. Everything else (my username, my GitHub display name, the date, the
 `id:`) is written automatically from this pull request when the signature

@@ -10,14 +10,14 @@ const here = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PAGE = 'https://career-ops.org/manifesto';
 
 try {
-  const text = readFileSync(join(here, 'MANIFESTO.md'), 'utf8');
+  const text = readFileSync(join(here, 'docs', 'MANIFESTO.md'), 'utf8');
   const lines = text.split('\n');
   // the opening couplet (lines 5-6 of the manifesto)
   console.log('\n  ' + lines[4] + '\n  ' + lines[5] + '\n');
 } catch {
   console.log('');
 }
-console.log('Read it:  MANIFESTO.md  ·  ' + PAGE);
+console.log('Read it:  docs/MANIFESTO.md  ·  ' + PAGE);
 console.log('Sign it:  takes 10 seconds, becomes a public signature with your name on the wall.');
 console.log('');
 

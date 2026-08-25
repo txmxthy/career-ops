@@ -9,7 +9,7 @@
 //    \href{mailto:mailto:...} link in every generated PDF. The contract is that
 //    sanitizeUrl's output already carries its scheme.
 import { pass, fail, run, ROOT, NODE, formatRunFailure } from './helpers.mjs';
-import { escapeLatex, sanitizeUrl } from '../lib/latex-escape.mjs';
+import { escapeLatex, sanitizeUrl } from '../src/lib/latex-escape.mjs';
 
 console.log('\nlatex-escape — OT1-unsafe glyphs and mailto scheme handling');
 

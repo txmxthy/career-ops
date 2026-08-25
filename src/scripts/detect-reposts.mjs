@@ -65,7 +65,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 
 import { normalizeCompanyName } from './invite-match.mjs';
-import { flagValue, validateFlags } from '../../lib/cli-flags.mjs';
+import { flagValue, validateFlags } from '../lib/cli-flags.mjs';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SCAN_HISTORY_PATH = join(CAREER_OPS, 'data/scan-history.tsv');
@@ -104,7 +104,7 @@ const args = process.argv.slice(2);
 const summaryMode = args.includes('--summary');
 const selfTestMode = args.includes('--self-test');
 // Both numeric flags read through flagValue, so `--min-span=7` behaves exactly
-// like `--min-span 7` — the defect lib/cli-flags.mjs exists to keep the next
+// like `--min-span 7` — the defect src/lib/cli-flags.mjs exists to keep the next
 // script from rediscovering. Anything that is not a plain non-negative integer
 // falls back to the default, which is the behaviour --window already had for an
 // unparseable value.

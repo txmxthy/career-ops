@@ -34,7 +34,7 @@ import { readFile } from './src/core/store.js';
 
 import { fetchJson as defaultFetchJson, fetchTextHead as defaultFetchText, makeHttpCtx } from './providers/_http.mjs';
 import { decodeEntities } from './providers/_html-entities.mjs';
-import { asciiFold } from './lib/ascii-fold.mjs';
+import { asciiFold } from './src/lib/ascii-fold.mjs';
 import { loadProviders, resolveProvider } from './providers/_registry.mjs';
 
 const DEFAULT_PORTALS_PATH = process.env.CAREER_OPS_PORTALS || 'portals.yml';

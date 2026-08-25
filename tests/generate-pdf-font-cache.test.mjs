@@ -12,7 +12,7 @@ import { join } from 'path';
 import { pass, fail, ROOT } from './helpers.mjs';
 import { inlineLocalFonts } from '../generate-pdf.mjs';
 
-const fontsDir = join(ROOT, 'fonts');
+const fontsDir = join(ROOT, 'templates', 'fonts');
 const fontName = `__cache-probe-${process.pid}.woff2`;
 const fontPath = join(fontsDir, fontName);
 const bytes = Buffer.from('CACHE_PROBE_FONT_BYTES');
@@ -28,8 +28,8 @@ const missBytes = Buffer.from('MISS_PROBE_FONT_BYTES');
 const missB64 = missBytes.toString('base64');
 const missHtml = `<style>@font-face{font-family:miss;src:url('./fonts/${missName}')}</style>`;
 
-// A checkout may not carry a fonts/ dir; writeFileSync below needs it to exist.
-// Track whether we created it so cleanup never deletes a real repo fonts/ dir.
+// A checkout may not carry a templates/fonts/ dir; writeFileSync below needs it to exist.
+// Track whether we created it so cleanup never deletes a real repo templates/fonts/ dir.
 const fontsDirCreated = !existsSync(fontsDir);
 if (fontsDirCreated) mkdirSync(fontsDir, { recursive: true });
 
@@ -76,6 +76,6 @@ try {
 } finally {
   rmSync(fontPath, { force: true });
   rmSync(missPath, { force: true });
-  // Remove fonts/ only if this test created it; leave a pre-existing repo dir.
+  // Remove templates/fonts/ only if this test created it; leave a pre-existing repo dir.
   if (fontsDirCreated) rmSync(fontsDir, { recursive: true, force: true });
 }

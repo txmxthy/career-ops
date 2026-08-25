@@ -17,8 +17,8 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 import { loadCanonicalStates, foldStatusInput } from './tracker-utils.mjs';
 import { resolveColumns, parseTrackerRow } from './tracker-parse.mjs';
-import { localToday } from './lib/local-today.mjs';
-import { flagValue, validateFlags } from './lib/cli-flags.mjs';
+import { localToday } from './src/lib/local-today.mjs';
+import { flagValue, validateFlags } from './src/lib/cli-flags.mjs';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
 const APPS_FILE = existsSync(join(CAREER_OPS, 'data/applications.md'))
@@ -30,7 +30,12 @@ const PROFILE_FILE = process.env.CAREER_OPS_PROFILE || join(CAREER_OPS, 'config/
 
 // --- CLI args ---
 const args = process.argv.slice(2);
-const summaryMode = args.includes('--summary');
+// JSON is this script's default output, so --json names what it already does.
+// It is not cosmetic: it is the flag the web app sends (public-surface.md §2
+// row 10 freezes `--json` here), and rejecting it made every cadence read fail
+// silently. Explicit beats implicit when both are given.
+const jsonMode = args.includes('--json');
+const summaryMode = args.includes('--summary') && !jsonMode;
 const overdueOnly = args.includes('--overdue-only');
 // flagValue (not indexOf) so `--applied-days=10` is honored too — indexOf()
 // can't see the `=` form and used to silently discard it, falling back to the
@@ -936,11 +941,12 @@ function printSummary(result) {
 
 // ── CLI flags + help ────────────────────────────────────────────────
 
-const KNOWN_FLAGS = ['--summary', '--overdue-only', '--applied-days', '--help', '-h'];
+const KNOWN_FLAGS = ['--json', '--summary', '--overdue-only', '--applied-days', '--help', '-h'];
 const VALUE_FLAGS = ['--applied-days'];
 
 const USAGE = `Usage:
   node followup-cadence.mjs                    # full JSON analysis to stdout
+  node followup-cadence.mjs --json             # the same JSON, named explicitly
   node followup-cadence.mjs --summary          # human-readable dashboard
   node followup-cadence.mjs --overdue-only     # only show overdue/urgent entries
   node followup-cadence.mjs --applied-days 10  # override applied_first cadence (days)

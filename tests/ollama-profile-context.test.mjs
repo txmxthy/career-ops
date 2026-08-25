@@ -30,8 +30,8 @@ for (const relativePath of [
   // tracker-utils imports the shared lock-contention helpers (#2777 fix):
   // a fixture that carries tracker-utils has to carry its import too.
   'src/lib/pipeline-lock.mjs',
-  'lib/context-budget.mjs',
-  'utils/token-tracker.mjs',
+  'src/lib/context-budget.mjs',
+  'src/lib/token-tracker.mjs',
 ]) {
   copyIntoFixture(relativePath);
 }

@@ -1422,16 +1422,16 @@ const _fontDataUrlCache = new Map();
 export async function inlineLocalFonts(html) {
   const FONT_REF = /url\(\s*(['"]?)\.\/fonts\/([^'")\s]+)\1\s*\)/g;
   const MIME = { woff2: 'font/woff2', woff: 'font/woff', otf: 'font/otf', ttf: 'font/ttf' };
-  const fontsDir = resolve(__dirname, 'fonts');
+  const fontsDir = resolve(__dirname, 'templates', 'fonts');
   const names = [...new Set([...html.matchAll(FONT_REF)].map((m) => m[2]))];
   const dataUrls = new Map();
   for (const name of names) {
     // Containment check: ".." segments and absolute names (./fonts//etc/passwd)
-    // would otherwise resolve outside fonts/.
+    // would otherwise resolve outside templates/fonts/.
     const fontPath = resolve(fontsDir, name);
     const rel = relative(fontsDir, fontPath);
     if (rel.startsWith('..') || isAbsolute(rel)) {
-      console.warn(`⚠️  Font reference escapes fonts/, keeping original reference: ${name}`);
+      console.warn(`⚠️  Font reference escapes templates/fonts/, keeping original reference: ${name}`);
       continue;
     }
     if (_fontDataUrlCache.has(fontPath)) {
@@ -1446,7 +1446,7 @@ export async function inlineLocalFonts(html) {
       dataUrls.set(name, dataUrl);
     } catch (err) {
       if (err?.code !== 'ENOENT') throw err;
-      console.warn(`⚠️  Font file not found, keeping original reference: fonts/${name}`);
+      console.warn(`⚠️  Font file not found, keeping original reference: templates/fonts/${name}`);
     }
   }
   return html.replace(FONT_REF, (match, _quote, name) => dataUrls.get(name) || match);

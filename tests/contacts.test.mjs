@@ -342,12 +342,12 @@ ok('--help --bogus writes nothing to stdout', helpBogusR.stdout === '');
 const tmpRoot = realpathSync(mkdtempSync(join(tmpdir(), 'contacts-cli-')));
 const tmpScript = join(tmpRoot, 'src/scripts/contacts.mjs');
 try {
-  // The sandbox mirrors the repo layout: contacts.mjs imports ../../lib/cli-flags.mjs,
+  // The sandbox mirrors the repo layout: contacts.mjs imports ../../src/lib/cli-flags.mjs,
   // so the copy has to sit two levels down from its own root.
   mkdirSync(dirname(tmpScript), { recursive: true });
   copyFileSync(scriptPath, tmpScript);
-  mkdirSync(join(tmpRoot, 'lib'), { recursive: true });
-  copyFileSync(join(ROOT, 'lib/cli-flags.mjs'), join(tmpRoot, 'lib/cli-flags.mjs'));
+  mkdirSync(join(tmpRoot, 'src/lib'), { recursive: true });
+  copyFileSync(join(ROOT, 'src/lib/cli-flags.mjs'), join(tmpRoot, 'src/lib/cli-flags.mjs'));
   mkdirSync(join(tmpRoot, 'data'), { recursive: true });
   writeFileSync(join(tmpRoot, 'data/contacts.tsv'), [
     '# name\tcompany\ttype\ttitle\tphone\temail\tlinkedin\ttracker\tnotes',
@@ -462,8 +462,8 @@ const emptyRoot = realpathSync(mkdtempSync(join(tmpdir(), 'contacts-empty-')));
 try {
   mkdirSync(join(emptyRoot, 'src/scripts'), { recursive: true });
   copyFileSync(scriptPath, join(emptyRoot, 'src/scripts/contacts.mjs'));
-  mkdirSync(join(emptyRoot, 'lib'), { recursive: true });
-  copyFileSync(join(ROOT, 'lib/cli-flags.mjs'), join(emptyRoot, 'lib/cli-flags.mjs'));
+  mkdirSync(join(emptyRoot, 'src/lib'), { recursive: true });
+  copyFileSync(join(ROOT, 'src/lib/cli-flags.mjs'), join(emptyRoot, 'src/lib/cli-flags.mjs'));
   const emptyJson = JSON.parse(execFileSync('node', [join(emptyRoot, 'src/scripts/contacts.mjs')], { encoding: 'utf-8', timeout: 10000 }));
   eq('missing store: JSON total = 0', emptyJson.total, 0);
   eq('missing store: contacts = []', emptyJson.contacts, []);

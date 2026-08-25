@@ -645,3 +645,53 @@ test('no command reports ok:true with a non-zero exit, whatever the child does',
     }
   }
 });
+
+// ── prune (ADR 0001 part 2) ─────────────────────────────────────────
+
+test('prune asks the updater for JSON only when the caller wants JSON', async () => {
+  const exec = fakeExec({ code: 0, stdout: 'Prune: none of the 112 removed path(s) are on disk.\n' });
+  await invoke('prune', [], { root: sandbox(), exec });
+  assert.deepEqual(exec.calls[0].argv, ['prune']);
+
+  const jsonExec = fakeExec({ code: 0, stdout: '{"ok":true,"scanned":112,"found":[],"pruned":[]}' });
+  const res = await invoke('prune', ['--json'], { root: sandbox(), exec: jsonExec });
+  assert.deepEqual(jsonExec.calls[0].argv, ['prune', '--json']);
+  assert.equal(res.envelope.data.scanned, 112, 'the parsed body belongs in data, not a string');
+});
+
+test('prune forwards --dry-run', async () => {
+  const exec = fakeExec({ code: 0, stdout: '' });
+  await invoke('prune', ['--dry-run'], { root: sandbox(), exec });
+  assert.deepEqual(exec.calls[0].argv, ['prune', '--dry-run']);
+});
+
+test('an updater that cannot say what was removed is exit 3, not a clean prune', async () => {
+  // The state an update leaves behind: our update-system.mjs replaced by
+  // upstream's, which has no REMOVED_PATHS. "Nothing to prune" and "I do not
+  // know what was removed" are the same output and opposite facts, so the
+  // second has to be 3 — the whole reason ADR 0006 separates 1 from 3.
+  const res = await invoke('prune', [], {
+    root: sandbox(),
+    exec: fakeExec({ code: 3, stderr: 'prune: could not verify — REMOVED_PATHS is empty\n' }),
+  });
+  assert.equal(res.exitCode, EXIT.UNVERIFIED);
+  assert.equal(res.envelope.ok, false);
+  assert.match(res.envelope.errors[0].message, /REMOVED_PATHS is empty/);
+});
+
+test('a prune that could not remove a file is exit 1, a real finding', async () => {
+  const res = await invoke('prune', [], {
+    root: sandbox(),
+    exec: fakeExec({ code: 1, stderr: 'Failed to prune scan-hn.mjs: EACCES\n' }),
+  });
+  assert.equal(res.exitCode, EXIT.FAILED);
+  assert.match(res.envelope.errors[0].message, /EACCES/);
+});
+
+test('prune without an updater to run is exit 3, naming what is missing', async () => {
+  const root = sandbox();
+  rmSync(join(root, 'update-system.mjs'));
+  const res = await invoke('prune', [], { root, exec: neverExec() });
+  assert.equal(res.exitCode, EXIT.UNVERIFIED);
+  assert.match(res.envelope.errors[0].message, /update-system\.mjs/);
+});

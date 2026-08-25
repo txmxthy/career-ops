@@ -53,7 +53,7 @@ import * as yaml from 'js-yaml';
 import { parseActiveInterviews } from './process-quality.mjs';
 import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
 import { roleFuzzyMatch } from '../lib/role-matcher.mjs';
-import { flagValue, hasFlag, validateFlags } from '../../lib/cli-flags.mjs';
+import { flagValue, hasFlag, validateFlags } from '../lib/cli-flags.mjs';
 import { readFile, resolveTrackerPath } from '../core/store.js';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -104,7 +104,7 @@ const summaryMode = args.includes('--summary');
 const selfTestMode = args.includes('--self-test');
 // Shared flagValue so `--tracker=path` is honoured too: the previous
 // indexOf-only lookup returned -1 for the `=` form and silently discarded the
-// value, the defect lib/cli-flags.mjs documents as #2401/#2402.
+// value, the defect src/lib/cli-flags.mjs documents as #2401/#2402.
 //
 // The "value must not itself look like another flag" check is kept — it is
 // stricter than the shared helper, and it is what stops `--today --summary`
@@ -113,7 +113,7 @@ const argValue = (flag) => {
   // hasFlag before flagValue: flagValue returns undefined for BOTH an absent
   // flag and one supplied with no value, so testing it alone would turn a
   // trailing `--tracker` from a usage error into a silent fall back to the
-  // default path. lib/cli-flags.mjs documents pairing the two for exactly this.
+  // default path. src/lib/cli-flags.mjs documents pairing the two for exactly this.
   if (!hasFlag(args, flag)) return null;
   const value = flagValue(args, flag);
   if (value === undefined || value === '' || value.startsWith('--')) {

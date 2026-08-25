@@ -55,7 +55,7 @@ check('--bogus repeats the usage block on stderr', bogus.stderr.includes('node s
 check('--bogus writes nothing to stdout', bogus.stdout === '');
 
 // Ordering: --help wins over a bad flag. src/scripts/find.mjs checked --help FIRST, which
-// is the opposite of lib/cli-flags.mjs's validateFlags, and the ordering is
+// is the opposite of src/lib/cli-flags.mjs's validateFlags, and the ordering is
 // preserved here rather than silently harmonised — that is a CLI-contract
 // decision for the facade commit, not for a rewiring batch.
 const helpBogus = find('--help', '--bogus');

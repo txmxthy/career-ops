@@ -7,7 +7,7 @@ name: manifesto-guestbook
 on:
   push:
     branches: [main]
-    paths: [SIGNATURES.md]
+    paths: [docs/SIGNATURES.md]
 
 permissions:
   contents: read
@@ -29,8 +29,8 @@ jobs:
             if (!before || /^0+$/.test(before)) { core.info('primer push — skip'); return; }
             // Diff de la oleada vía compare API (sin checkout)
             const { data: cmp } = await github.rest.repos.compareCommits({ ...context.repo, base: before, head: after });
-            const f = (cmp.files || []).find(x => x.filename === 'SIGNATURES.md');
-            if (!f || !f.patch) { core.info('sin diff de SIGNATURES.md — skip'); return; }
+            const f = (cmp.files || []).find(x => x.filename === 'docs/SIGNATURES.md');
+            if (!f || !f.patch) { core.info('sin diff de docs/SIGNATURES.md — skip'); return; }
             const added = f.patch.split('\n')
               .filter(l => l.startsWith('+') && !l.startsWith('+++'))
               .map(l => l.slice(1))
@@ -43,7 +43,7 @@ jobs:
             const fresh = added.filter(l => { const id = (l.match(/\| id:(\d+)/) || [])[1]; return !(id && removedIds.has(id)); });
             if (!fresh.length) { core.info('sin firmas nuevas (edición de header/línea) — skip'); return; }
             // Ordinales: posición entre las líneas de firma del fichero en AFTER
-            const { data: cur } = await github.rest.repos.getContent({ ...context.repo, path: 'SIGNATURES.md', ref: after });
+            const { data: cur } = await github.rest.repos.getContent({ ...context.repo, path: 'docs/SIGNATURES.md', ref: after });
             const allSigs = Buffer.from(cur.content, 'base64').toString('utf8').split('\n').filter(l => /^- @/.test(l));
             const esc = (s) => s.replace(/([*_~`|\\])/g, '\\$1');
             const lines = [];

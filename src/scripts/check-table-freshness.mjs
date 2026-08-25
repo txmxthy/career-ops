@@ -57,8 +57,8 @@ import * as yaml from 'js-yaml';
 // Parsing comes from the core module; validateFlags stays in lib/ because its
 // body prints and exits, which belongs in a command adapter (ADR 0002).
 import { flagValue, hasFlag } from '../core/flags.js';
-import { validateFlags } from '../../lib/cli-flags.mjs';
-import { localToday } from '../../lib/local-today.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
+import { localToday } from '../lib/local-today.mjs';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const TEMPLATES_DIR = join(CAREER_OPS, 'templates');
@@ -68,7 +68,7 @@ const DEFAULT_MAX_AGE_MONTHS = 12;
 const args = process.argv.slice(2);
 
 // --help fell through to a full freshness scan and printed the report (#2855).
-// Handled via lib/cli-flags.mjs's validateFlags() (#2775), which also rejects
+// Handled via src/lib/cli-flags.mjs's validateFlags() (#2775), which also rejects
 // unrecognized flags before --help so `--help --bogus` still errors.
 const KNOWN_FLAGS = ['--summary', '--self-test', '--max-age-months', '--today', '--help', '-h'];
 

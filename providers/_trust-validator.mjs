@@ -16,7 +16,7 @@
  */
 
 /** @type {string[]} */
-import { asciiFold } from '../lib/ascii-fold.mjs';
+import { asciiFold } from '../src/lib/ascii-fold.mjs';
 
 const DEFAULT_SUSPICIOUS_DOMAINS = [
   'bit.ly',

@@ -29,7 +29,7 @@ import { load as yamlLoad } from 'js-yaml';
 import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
 import { parseRow } from '../core/table.js';
 import { readFile } from '../core/store.js';
-import { validateFlags } from '../../lib/cli-flags.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const APPS_FILE = existsSync(join(CAREER_OPS, 'data/applications.md'))
@@ -844,7 +844,7 @@ const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv
 // An unrecognized or mistyped flag (e.g. `--min-report` for `--min-reports`)
 // used to fall through silently: the aggregate branch just ran with its
 // default MIN_REPORTS, reporting a gap map for a threshold nobody asked for.
-// Handled via lib/cli-flags.mjs's validateFlags() (#2775), same shape as
+// Handled via src/lib/cli-flags.mjs's validateFlags() (#2775), same shape as
 // doctor.mjs (#2874) — checked before --self-test/--url-text/--min-reports
 // are read, and before --help, so `--help --bogus` still errors.
 const KNOWN_FLAGS = ['--min-reports', '--summary', '--url-text', '--self-test', '--help', '-h'];

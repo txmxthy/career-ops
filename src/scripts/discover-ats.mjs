@@ -398,9 +398,36 @@ export function renderPortalEntry(match) {
   return '\n' + lines.join('\n') + '\n';
 }
 
-/** Normalize a careers_url/api for dedupe comparison: lowercase, strip trailing slash. */
+/**
+ * Normalize a careers_url/api for dedupe comparison: fold the host, keep the
+ * path verbatim, strip a trailing slash.
+ *
+ * Path case is PRESERVED per ADR 0004, which decided the question on the
+ * asymmetry of the two failures: folding it MERGES two boards that differ only
+ * in path case, and the losing board is then simply never tracked, with nothing
+ * recording that it was found. Preserving admits a duplicate portal entry,
+ * which is visible in portals.yml and deletable.
+ *
+ * This site has a second reason of its own. Ashby board slugs are
+ * case-sensitive — `jobs.ashbyhq.com/DeepL` is a different board from
+ * `jobs.ashbyhq.com/deepl` — which is why buildCandidates preserves an explicit
+ * mixed-case slug (see :86 and its test). Folding the case here threw that
+ * distinction away one step later.
+ *
+ * The host still folds: DNS is case-insensitive. A value that is not an
+ * absolute URL (a bare board token, an api path) has no host to separate from a
+ * path, so nothing in it folds.
+ *
+ * src/core/text.js `urlKey` is the canonical form of this rule.
+ */
 function normalizeUrl(u) {
-  return String(u || '').trim().toLowerCase().replace(/\/+$/, '');
+  const raw = String(u || '').trim().replace(/\/+$/, '');
+  if (!raw) return '';
+  try {
+    return new URL(raw).toString().replace(/\/+$/, '');
+  } catch {
+    return raw;
+  }
 }
 
 /**

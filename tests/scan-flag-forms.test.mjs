@@ -4,7 +4,7 @@
 // `args.indexOf('--posted-after')` returns -1 for `--posted-after=2026-07-28`,
 // so the bound resolved to null — indistinguishable from the flag never having
 // been passed. The run then scanned with NO date bound and reported a clean
-// result, which is the failure mode lib/cli-flags.mjs was written to end
+// result, which is the failure mode src/lib/cli-flags.mjs was written to end
 // (#2401/#2402/#2498, and 37055d7d which fixed five other scripts).
 //
 // The sharpest symptom is that the typo guard stops guarding: scan.mjs

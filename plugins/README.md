@@ -114,4 +114,4 @@ These don't belong in the plugin layer — they're a different direction:
   No hook can submit, and `humanInTheLoop: true` is mandatory. This holds
   everywhere, in core and plugins alike.
 
-See `CONTRIBUTING.md` → "Scope" for the full boundary.
+See `.github/CONTRIBUTING.md` → "Scope" for the full boundary.

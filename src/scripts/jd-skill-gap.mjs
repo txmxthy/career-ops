@@ -219,7 +219,7 @@ function extractJdSkills(jdText) {
  * There is deliberately no minimum-length test here. That would need a
  * character cutoff, and this repo has no JD corpus to calibrate one against:
  * `jds/` is user-layer and gitignored, and the only JD-shaped files in the tree
- * (`evals/fixtures/*.txt`) are recorded score-summary stubs that all extract
+ * (`tests/evals/fixtures/*.txt`) are recorded score-summary stubs that all extract
  * zero skills already. A made-up cutoff would fire on those and still not
  * describe why a real JD came back empty. The structural question — was there a
  * requirements section to scan at all — separates the causes without a constant.

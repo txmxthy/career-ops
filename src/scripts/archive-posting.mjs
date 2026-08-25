@@ -29,7 +29,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { reportPrefix } from './jd-capture.mjs';
 import { rejectPrivateOrInvalid, validateUrlSecurity } from '../lib/liveness-browser.mjs';
-import { validateFlags } from '../../lib/cli-flags.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
 import { readPipeline } from '../core/store.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');

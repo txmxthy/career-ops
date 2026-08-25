@@ -21,7 +21,7 @@ import {
   openTrackerTransaction, rebuildRow, resolveTrackerPath,
 } from '../../tracker-utils.mjs';
 import { readFile } from '../core/store.js';
-import { validateFlags } from '../../lib/cli-flags.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
 
 const __dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DEFAULT_CANDIDATES_PATH = path.join(__dirname, 'data', 'reply-candidates.json');

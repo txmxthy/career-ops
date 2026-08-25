@@ -2,7 +2,7 @@
 /**
  * src/lib/seed-fixture.mjs — materialize a realistic user-data fixture into an install.
  *
- * Fixture states live in test-fixtures/upgrade/<state>/ and mirror the
+ * Fixture states live in tests/fixtures/upgrade/<state>/ and mirror the
  * user-layer files a real install of that era contains. Returns a SHA-256
  * manifest so callers can assert byte-identity later.
  *
@@ -18,7 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { flagValue, hasFlag } from '../core/flags.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const FIXTURES = join(ROOT, 'test-fixtures', 'upgrade');
+const FIXTURES = join(ROOT, 'tests', 'fixtures', 'upgrade');
 export const DEFAULT_STATE = 'state-v1.18';
 
 function walk(dir, base = dir, out = []) {

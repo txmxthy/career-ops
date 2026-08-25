@@ -387,7 +387,7 @@ try {
     if (EXCLUDE_AT_ANY_DEPTH.has(name)) return;
     // Everything else is a top-level workspace dir (data/, reports/, …) and is
     // matched by basename ONLY at the repo root, so nested fixture subdirs such
-    // as test-fixtures/upgrade/state-*/data and .../reports still get copied.
+    // as tests/fixtures/upgrade/state-*/data and .../reports still get copied.
     if (dirname(src) === ROOT && exclude.includes(name)) return;
     const stat = statSync(src);
     if (stat.isDirectory()) {
@@ -4269,14 +4269,20 @@ try {
 
   // Path casing: scan.mjs and scan-ats-full.mjs can reach the identical Workday
   // posting via different path casing (curated portals.yml entry vs. reverse-ATS
-  // dataset). A case-sensitive key files them as two roles and pipeline.md gets
-  // a duplicate, so the path is lowercased.
+  // dataset), so a case-sensitive key files them as two roles and pipeline.md
+  // gets a duplicate row. ADR 0004 accepts that cost: lowercasing the path
+  // MERGES two genuinely distinct postings and the loser is never written, which
+  // is silent and unrecoverable, while the duplicate row is visible and the user
+  // can delete it. The host is still folded — DNS is case-insensitive.
   const wdMixed = 'https://Kyndryl.wd5.myworkdayjobs.com/KyndrylProfessionalCareers/job/Network-Engineer_R-64949';
   const wdLower = 'https://kyndryl.wd5.myworkdayjobs.com/kyndrylprofessionalcareers/job/network-engineer_r-64949';
-  if (normalizeUrlForDedup(wdMixed) === normalizeUrlForDedup(wdLower)) {
-    pass('normalizeUrlForDedup collapses a case-only path difference (same posting via two scanners)');
+  if (
+    normalizeUrlForDedup(wdMixed) !== normalizeUrlForDedup(wdLower) &&
+    normalizeUrlForDedup(wdMixed).startsWith('https://kyndryl.wd5.myworkdayjobs.com/KyndrylProfessionalCareers/')
+  ) {
+    pass('normalizeUrlForDedup keeps a case-only path difference as two keys, folding only the host (ADR 0004)');
   } else {
-    fail(`normalizeUrlForDedup left a case-only duplicate: ${normalizeUrlForDedup(wdMixed)} vs ${normalizeUrlForDedup(wdLower)}`);
+    fail(`normalizeUrlForDedup path casing wrong: ${normalizeUrlForDedup(wdMixed)} vs ${normalizeUrlForDedup(wdLower)}`);
   }
 
   // ...but query values stay case-sensitive: they can be identity-bearing.
@@ -8369,12 +8375,11 @@ try {
       mkdirSync(join(e2eTmp, 'src', 'lib'), { recursive: true });
       copyFileSync(join(ROOT, 'src/lib/pipeline-lock.mjs'), join(e2eTmp, 'src/lib/pipeline-lock.mjs'));
       // ...and followup-cadence now resolves "today" as the LOCAL calendar day
-      // via lib/local-today.mjs (#3070), so the fixture carries that too.
-      mkdirSync(join(e2eTmp, 'lib'), { recursive: true });
-      copyFileSync(join(ROOT, 'lib', 'local-today.mjs'), join(e2eTmp, 'lib', 'local-today.mjs'));
+      // via src/lib/local-today.mjs (#3070), so the fixture carries that too.
+      copyFileSync(join(ROOT, 'src/lib/local-today.mjs'), join(e2eTmp, 'src/lib/local-today.mjs'));
       // ...and followup-cadence now delegates flag validation to the shared
-      // lib/cli-flags.mjs helper, so the fixture carries that too.
-      copyFileSync(join(ROOT, 'lib', 'cli-flags.mjs'), join(e2eTmp, 'lib', 'cli-flags.mjs'));
+      // src/lib/cli-flags.mjs helper, so the fixture carries that too.
+      copyFileSync(join(ROOT, 'src/lib/cli-flags.mjs'), join(e2eTmp, 'src/lib/cli-flags.mjs'));
       mkdirSync(join(e2eTmp, 'templates'), { recursive: true });
       copyFileSync(join(ROOT, 'templates', 'states.yml'), join(e2eTmp, 'templates', 'states.yml'));
       // 'junction' on Windows, not 'dir': a directory symlink needs
@@ -13093,7 +13098,7 @@ try {
 
   // Chromium blocks file:// subresources from setContent() pages (the page
   // stays at about:blank), so ./fonts refs must become data: URLs (#951).
-  const fontFile = readdirSync(join(ROOT, 'fonts')).find(f => f.endsWith('.woff2'));
+  const fontFile = readdirSync(join(ROOT, 'templates', 'fonts')).find(f => f.endsWith('.woff2'));
   const inlined = await inlineLocalFonts(
     `<style>@font-face { src: url('./fonts/${fontFile}') format('woff2'); }</style>`
   );
@@ -13204,11 +13209,11 @@ try {
 console.log('\n20b. LaTeX-tex in-place tailoring (extract / patch / compile-only)');
 
 try {
-  const { detectFamily, buildManifest, applyPatches } = await import(pathToFileURL(join(ROOT, 'lib/latex-content.mjs')).href);
+  const { detectFamily, buildManifest, applyPatches } = await import(pathToFileURL(join(ROOT, 'src/lib/latex-content.mjs')).href);
   const { validateLatexContent } = await import(pathToFileURL(join(ROOT, 'src/scripts/generate-latex.mjs')).href);
 
-  const resumeFixture = readFileSync(join(ROOT, 'examples/latex-tex/resume-subheading.tex'), 'utf-8');
-  const tabularFixture = readFileSync(join(ROOT, 'examples/latex-tex/tabularx-itemize.tex'), 'utf-8');
+  const resumeFixture = readFileSync(join(ROOT, 'docs/examples/latex-tex/resume-subheading.tex'), 'utf-8');
+  const tabularFixture = readFileSync(join(ROOT, 'docs/examples/latex-tex/tabularx-itemize.tex'), 'utf-8');
 
   if (detectFamily(resumeFixture) === 'resumeSubheading') {
     pass('resume-subheading fixture detected as resumeSubheading family');
@@ -13257,7 +13262,7 @@ try {
   // resumeItemWithoutTitle variant: `\resumeItemWithoutTitle{}{...}` bullets,
   // `\resumeSubItem{Cat}{items}` skills, and preamble macro defs that must NOT
   // leak into slots (the defs contain \resumeItem{#1}{#2} / \textbf{#1}{: #2}).
-  const withoutTitleFixture = readFileSync(join(ROOT, 'examples/latex-tex/resume-subheading-withouttitle.tex'), 'utf-8');
+  const withoutTitleFixture = readFileSync(join(ROOT, 'docs/examples/latex-tex/resume-subheading-withouttitle.tex'), 'utf-8');
 
   if (detectFamily(withoutTitleFixture) === 'resumeSubheading') {
     pass('resumeItemWithoutTitle fixture detected as resumeSubheading family');
@@ -13325,7 +13330,7 @@ try {
 
   const extractDir = mkdtempSync(join(tmpdir(), 'latex-tex-'));
   const extractOut = join(extractDir, 'manifest.json');
-  execFileSync(NODE, ['src/lib/extract-latex-content.mjs', join(ROOT, 'examples/latex-tex/resume-subheading.tex'), '--out', extractOut], { cwd: ROOT, encoding: 'utf-8' });
+  execFileSync(NODE, ['src/lib/extract-latex-content.mjs', join(ROOT, 'docs/examples/latex-tex/resume-subheading.tex'), '--out', extractOut], { cwd: ROOT, encoding: 'utf-8' });
   const extracted = JSON.parse(readFileSync(extractOut, 'utf-8'));
   const patchPayload = {
     slots: extracted.slots,
@@ -13334,7 +13339,7 @@ try {
   const patchJson = join(extractDir, 'patches.json');
   const patchedTex = join(extractDir, 'out.tex');
   writeFileSync(patchJson, JSON.stringify(patchPayload));
-  execFileSync(NODE, ['src/lib/patch-latex-content.mjs', join(ROOT, 'examples/latex-tex/resume-subheading.tex'), patchJson, patchedTex], { cwd: ROOT, encoding: 'utf-8' });
+  execFileSync(NODE, ['src/lib/patch-latex-content.mjs', join(ROOT, 'docs/examples/latex-tex/resume-subheading.tex'), patchJson, patchedTex], { cwd: ROOT, encoding: 'utf-8' });
   const patchedContent = readFileSync(patchedTex, 'utf-8');
   if (patchedContent.includes('CLI patch path works.')) {
     pass('src/lib/extract-latex-content.mjs + src/lib/patch-latex-content.mjs CLI round-trip');
@@ -15915,9 +15920,9 @@ try {
 
 console.log('\n59. CV template resolver (src/lib/cv-templates.mjs)');
 {
-  const unit = run(NODE, ['--test', 'test/cv-templates.test.mjs']);
+  const unit = run(NODE, ['--test', 'tests/cv-templates.test.mjs']);
   if (unit !== null) pass('src/lib/cv-templates.mjs unit tests pass');
-  else fail('src/lib/cv-templates.mjs unit tests failed (run: node --test test/cv-templates.test.mjs)');
+  else fail('src/lib/cv-templates.mjs unit tests failed (run: node --test tests/cv-templates.test.mjs)');
 
   const listed = run(NODE, ['src/lib/cv-templates.mjs', 'list', 'cv']);
   if (listed && listed.includes('"name"')) pass('CLI: list cv returns JSON');
@@ -15933,9 +15938,9 @@ console.log('\n59. CV template resolver (src/lib/cv-templates.mjs)');
 
 console.log('\n59b. Pipeline lock (src/lib/pipeline-lock.mjs)');
 {
-  const unit = run(NODE, ['--test', 'test/pipeline-lock.test.mjs']);
+  const unit = run(NODE, ['--test', 'tests/pipeline-lock.test.mjs']);
   if (unit !== null) pass('pipeline-lock unit tests pass');
-  else fail('pipeline-lock unit tests failed (run: node --test test/pipeline-lock.test.mjs)');
+  else fail('pipeline-lock unit tests failed (run: node --test tests/pipeline-lock.test.mjs)');
 }
 
 console.log('\n59c. The exported script budget matches the one run() enforces');
@@ -15970,9 +15975,9 @@ console.log('\n59c. The exported script budget matches the one run() enforces');
 
 console.log('\n60. Cover-letter template resolver (src/scripts/generate-cover-letter.mjs)');
 {
-  const unit = run(NODE, ['--test', 'test/cover-resolver.test.mjs']);
+  const unit = run(NODE, ['--test', 'tests/cover-resolver.test.mjs']);
   if (unit !== null) pass('cover-resolver unit tests pass');
-  else fail('cover-resolver unit tests failed (run: node --test test/cover-resolver.test.mjs)');
+  else fail('cover-resolver unit tests failed (run: node --test tests/cover-resolver.test.mjs)');
 }
 
 // ── 61. INTERVIEW-PREP URL ENTRY (#1816) ────────────────────────

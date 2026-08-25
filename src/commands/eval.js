@@ -355,7 +355,7 @@ const golden = makeCommand({
     '--replay': { type: 'boolean', describe: 'Replay recorded fixtures — offline, deterministic, $0 (default)' },
     '--live': { type: 'boolean', describe: 'Call the model live through the OpenAI-compatible runner' },
     '--model': { type: 'string', describe: 'Candidate model id (default: cheap-stub)' },
-    '--golden': { type: 'string', describe: 'Golden-set directory (default: evals/golden)' },
+    '--golden': { type: 'string', describe: 'Golden-set directory (default: tests/evals/golden)' },
     '--fixtures': { type: 'string', describe: 'Replay fixture directory (default: a sibling of the golden dir)' },
   },
   plan(parsed, { env, cwd }) {
@@ -368,12 +368,8 @@ const golden = makeCommand({
 
     const given = parsed.values['--golden'];
     // Check the directory the CHILD will read: it is passed through absolute
-    // below, so the two can never disagree. ADR 0007 moves evals/ under tests/,
-    // hence the second default.
-    const dir = given
-      ? fromCwd(given, cwd)
-      : [join(ROOT, 'evals', 'golden'), join(ROOT, 'tests', 'evals', 'golden')].find((d) => existsSync(d))
-        || join(ROOT, 'evals', 'golden');
+    // below, so the two can never disagree.
+    const dir = given ? fromCwd(given, cwd) : join(ROOT, 'tests', 'evals', 'golden');
     if (!existsSync(dir)) return cannotRun(`golden-set directory not found: ${dir}`);
     if (!statSync(dir).isDirectory()) return cannotRun(`golden-set path is not a directory: ${dir}`);
     const cases = readdirSync(dir).filter((f) => f.endsWith('.json'));

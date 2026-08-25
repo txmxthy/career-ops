@@ -42,7 +42,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 
-import { validateFlags } from '../../lib/cli-flags.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
 import { flagValue } from '../core/flags.js';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');

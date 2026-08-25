@@ -5,7 +5,7 @@ import { existsSync } from 'fs';
 import { resolve, dirname, basename, join } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
-import { escapeLatex, sanitizeUrl } from '../../lib/latex-escape.mjs';
+import { escapeLatex, sanitizeUrl } from '../lib/latex-escape.mjs';
 import { flagValue } from '../core/flags.js';
 import { resolveTemplate } from '../lib/cv-templates.mjs';
 import { stripEmptySections } from '../lib/cv-sections-core.mjs';

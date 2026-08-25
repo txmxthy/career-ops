@@ -1,6 +1,6 @@
 # Architecture
 
-A high-level map of how career-ops is put together. For the precise system/user file boundary, see [DATA_CONTRACT.md](DATA_CONTRACT.md); for contribution mechanics, see [CONTRIBUTING.md](CONTRIBUTING.md); for runtime flow diagrams (evaluation steps, batch processing), see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+A high-level map of how career-ops is put together. For the precise system/user file boundary, see [DATA_CONTRACT.md](DATA_CONTRACT.md); for contribution mechanics, see [CONTRIBUTING.md](.github/CONTRIBUTING.md); for runtime flow diagrams (evaluation steps, batch processing), see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Principles
 
@@ -52,7 +52,7 @@ The heart of the tool. `oferta.md` defines the A–H evaluation blocks (H is con
 **Standalone evaluators** let you run the same scoring without an interactive CLI, against cheaper/local models: `src/scripts/gemini-eval.mjs` (Google free tier), `src/scripts/ollama-eval.mjs` (fully local), and `src/scripts/openai-eval.mjs` (any OpenAI-compatible endpoint).
 
 ### Generation — PDFs, CVs, cover letters
-`generate-pdf.mjs` (Playwright HTML→PDF), `src/scripts/generate-latex.mjs` / `src/scripts/build-cv-latex.mjs`, `src/scripts/generate-cover-letter.mjs`. ATS-safe templates live in `templates/` and `fonts/`.
+`generate-pdf.mjs` (Playwright HTML→PDF), `src/scripts/generate-latex.mjs` / `src/scripts/build-cv-latex.mjs`, `src/scripts/generate-cover-letter.mjs`. ATS-safe templates live in `templates/` and `templates/fonts/`.
 
 ### Tracking — `data/` + `reports/` + tracker scripts
 Every evaluated offer is registered. `data/applications.md` is the canonical tracker table; `reports/{NNN}-{company}-{date}.md` holds full evaluations. `tracker.mjs`, `merge-tracker.mjs`, `src/scripts/dedup-tracker.mjs`, `src/scripts/normalize-statuses.mjs`, and `src/scripts/reconcile-pipeline.mjs` keep it consistent (atomic writes + a SQLite index). Report numbers are claimed atomically via `reserve-report-num.mjs`.

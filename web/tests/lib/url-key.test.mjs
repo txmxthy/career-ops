@@ -25,6 +25,30 @@ test("web mirror matches core on ordinary postings (https upgrade, hostname lowe
   }
 });
 
+test("both sides PRESERVE path case — ADR 0004's decision, pinned on the mirror too", () => {
+  // ADR 0004 chose this deliberately, on the asymmetry of the two failures:
+  // lowercasing the path silently MERGES two distinct postings into one key and
+  // the loser is never written, which is unrecoverable; preserving it produces a
+  // visible duplicate row, which the user can delete. A recoverable failure
+  // beats a silent one.
+  //
+  // Nothing here pinned it before — the mirror happened to be correct, so a
+  // future "tidy-up" could have folded the case on either side without a test
+  // objecting. This is the assertion that objects.
+  const cased = "https://boards.greenhouse.io/Acme/Jobs/4012345";
+  const folded = "https://boards.greenhouse.io/acme/jobs/4012345";
+  assert.equal(webKey(cased), cased, "the path must come back verbatim");
+  assert.notEqual(webKey(cased), webKey(folded), "two path spellings must stay two keys");
+  assert.equal(webKey(cased), coreKey(cased));
+  assert.equal(webKey(folded), coreKey(folded));
+
+  // The HOST still folds on both sides: DNS is case-insensitive, so that half is
+  // RFC 3986 §6.2.2 syntax-based normalization and is safe under either contract.
+  const host = "https://Boards.Greenhouse.IO/Acme/Jobs/1";
+  assert.equal(webKey(host), "https://boards.greenhouse.io/Acme/Jobs/1");
+  assert.equal(webKey(host), coreKey(host));
+});
+
 test("web mirror strips the same tracking-param denylist as core, in the same sorted order", () => {
   const url = "https://boards.greenhouse.io/acme/jobs/apply?utm_source=li&gh_jid=4471829005&fbclid=xyz";
   assert.equal(

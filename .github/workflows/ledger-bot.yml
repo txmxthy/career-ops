@@ -1,4 +1,4 @@
-# ledger-bot — applies manifesto signatures to SIGNATURES.md automatically.
+# ledger-bot — applies manifesto signatures to docs/SIGNATURES.md automatically.
 # Discussions in the "Signatures" category are the promoted path; one-line PRs
 # also work (validated by signature-ci, applied here via /approve).
 #
@@ -15,7 +15,7 @@ on:
   issue_comment:
     types: [created]
 
-# La concurrencia vive a nivel de JOB: los dos jobs que escriben SIGNATURES.md
+# La concurrencia vive a nivel de JOB: los dos jobs que escriben docs/SIGNATURES.md
 # comparten el grupo 'ledger' (serializan entre sí); confirm-first usa grupo
 # propio para que un "yes" nunca desplace de la cola al run de una firma.
 jobs:
@@ -79,7 +79,7 @@ jobs:
             }
 
             const { data: u } = await github.rest.users.getByUsername({ username: login });
-            const { data: cur } = await github.rest.repos.getContent({ ...context.repo, path: 'SIGNATURES.md', ref: 'main' });
+            const { data: cur } = await github.rest.repos.getContent({ ...context.repo, path: 'docs/SIGNATURES.md', ref: 'main' });
             const body = Buffer.from(cur.content, 'base64').toString('utf8').replace(/\n*$/, '\n');
             // Dedupe por id inmutable: una cuenta firma UNA vez
             if (new RegExp('\\| id:' + u.id + '\\b').test(body)) {
@@ -104,7 +104,7 @@ jobs:
             const line = `- @${login}` + (displayName ? ` | ${displayName}` : '') + ` | ${today}`
               + (phrase ? ` | "${phrase}"` : '') + ` | id:${u.id} | src:${d.html_url} | n:${seq}`;
             const { data: saved } = await github.rest.repos.createOrUpdateFileContents({
-              ...context.repo, path: 'SIGNATURES.md',
+              ...context.repo, path: 'docs/SIGNATURES.md',
               message: `docs(signatures): add @${login} (discussion #${d.number})\n\nCo-authored-by: ${login} <${u.id}+${login}@users.noreply.github.com>`,
               content: Buffer.from(body + line + '\n').toString('base64'),
               sha: cur.sha, branch: 'main',
@@ -113,7 +113,7 @@ jobs:
             // Línea del firmante en el fichero nuevo: body (normalizado a un solo \n
             // final) + su línea al final. SPEC-1a: el permalink a SU línea es la prueba.
             const lineNo = body.split('\n').length;
-            const ledgerUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/${saved.commit.sha}/SIGNATURES.md#L${lineNo}`;
+            const ledgerUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/${saved.commit.sha}/docs/SIGNATURES.md#L${lineNo}`;
             // Webhook: ESPERAR el 200 ANTES de notificar; si cae, el ISR cubre.
             for (let i = 1; i <= 3; i++) {
               try {
@@ -208,7 +208,7 @@ jobs:
             const prNumber = context.payload.issue.number;
             const { data: pr } = await github.rest.pulls.get({ ...context.repo, pull_number: prNumber });
             const { data: files } = await github.rest.pulls.listFiles({ ...context.repo, pull_number: prNumber });
-            if (files.length !== 1 || files[0].filename !== 'SIGNATURES.md' || files[0].additions !== 1 || files[0].deletions !== 0)
+            if (files.length !== 1 || files[0].filename !== 'docs/SIGNATURES.md' || files[0].additions !== 1 || files[0].deletions !== 0)
               throw new Error('diff shape changed since validation — aborting');
             const added = files[0].patch.split('\n').find(l => l.startsWith('+') && !l.startsWith('+++'));
             const rawLine = added.slice(1).normalize('NFC').trim();
@@ -220,7 +220,7 @@ jobs:
             phrase = phrase.replace(/"/g, "'").trim().slice(0, 200);
             if (/^@|\bid:\d+|\d{4}-\d{2}-\d{2}/.test(phrase)) phrase = '';
             const { data: u } = await github.rest.users.getByUsername({ username: login });
-            const { data: cur } = await github.rest.repos.getContent({ ...context.repo, path: 'SIGNATURES.md', ref: 'main' });
+            const { data: cur } = await github.rest.repos.getContent({ ...context.repo, path: 'docs/SIGNATURES.md', ref: 'main' });
             const body = Buffer.from(cur.content, 'base64').toString('utf8').replace(/\n*$/, '\n');
             if (new RegExp('\\| id:' + u.id + '\\b').test(body)) {
               await github.rest.issues.createComment({ ...context.repo, issue_number: prNumber,
@@ -237,7 +237,7 @@ jobs:
             const line = `- @${login}` + (displayName ? ` | ${displayName}` : '') + ` | ${today}`
               + (phrase ? ` | "${phrase}"` : '') + ` | id:${u.id} | src:${pr.html_url} | n:${seq}`;
             const { data: savedPr } = await github.rest.repos.createOrUpdateFileContents({
-              ...context.repo, path: 'SIGNATURES.md',
+              ...context.repo, path: 'docs/SIGNATURES.md',
               message: `docs(signatures): add @${login} (#${prNumber})`,
               content: Buffer.from(body + line + '\n').toString('base64'),
               sha: cur.sha, branch: 'main',
@@ -245,7 +245,7 @@ jobs:
               committer: { name: 'career-ops ledger', email: 'ledger@career-ops.org' }
             });
             const lineNoPr = body.split('\n').length;
-            const ledgerUrlPr = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/${savedPr.commit.sha}/SIGNATURES.md#L${lineNoPr}`;
+            const ledgerUrlPr = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/${savedPr.commit.sha}/docs/SIGNATURES.md#L${lineNoPr}`;
             // Webhook (esperar 200) y notificación en el MISMO step — sin outputs cruzados
             for (let i = 1; i <= 3; i++) {
               try {

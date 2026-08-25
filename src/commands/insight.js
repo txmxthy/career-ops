@@ -517,7 +517,7 @@ commands['funnel-velocity'] = command({
   }
   const m = await load(c.rootDir, 'src/scripts/funnel-velocity.mjs');
   const { loadCanonicalStates } = await load(c.rootDir, 'tracker-utils.mjs');
-  const { localToday } = await load(c.rootDir, 'lib/local-today.mjs');
+  const { localToday } = await load(c.rootDir, 'src/lib/local-today.mjs');
 
   const { benchmarks } = m.loadBenchmarks(c.values['--benchmarks']);
   const logPath = join(dirname(c.p.tracker), 'status-log.tsv');

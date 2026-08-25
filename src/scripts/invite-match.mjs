@@ -38,7 +38,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { execFileSync } from 'child_process';
 import { resolveColumns, parseTrackerRow } from '../../tracker-parse.mjs';
-import { validateFlags } from '../../lib/cli-flags.mjs';
+import { validateFlags } from '../lib/cli-flags.mjs';
 import { readFile, resolveTrackerPath } from '../core/store.js';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -54,7 +54,7 @@ const args = process.argv.slice(2);
 // #2854: --help was never checked and an unrecognized/mistyped flag (e.g.
 // `--sumary`) silently fell through instead of failing fast — same shape as
 // scan-ats-full.mjs (#1633/#1635), src/scripts/reply-watch.mjs (#2743/#2745) and
-// src/scripts/dedup-tracker.mjs (#2744/#2746), shared via lib/cli-flags.mjs's
+// src/scripts/dedup-tracker.mjs (#2744/#2746), shared via src/lib/cli-flags.mjs's
 // validateFlags() (#2775). Order matters: the unrecognized-flag check runs
 // BEFORE the --help check, so `--help --bogus` still errors instead of
 // printing usage and exiting 0.

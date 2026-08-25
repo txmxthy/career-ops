@@ -36,19 +36,29 @@ const systemPaths = extractArray('SYSTEM_PATHS');
 const userPaths = extractArray('USER_PATHS');
 const bootstrapPaths = extractArray('BOOTSTRAP_PATHS');
 
-// Every concrete (non-directory) manifest entry (SYSTEM_PATHS or
-// BOOTSTRAP_PATHS) must exist in the working tree. A path deleted upstream
-// but left in the manifest survives as a permanent `error: pathspec ...` in
-// every user's upgrade output (#2002). Directory entries (trailing '/') are
-// exempt: git checkout of a directory pathspec tolerates content drift
-// inside it. Add an entry to ALLOWED_MISSING_ENTRIES only with a comment
-// justifying why it may legitimately be absent.
-const ALLOWED_MISSING_ENTRIES = new Set([]);
+// Every manifest entry (SYSTEM_PATHS or BOOTSTRAP_PATHS) must exist in the
+// working tree. A path deleted upstream but left in the manifest survives as
+// a permanent `error: pathspec ...` in every user's upgrade output (#2002).
+//
+// Directory entries are checked too, on the directory itself: content drift
+// inside one is fine, but a directory the fork MOVED away (ADR 0007 did this
+// to evals/, fonts/, examples/, test/ and test-fixtures/) still resolves in
+// FETCH_HEAD, so `apply` silently rebuilds it at the root the move emptied.
+// Exempting the trailing slash hid exactly that. Add an entry to
+// ALLOWED_MISSING_ENTRIES only with a comment justifying why it may
+// legitimately be absent.
+const ALLOWED_MISSING_ENTRIES = new Set([
+  // tests/run-all.mjs runs this suite from a copy of the tree that deliberately
+  // omits .agents/ (its excludeDirs list), because sections 12a/12b test the
+  // skill entrypoint MATERIALIZING .agents/skills/ from nothing. The directory
+  // is tracked and present in the real checkout; the fixture's absence of it is
+  // a property of the harness, not of the manifest.
+  '.agents/',
+]);
 for (const [listName, entries] of [['SYSTEM_PATHS', systemPaths], ['BOOTSTRAP_PATHS', bootstrapPaths]]) {
   for (const entry of entries) {
-    if (entry.endsWith('/')) continue;
     if (ALLOWED_MISSING_ENTRIES.has(entry)) continue;
-    if (existsSync(entry)) {
+    if (existsSync(entry.replace(/\/$/, ''))) {
       pass(`${listName} entry exists on disk: ${entry}`);
     } else {
       fail(`${listName} entry missing from tree (stale manifest entry, #2002): ${entry}`);
@@ -68,7 +78,7 @@ const requiredSystemPaths = [
   'modes/tr/',
   'modes/ua/',
   'batch/README.md',
-  'examples/',
+  'docs/examples/',
   'config/profile.example.yml',
   '.env.example',
   '.claude-plugin/',
@@ -78,17 +88,17 @@ const requiredSystemPaths = [
   '.cursor/skills/',
   'tests/tracker-columns.test.mjs',
   'tests/updater-migration.test.mjs',
-  'README.ar.md',
-  'README.de.md',
-  'README.hi.md',
-  'README.ja.md',
-  'README.ua.md',
+  'docs/i18n/README.ar.md',
+  'docs/i18n/README.de.md',
+  'docs/i18n/README.hi.md',
+  'docs/i18n/README.ja.md',
+  'docs/i18n/README.ua.md',
   'CHANGELOG.md',
-  'CODE_OF_CONDUCT.md',
-  'GOVERNANCE.md',
-  'SECURITY.md',
-  'SUPPORT.md',
-  'TRADEMARK.md',
+  '.github/CODE_OF_CONDUCT.md',
+  'docs/GOVERNANCE.md',
+  '.github/SECURITY.md',
+  '.github/SUPPORT.md',
+  'docs/TRADEMARK.md',
 ];
 
 const requiredBootstrapPaths = [

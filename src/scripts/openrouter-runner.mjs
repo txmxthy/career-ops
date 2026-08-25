@@ -27,7 +27,7 @@ import { outputLanguageInstruction, parseOutputLanguage } from '../lib/profile-l
 import {
   formatReportNumber, releaseReportNumbers, reserveReportNumbers,
 } from '../../reserve-report-num.mjs';
-import { TokenAccumulator, formatBreakdown, normalizeOpenAIUsage } from '../../utils/token-tracker.mjs';
+import { TokenAccumulator, formatBreakdown, normalizeOpenAIUsage } from '../lib/token-tracker.mjs';
 import { DEFAULT_USER_AGENT } from '../lib/user-agent.mjs';
 import { buildTitleFilter } from '../lib/title-keywords.mjs';
 

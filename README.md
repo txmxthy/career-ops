@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[English](README.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [简体中文](README.cn.md) | [繁體中文](README.zh-TW.md) | [Українська](README.ua.md) | [Русский](README.ru.md) | [Polski](README.pl.md) | [Dansk](README.da.md) | [தமிழ்](README.ta.md) | [العربية](README.ar.md) | [हिन्दी](README.hi.md) | [Türkçe](README.tr.md)
+[English](README.md) | [Español](docs/i18n/README.es.md) | [Deutsch](docs/i18n/README.de.md) | [Français](docs/i18n/README.fr.md) | [Português (Brasil)](docs/i18n/README.pt-BR.md) | [한국어](docs/i18n/README.ko-KR.md) | [日本語](docs/i18n/README.ja.md) | [简体中文](docs/i18n/README.cn.md) | [繁體中文](docs/i18n/README.zh-TW.md) | [Українська](docs/i18n/README.ua.md) | [Русский](docs/i18n/README.ru.md) | [Polski](docs/i18n/README.pl.md) | [Dansk](docs/i18n/README.da.md) | [தமிழ்](docs/i18n/README.ta.md) | [العربية](docs/i18n/README.ar.md) | [हिन्दी](docs/i18n/README.hi.md) | [Türkçe](docs/i18n/README.tr.md)
 
 </div>
 
@@ -77,7 +77,7 @@
   <img src="https://img.shields.io/badge/Playwright-2EAD33?style=flat&logo=playwright&logoColor=white" alt="Playwright">
   <img src="https://img.shields.io/badge/Bubble_Tea-FF75B5?style=flat&logo=go&logoColor=white" alt="Bubble Tea">
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT">
-  <a href="TRADEMARK.md"><img src="https://img.shields.io/badge/Trademark-Policy-blue.svg" alt="Trademark Policy"></a>
+  <a href="docs/TRADEMARK.md"><img src="https://img.shields.io/badge/Trademark-Policy-blue.svg" alt="Trademark Policy"></a>
 </p>
 
 ## What Is This
@@ -202,6 +202,39 @@ This installs the `career-ops` binary globally so you can run it directly instea
 > **The system is designed to be customized by your AI coding CLI itself.** Modes, archetypes, scoring weights, negotiation scripts -- just ask it to change them. It reads the same files it uses, so it knows exactly what to edit.
 
 See [docs/SETUP.md](docs/SETUP.md) for the full setup guide, [docs/RUNNING_ON_A_BUDGET.md](docs/RUNNING_ON_A_BUDGET.md) for instructions on running career-ops cheaply using custom or local models (and [docs/FREE_TIER.md](docs/FREE_TIER.md) for running it at zero cost on Antigravity CLI's free tier), [docs/AUTOMATION.md](docs/AUTOMATION.md) for scheduling recurring scans and a zero-token triage-to-shortlist recipe, [docs/APPLY_AUTOFILL.md](docs/APPLY_AUTOFILL.md) for details on the ATS auto-fill flow, and [docs/FAQ.md](docs/FAQ.md) for answers to common setup questions. Design principles live in [ARCHITECTURE.md](ARCHITECTURE.md); runtime flows in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Updating This Fork
+
+**Do not use `npm run update`.** It is upstream's self-updater, and it is not safe here.
+
+This fork moved 112 scripts out of the repo root into `src/`
+([ADR 0001](docs/adr/0001-root-goes-to-fifteen.md)), then moved the root's directories and
+loose documents into `src/`, `tests/`, `docs/`, `templates/` and `.github/`
+([ADR 0007](docs/adr/0007-root-directories.md)) — 157 paths in all. Upstream still ships
+every one of them at the root and lists them in its own manifest, and the updater merges the
+two manifests by union — it adds, it never subtracts. Left to itself it puts every moved
+file back beside its replacement.
+
+Take upstream changes deliberately instead:
+
+```bash
+git fetch upstream
+git log --oneline HEAD..upstream/main     # what is new
+git cherry-pick <sha>                     # take the ones you want
+```
+
+A cherry-pick that lands in a moved file conflicts against the root path it no longer has;
+resolve it against the file's new home under `src/`.
+
+If an update does run — someone else's checkout, a script, a habit — three things push back,
+and none of them is optional:
+
+| | What it does |
+|---|---|
+| `REMOVED_PATHS` in `update-system.mjs` | Subtracts the moved paths from the checkout set, so a merge that runs *our* updater never restores them. |
+| `career-ops system prune` | Deletes any moved path that is back on disk. Needed because the updater re-execs the copy of itself it just fetched, which is upstream's and has no such manifest. Add `--dry-run` to look first. |
+| `npm run doctor` | Warns when a moved file is back, and says "could not verify" — never "all clear" — when the manifest is missing, which is exactly what a clobbered updater looks like. |
+
 
 ## Antigravity CLI Integration
 
@@ -406,7 +439,8 @@ career-ops/
 ├── templates/
 │   ├── cv-template.html         # ATS-optimized CV template
 │   ├── portals.example.yml      # Scanner config template
-│   └── states.yml               # Canonical statuses
+│   ├── states.yml               # Canonical statuses
+│   └── fonts/                   # Space Grotesk + DM Sans
 ├── batch/
 │   ├── batch-prompt.md          # Self-contained worker prompt
 │   └── batch-runner.sh          # Orchestrator script
@@ -414,9 +448,8 @@ career-ops/
 ├── data/                        # Your tracking data (gitignored)
 ├── reports/                     # Evaluation reports (gitignored)
 ├── output/                      # Generated PDFs (gitignored)
-├── fonts/                       # Space Grotesk + DM Sans
-├── docs/                        # Setup, customization, budget guide, architecture
-└── examples/                    # Sample CV, report, proof points
+└── docs/                        # Setup, customization, budget guide, architecture
+    └── examples/                # Sample CV, report, proof points
 ```
 
 ## Tech Stack
@@ -480,7 +513,7 @@ Wikidata: [Santiago Fernández de Valderrama Aparicio](https://www.wikidata.org/
 3. **You comply with third-party ToS.** You must use this tool in accordance with the Terms of Service of the career portals you interact with (Greenhouse, Lever, Workday, LinkedIn, etc.). Do not use this tool to spam employers or overwhelm ATS systems.
 4. **No guarantees.** Evaluations are recommendations, not truth. AI models may hallucinate skills or experience. The authors are not liable for employment outcomes, rejected applications, account restrictions, or any other consequences.
 
-See [LEGAL_DISCLAIMER.md](LEGAL_DISCLAIMER.md) for full details. This software is provided under the [MIT License](LICENSE) "as is", without warranty of any kind.
+See [LEGAL_DISCLAIMER.md](docs/LEGAL_DISCLAIMER.md) for full details. This software is provided under the [MIT License](LICENSE) "as is", without warranty of any kind.
 
 ## Contributors
 
@@ -497,7 +530,7 @@ Got hired using career-ops? [Share your story!](https://github.com/santifer/care
 ## License & Trademark
 
 The code is licensed under [MIT](LICENSE). The "career-ops" name and
-brand are governed by the [Trademark Policy](TRADEMARK.md), permissive
+brand are governed by the [Trademark Policy](docs/TRADEMARK.md), permissive
 for community use, reserved for commercial product naming and
 endorsement.
 

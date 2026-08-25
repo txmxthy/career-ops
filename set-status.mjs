@@ -94,7 +94,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { extractTrackerReportNumbers, resolveColumns, parseTrackerRow, normalizeTextKey } from './tracker-parse.mjs';
 import { roleFuzzyMatch } from './src/lib/role-matcher.mjs';
-import { localToday } from './lib/local-today.mjs';
+import { localToday } from './src/lib/local-today.mjs';
 import {
   rebuildRow, resolveTrackerPath, writeFileAtomic, loadCanonicalStates, resolveCanonicalState,
   normalizeCompany, cell, CLI_EXIT, makeCliFailWith, acquireTrackerLockForCli,

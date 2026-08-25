@@ -29,7 +29,7 @@
 import { appendFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { localToday } from '../../lib/local-today.mjs';
+import { localToday } from '../lib/local-today.mjs';
 import { ensureDir, readFile, readText } from '../core/store.js';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');

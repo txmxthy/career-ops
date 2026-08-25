@@ -14,10 +14,11 @@ import dotenv from 'dotenv';
 import { discoverPlugins, pluginRoots, pluginStatus } from './plugins/_engine.mjs';
 import { resolveExtractorMode } from './src/scripts/browser-extract.mjs';
 import { parseConfigByExtension } from './src/lib/jsonc-parse.mjs';
-import { validateFlags } from './lib/cli-flags.mjs';
-import { geminiNodeFloor } from './lib/gemini-node-floor.mjs';
+import { validateFlags } from './src/lib/cli-flags.mjs';
+import { geminiNodeFloor } from './src/lib/gemini-node-floor.mjs';
 import { flagValue } from './src/core/flags.js';
 import { PIPELINE_SKELETON } from './src/core/store.js';
+import { extractArrayFromSource } from './update-system.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -28,7 +29,7 @@ const VALID_CLIS = ['claude', 'codex', 'opencode', 'antigravity', 'grok', 'qwen'
 // --help ran the full diagnostic and printed the report at exit 0 (#2856), so
 // a mistyped flag was indistinguishable from a clean run — and --targe
 // silently diagnosed THIS checkout instead of the one asked for. Handled via
-// lib/cli-flags.mjs's validateFlags() (#2775), which rejects unrecognized
+// src/lib/cli-flags.mjs's validateFlags() (#2775), which rejects unrecognized
 // flags before --help so `--help --bogus` still errors.
 const KNOWN_FLAGS = ['--target', '--json', '--strict', '--cli', '--help', '-h'];
 
@@ -404,12 +405,13 @@ function checkPrereq({ path, fix }) {
 }
 
 function checkFonts() {
-  const fontsDir = join(projectRoot, 'fonts');
+  // templates/fonts/ since ADR 0007; generate-pdf.mjs resolves it there too.
+  const fontsDir = join(projectRoot, 'templates', 'fonts');
   if (!existsSync(fontsDir)) {
     return {
       pass: false,
-      label: 'fonts/ directory not found',
-      fix: 'The fonts/ directory is required for PDF generation',
+      label: 'templates/fonts/ directory not found',
+      fix: 'The templates/fonts/ directory is required for PDF generation',
     };
   }
   try {
@@ -417,15 +419,15 @@ function checkFonts() {
     if (files.length === 0) {
       return {
         pass: false,
-        label: 'fonts/ directory is empty',
-        fix: 'The fonts/ directory must contain font files for PDF generation',
+        label: 'templates/fonts/ directory is empty',
+        fix: 'The templates/fonts/ directory must contain font files for PDF generation',
       };
     }
   } catch {
     return {
       pass: false,
-      label: 'fonts/ directory not readable',
-      fix: 'Check permissions on the fonts/ directory',
+      label: 'templates/fonts/ directory not readable',
+      fix: 'Check permissions on the templates/fonts/ directory',
     };
   }
   return { pass: true, label: 'Fonts directory ready' };
@@ -524,6 +526,66 @@ function checkPlugins(root) {
   return fixes.length ? { warn: true, label, fix: fixes } : { pass: true, label };
 }
 
+
+/**
+ * Root scripts this fork removed (ADR 0001) that are back on disk.
+ *
+ * Part 3 of the updater fork, and the part that must not fail: the other two
+ * can both be bypassed. `apply` subtracts REMOVED_PATHS from its checkout set,
+ * but the re-exec stage runs the updater it fetched from upstream, which has
+ * no such manifest; `prune` repairs that, but only if someone runs it. A
+ * resurrected file is not inert — it shadows nothing (the CLI resolves `src/`
+ * first) but it is stale, it will drift from its replacement, and it puts the
+ * root count back over the line ADR 0001 drew.
+ *
+ * The manifest is read out of the TARGET's update-system.mjs source rather
+ * than imported from this one, for two reasons: `--target` must diagnose the
+ * checkout it was pointed at, not this one; and reading text cannot execute a
+ * clobbered updater. extractArrayFromSource is the updater's own parser, the
+ * same one src/scripts/validate-system-paths-coverage.mjs uses, so a
+ * commented-out entry is not counted.
+ *
+ * A manifest that cannot be read is reported as "could not verify" (ADR 0006),
+ * never as a pass. The two states look identical from the outside — no files
+ * listed — and mean opposite things: one is a clean tree, the other is an
+ * updater that no longer knows what was removed.
+ *
+ * @param {string} root - Checkout to inspect.
+ * @returns {{pass?: boolean, warn?: boolean, label: string, fix?: string[]}}
+ */
+function checkResurrectedPaths(root) {
+  const updaterPath = join(root, 'update-system.mjs');
+  const couldNotVerify = (why) => ({
+    warn: true,
+    label: `Removed root scripts: could not verify — ${why}`,
+    fix: ['Restore update-system.mjs from this fork (git checkout HEAD -- update-system.mjs), then re-run.'],
+  });
+
+  if (!existsSync(updaterPath)) return couldNotVerify(`${updaterPath} does not exist`);
+
+  let removed;
+  try {
+    removed = extractArrayFromSource(readFileSync(updaterPath, 'utf-8'), 'REMOVED_PATHS');
+  } catch (err) {
+    return couldNotVerify(`update-system.mjs could not be read (${err.message})`);
+  }
+  if (removed.length === 0) {
+    return couldNotVerify('update-system.mjs declares no REMOVED_PATHS, so this copy of the '
+      + 'updater does not know which root scripts were removed');
+  }
+
+  const found = removed.filter((p) => existsSync(join(root, ...p.split('/')))).sort();
+  if (found.length === 0) {
+    return { pass: true, label: `Removed root scripts: none of ${removed.length} are back` };
+  }
+  return {
+    warn: true,
+    label: `Removed root scripts: ${found.length} back at the root — ${found.slice(0, 5).join(', ')}`
+      + (found.length > 5 ? `, +${found.length - 5} more` : ''),
+    fix: ['An update restored them. Remove them with: career-ops system prune'],
+  };
+}
+
 async function main() {
   console.log('\ncareer-ops doctor');
   console.log('================\n');
@@ -547,6 +609,7 @@ async function main() {
     checkAutoDir('output'),
     checkAutoDir('reports'),
     checkPlugins(projectRoot),
+    checkResurrectedPaths(projectRoot),
   ].filter(Boolean);
 
   // Network-bound ATS slug probe — only under --strict.
@@ -627,9 +690,14 @@ function onboardingState(root) {
   const { cli: activeCli, source: cliSource, warning: cliWarning } = resolveActiveCli();
 
   const mcpCheck = checkPlaywrightMcp(root, activeCli);
+  const resurrected = checkResurrectedPaths(root);
   const warnings = [
     ...(cliWarning ? [cliWarning] : []),
     ...(mcpCheck?.warn ? [`${mcpCheck.label}\n→ ${[].concat(mcpCheck.fix || []).join('\n  ')}`] : []),
+    // Same check as the human report. It rides in `warnings` (a frozen field,
+    // public-surface.md §2 row 5) rather than a new key so the web app shows it
+    // without a co-versioned release.
+    ...(resurrected.warn ? [`${resurrected.label}\n→ ${[].concat(resurrected.fix || []).join('\n  ')}`] : []),
   ];
 
   const playwrightMcp = activeCli !== 'unknown' && MCP_CONFIGS.find((c) => c.cli === activeCli)

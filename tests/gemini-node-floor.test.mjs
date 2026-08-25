@@ -12,7 +12,7 @@
 // already runs a recent Node, which is why the logic is a pure module.
 
 import { pass, fail } from './helpers.mjs';
-import { geminiNodeFloor, GEMINI_MIN_MAJOR } from '../lib/gemini-node-floor.mjs';
+import { geminiNodeFloor, GEMINI_MIN_MAJOR } from '../src/lib/gemini-node-floor.mjs';
 
 console.log('\n🔎 Gemini Node floor (the requirement that only applies to one CLI)');
 

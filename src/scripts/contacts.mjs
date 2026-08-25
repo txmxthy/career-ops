@@ -44,7 +44,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, realpathSync, lstat
 import { join, dirname, resolve, relative, isAbsolute, basename, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { createHash } from 'crypto';
-import { validateFlags, hasFlag, flagValue } from '../../lib/cli-flags.mjs';
+import { validateFlags, hasFlag, flagValue } from '../lib/cli-flags.mjs';
 
 const CAREER_OPS = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CONTACTS_PATH = join(CAREER_OPS, 'data/contacts.tsv');
