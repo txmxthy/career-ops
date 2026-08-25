@@ -58,12 +58,12 @@ This is the argument for the work, and it is stronger than "there are 27 parsers
 
 Each step shrinks the next.
 
-1. Markdown table parser → `src/core/`
-2. Data access (pipeline/tracker/config location and I/O)
-3. Flag parsing
-4. Command modules
-5. Hollow root scripts into shims, one per commit
-6. Consolidate 3 test locations and 3 naming conventions into one `tests/`
+1. Markdown table parser → `src/core/` — **landed** (`src/core/table.js`)
+2. Data access (pipeline/tracker/config location and I/O) — **landed** (`src/core/store.js`)
+3. Flag parsing — **landed** (`src/core/flags.js`)
+4. Command modules — **landed** (`src/cli.js`, `src/commands/`, 84 commands)
+5. Hollow root scripts into shims, one per commit — **not started**
+6. Consolidate 3 test locations and 3 naming conventions into one `tests/` — **not started**
 
 Rules: characterisation tests before consolidating anything; `"type": "module"` in
 `package.json`; new files `.js`, existing root `.mjs` names stay; one logical change per
@@ -91,6 +91,32 @@ window. Not proposed here.
 
 - Phase 0 → Phase 1: audit read. **Waived by Tim, 2026-08-24.**
 - Phase 1 → Phase 2: design approved before any code moves. **Held.**
+
+## Status — measured 2026-08-25
+
+Every number below is re-measured in `docs/audit/final-measurements.md`; none are estimated.
+
+**Root is 127 `.mjs`, unchanged. The target is 15, and that is the requirement.** Zero `git mv`
+on the branch; the 15 frozen scripts are still full implementations rather than shims. Steps 1
+to 4 landed — three core modules with 172 characterisation tests, and the `career-ops` facade
+with 350. Steps 5 and 6 did not start.
+
+Also outstanding:
+
+- **ADR 0001 step 5b, the updater fork** — no `REMOVED_PATHS`, no `system prune`, no doctor
+  resurrection check. Blocking: nothing may move before it exists, or the next
+  `npm run update` restores every moved file alongside its replacement.
+- **ADR 0004's URL path-casing decision** — resolved as *preserve path case*, not implemented.
+  `scan.mjs:1068` and `discover-ats.mjs:403` still lowercase.
+  `tests/discover-ats-url-dedup-casing.test.mjs` pins the current behaviour and fails loudly
+  when it is flipped; `web/tests/lib/url-key.test.mjs` must move with it.
+- **The duplicate-symbol lint** ADR 0005 calls "the mechanism that makes it stay finished" —
+  not written. 84 root scripts still hand-parse `process.argv` beside a shared flags module,
+  which is the same drift the fork exists to stop.
+- **`followup-cadence.mjs --json` is rejected** (`:939` `KNOWN_FLAGS` omits it) while both web
+  routes send it. The web swallows the error and renders "no follow-ups due" — a live instance
+  of the "nothing found" vs "could not verify" collapse ADR 0006 forbids. Pre-existing, not
+  from this branch; needs a characterisation test with its fix.
 
 ## Final phase — writeup
 
