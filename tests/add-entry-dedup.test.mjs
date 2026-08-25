@@ -1,6 +1,6 @@
 // tests/add-entry-dedup.test.mjs — articleDigestHasEntry must not false-positive on prefix of existing entry
 import { pass, fail } from './helpers.mjs';
-import { articleDigestHasEntry, applyAdd } from '../add-entry.mjs';
+import { articleDigestHasEntry, applyAdd } from '../src/scripts/add-entry.mjs';
 
 console.log('\nadd-entry.mjs — dedup key prefix false positive prevention');
 

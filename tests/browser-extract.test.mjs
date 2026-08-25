@@ -1,5 +1,5 @@
 // tests/browser-extract.test.mjs — unit coverage for the pure logic in
-// browser-extract.mjs (config resolution + result normalizers). The Playwright
+// src/scripts/browser-extract.mjs (config resolution + result normalizers). The Playwright
 // navigation path is exercised live, not here.
 import { pass, fail, rmSync, ROOT } from './helpers.mjs';
 import { join } from 'path';
@@ -10,7 +10,7 @@ import { tmpdir } from 'os';
 console.log('\nbrowser-extract.mjs (config + normalizers)');
 
 try {
-  const mod = await import(pathToFileURL(join(ROOT, 'browser-extract.mjs')).href);
+  const mod = await import(pathToFileURL(join(ROOT, 'src/scripts/browser-extract.mjs')).href);
   const { resolveExtractorMode, compactText, normalizeJd, normalizeListing, parseArgs } = mod;
 
   // resolveExtractorMode — default mcp, explicit cli, garbage → mcp, missing → mcp

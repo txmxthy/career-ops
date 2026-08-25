@@ -222,7 +222,7 @@ Türkçe iş ilanlarında ve sözleşme müzakerelerinde, yabancı piyasalarda k
 
 0. **Ön yazı:** Form izin veriyorsa HER ZAMAN ön yazı ekle. CV ile aynı görsel tasarımda PDF olarak üret. İçerik: ilandan doğrudan alıntılar + kanıt noktalarıyla eşleştirme. Maksimum 1 sayfa.
 1. Herhangi bir ilanı değerlendirmeden önce `cv.md` ve `article-digest.md` dosyalarını oku (varsa)
-1b. **Her oturumun ilk değerlendirmesinde:** `node cv-sync-check.mjs` çalıştır. Uyarı varsa adayı bilgilendirmeden devam etme
+1b. **Her oturumun ilk değerlendirmesinde:** `node src/scripts/cv-sync-check.mjs` çalıştır. Uyarı varsa adayı bilgilendirmeden devam etme
 2. Rol arketipini belirle ve çerçevelemeyi buna göre uyarla
 3. CV eşleştirmesinde dosyadan tam satır alıntıla
 4. Maaş ve şirket bilgisi için WebSearch kullan

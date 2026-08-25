@@ -1,11 +1,11 @@
-// tests/outcome.test.mjs — Unit test suite for outcome.mjs (#1722).
+// tests/outcome.test.mjs — Unit test suite for src/scripts/outcome.mjs (#1722).
 import { pass, fail, NODE, ROOT } from './helpers.mjs';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, mkdtempSync, realpathSync, utimesSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { execFileSync } from 'child_process';
 
-const OUTCOME_SCRIPT = join(ROOT, 'outcome.mjs');
+const OUTCOME_SCRIPT = join(ROOT, 'src/scripts/outcome.mjs');
 
 console.log('\noutcome.mjs — outcome recording & archiving');
 
@@ -37,7 +37,7 @@ try {
 
   // Test 1: Help command
   const helpOut = execFileSync(NODE, [OUTCOME_SCRIPT, '--help'], { encoding: 'utf-8' });
-  check('outcome.mjs --help returns usage info', helpOut.includes('Usage: node outcome.mjs'));
+  check('src/scripts/outcome.mjs --help returns usage info', helpOut.includes('Usage: node src/scripts/outcome.mjs'));
 
   // Test 2: Invalid outcome type
   try {

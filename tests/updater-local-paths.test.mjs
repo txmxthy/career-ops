@@ -178,7 +178,7 @@ console.log('\n🧪 Local user-paths declaration file (#2421)\n');
 
 // ── 10/11. End-to-end: the coverage guard honours the declaration ──
 //    This is the half of #2421 that bites second. Even with the safety check
-//    fixed, `validate-system-paths-coverage.mjs` fails the whole suite on any
+//    fixed, `src/scripts/validate-system-paths-coverage.mjs` fails the whole suite on any
 //    tracked file that is in neither array — so a fork keeping its own file
 //    still has to edit update-system.mjs. Both halves have to move together.
 //
@@ -203,7 +203,7 @@ console.log('\n🧪 Local user-paths declaration file (#2421)\n');
   g('config', 'commit.gpgsign', 'false');
   g('config', 'core.hooksPath', join(dir, 'no-such-hooks'));
 
-  for (const f of ['validate-system-paths-coverage.mjs', 'update-system.mjs']) {
+  for (const f of ['src/scripts/validate-system-paths-coverage.mjs', 'update-system.mjs']) {
     copyFileSync(join(ROOT, f), join(dir, f));
   }
   // A fork-local file upstream has never heard of — the reported case.
@@ -212,7 +212,7 @@ console.log('\n🧪 Local user-paths declaration file (#2421)\n');
   g('commit', '-qm', 'base');
 
   const runGuard = () =>
-    spawnSync(process.execPath, [join(dir, 'validate-system-paths-coverage.mjs')], {
+    spawnSync(process.execPath, [join(dir, 'src/scripts/validate-system-paths-coverage.mjs')], {
       cwd: dir,
       encoding: 'utf-8',
       env,

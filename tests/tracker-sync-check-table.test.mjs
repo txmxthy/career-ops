@@ -1,7 +1,7 @@
 /**
- * Characterisation of tracker-sync-check.mjs's active-interviews reader, taken
+ * Characterisation of src/scripts/tracker-sync-check.mjs's active-interviews reader, taken
  * before it moved onto src/core/table.js (audit CAPABILITY 1, algorithm #6 —
- * the hand-mirror of process-quality.mjs recorded as divergence D8).
+ * the hand-mirror of src/scripts/process-quality.mjs recorded as divergence D8).
  *
  * Everything the old hand-rolled splitter decided is pinned here. Only the
  * table-line predicate, the strict column-count rule and the raw header keys
@@ -11,7 +11,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseActiveInterviewsWithLines } from '../tracker-sync-check.mjs';
+import { parseActiveInterviewsWithLines } from '../src/scripts/tracker-sync-check.mjs';
 
 const table = (...rows) => rows.join('\n');
 const HEADER = table('| Company | Stage |', '| --- | --- |');

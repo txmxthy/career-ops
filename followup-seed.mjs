@@ -61,13 +61,13 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { createHash, randomUUID } from 'crypto';
 // Third copy of the directory-lock protocol in this repo, and the one #2984
 // missed: that fix declared "one definition, no sibling drift" while patching
-// pipeline-lock.mjs and tracker-utils.mjs, and this file was carrying all three
+// src/lib/pipeline-lock.mjs and tracker-utils.mjs, and this file was carrying all three
 // faces of #2777 the whole time. The classifiers come from pipeline-lock now,
 // so the next Windows-contention finding lands in one place instead of three.
 import {
   isMkdirContention, isRmContention, rmLockArtifactSync, createLockWaitPolicy,
   sameLockDirectory, lockRecoveryVerdict, RECOVER_STALE, readLockOwner,
-} from './pipeline-lock.mjs';
+} from './src/lib/pipeline-lock.mjs';
 import { parseRow } from './src/core/table.js';
 import { renameSyncWithRetry } from './tracker-utils.mjs';
 import { tmpdir } from 'os';
@@ -101,7 +101,7 @@ const FOLLOWUPS_LOCK_PREFIX = 'career-ops-followups-';
  * Re-exported rather than redeclared: the floor is applied inside that function
  * now, so a local copy would be a constant this file no longer enforces.
  */
-export { OWNERLESS_GRACE_MS } from './pipeline-lock.mjs';
+export { OWNERLESS_GRACE_MS } from './src/lib/pipeline-lock.mjs';
 
 /** Structured error carrying an exit-code-mapping `code`. */
 export class SeedError extends Error {
@@ -153,7 +153,7 @@ export function isValidCalendarDate(str) {
  * A wrong date you can see beats a wrong date you cannot, so the proxy is now
  * preferred over the guess and `appDateSource` says which one you got. That
  * matches followup-cadence.mjs's `resolveAppliedDate` (same fallback, same
- * labelling) and company-history.mjs's `dateBasis`, so all three agree.
+ * labelling) and src/scripts/company-history.mjs's `dateBasis`, so all three agree.
  *
  * `today` remains the last resort for a row whose `date` column is missing or
  * unusable — but it is now labelled too, rather than being indistinguishable
@@ -554,7 +554,7 @@ export async function seedFollowup(appNum, options = {}) {
 
   // appDateSource travels with the result so a caller can tell a measured apply
   // date from a proxy or a guess — the same contract followup-cadence.mjs and
-  // company-history.mjs already expose.
+  // src/scripts/company-history.mjs already expose.
   const { appliedDate, appDateSource } = resolveAppliedDate(row, options.date);
   const cadence = resolveCadenceConfig({ profilePath: options.profilePath });
   const nextDate = addDays(parseDate(appliedDate), cadence.applied_first);

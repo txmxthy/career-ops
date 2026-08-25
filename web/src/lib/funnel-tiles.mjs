@@ -12,12 +12,12 @@
 // harder to reach the stage they already cleared.
 //
 // The cumulative math is the core's, not a new invention: computeFunnel() in
-// stats.mjs is the canonical definition —
+// src/scripts/stats.mjs is the canonical definition —
 //   everInterview = Interview + Offer + Hired
 //   everOffer     = Offer + Hired
 // — on the reasoning that a landed job proves the offer and everything before
 // it. Rejected is deliberately NOT folded in: a status is a snapshot, so a
-// rejection never reveals which stage it came from (stats.mjs calls the middle
+// rejection never reveals which stage it came from (src/scripts/stats.mjs calls the middle
 // stages lower bounds for exactly this reason).
 
 /**

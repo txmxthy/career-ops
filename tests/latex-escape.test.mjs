@@ -49,7 +49,7 @@ const tex = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'te
 // still come out wrong:
 //
 //   1. Scheme doubling reintroduced anywhere else on the path — a second
-//      sanitizeUrl() pass, a normalizer in build-cv-latex.mjs, or a template
+//      sanitizeUrl() pass, a normalizer in src/scripts/build-cv-latex.mjs, or a template
 //      variant — would produce \href{mailto:mailto:...}, a dead link in every
 //      generated PDF, while the template source stayed clean.
 //   2. Brace arithmetic. The template line is `\href{{{EMAIL_URL}}}{...}`:
@@ -75,7 +75,7 @@ const CV_JSON = {
 };
 
 /**
- * Render the CV template through build-cv-latex.mjs with the given email URL
+ * Render the CV template through src/scripts/build-cv-latex.mjs with the given email URL
  * and return the produced .tex source (or null when the CLI failed).
  */
 function renderWithEmail(emailUrl) {
@@ -84,7 +84,7 @@ function renderWithEmail(emailUrl) {
     const inPath = join(dir, 'cv.json');
     const outPath = join(dir, 'cv.tex');
     writeFileSync(inPath, JSON.stringify({ ...CV_JSON, email: { url: emailUrl, display: 'test@example.com' } }), 'utf-8');
-    if (run(NODE, [join(ROOT, 'build-cv-latex.mjs'), inPath, outPath]) === null) return null;
+    if (run(NODE, [join(ROOT, 'src/scripts/build-cv-latex.mjs'), inPath, outPath]) === null) return null;
     return readFileSync(outPath, 'utf-8');
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -96,7 +96,7 @@ const EXPECTED_HREF = '\\href{mailto:test@example.com}{';
 for (const [label, input] of [['a bare address', 'test@example.com'], ['an explicit mailto: URL', 'mailto:test@example.com']]) {
   const rendered = renderWithEmail(input);
   if (rendered === null) {
-    fail(`build-cv-latex.mjs failed to render ${label}${formatRunFailure()}`);
+    fail(`src/scripts/build-cv-latex.mjs failed to render ${label}${formatRunFailure()}`);
     continue;
   }
 

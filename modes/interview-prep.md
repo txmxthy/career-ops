@@ -11,7 +11,7 @@ When the user asks to prep for an interview at a specific company+role, or when 
 5. **Profile** at `config/profile.yml` + `modes/_profile.md` — read for candidate context
 6. **Recruiter-side risk map** from the evaluation/PDF/application flow if present — use `modes/heuristics/recruiter-side.md` for the risk categories the interview process must resolve
 7. **Coffee chat notes** for this company, if the user has any (optional — see "Coffee Chat Cross-Reference" below)
-8. **Prior stated compensation** — if the tracker# is known, run `node salary-gap.mjs --stated-for <tracker#>` (zero tokens). Any prior `stated` observation is a number already committed to a specific interviewer in an earlier round — surface it in the Process Overview (Step 2) or Recruiter/HR pack (Step 4) as a "already discussed" reminder so the candidate stays consistent.
+8. **Prior stated compensation** — if the tracker# is known, run `node src/scripts/salary-gap.mjs --stated-for <tracker#>` (zero tokens). Any prior `stated` observation is a number already committed to a specific interviewer in an earlier round — surface it in the Process Overview (Step 2) or Recruiter/HR pack (Step 4) as a "already discussed" reminder so the candidate stays consistent.
 9. **HM audit** — the evaluation report's `## HM Audit` section, if present (written by `modes/pdf/hm-audit.md`). It carries the reviewer persona, the sources behind it, and which CV bullets that reviewer would have cut. Reuse it rather than re-researching the hiring manager from scratch.
 
 ## Coffee Chat Cross-Reference (optional, North America-specific)
@@ -48,7 +48,7 @@ The inputs above are report-first, but a common path skips evaluation entirely: 
 
 **Fetch ladder** — same as `modes/oferta.md` and the AGENTS.md Offer Verification rule; JD fetching follows the same ladder:
 
-1. For ATS-shaped URLs (Greenhouse / Lever / Ashby / Workday — the four `liveness-core.mjs` already recognizes), the structured API endpoint may serve the JD directly.
+1. For ATS-shaped URLs (Greenhouse / Lever / Ashby / Workday — the four `src/lib/liveness-core.mjs` already recognizes), the structured API endpoint may serve the JD directly.
 2. Otherwise Playwright: `browser_navigate` → `browser_snapshot`, read title, URL, and visible content.
 3. WebFetch **only** as the headless/batch fallback. If the JD came from WebFetch, mark the prep output header `**JD source:** unconfirmed (fetched without browser)`.
 4. Closed/expired posting (footer/navbar only, "no longer accepting applications", 404) → tell the user and ask them to paste the JD text instead. **Never fabricate JD content.**
@@ -111,7 +111,7 @@ If the company is small or obscure and yields few results, broaden: search for t
 ## Process Overview
 - **Rounds:** {N} rounds, ~{X} days end-to-end
 - **Format:** {e.g., recruiter screen → technical phone → take-home → onsite (4 rounds) → hiring manager}
-- **Platform:** {e.g., Zoom / Microsoft Teams / Google Meet / Phone — the call medium, distinct from Format above. Extract from invite/scheduling text using the same platform-detection approach `invite-match.mjs`'s `extractPlatform` uses (meeting-platform URL first, phone-number pattern as fallback). If not detectable, write "not stated in the invite, confirm before the call" rather than guessing; this field-specific fallback overrides the generic unknown rule below}
+- **Platform:** {e.g., Zoom / Microsoft Teams / Google Meet / Phone — the call medium, distinct from Format above. Extract from invite/scheduling text using the same platform-detection approach `src/scripts/invite-match.mjs`'s `extractPlatform` uses (meeting-platform URL first, phone-number pattern as fallback). If not detectable, write "not stated in the invite, confirm before the call" rather than guessing; this field-specific fallback overrides the generic unknown rule below}
 - **Difficulty:** {X}/5 (Glassdoor avg, N reviews)
 - **Positive experience rate:** {X}%
 - **Known quirks:** {e.g., "pair programming instead of whiteboard", "no LeetCode, all practical", "take-home is 4 hours"}
@@ -120,7 +120,7 @@ If the company is small or obscure and yields few results, broaden: search for t
 
 If data is insufficient for any field, write "unknown — not enough data" rather than guessing.
 
-**AI-interviewer platforms (#2673):** when `invite-match.mjs`'s `isAIInterviewerPlatform` returns true for the invite/scheduling text — currently only Alex/Apriora, whose host is single-purpose and confirmed AI-led by product design — the candidate talks live to an AI system rather than a human. Append an **AI-Interviewer Notes** block right after Process Overview:
+**AI-interviewer platforms (#2673):** when `src/scripts/invite-match.mjs`'s `isAIInterviewerPlatform` returns true for the invite/scheduling text — currently only Alex/Apriora, whose host is single-purpose and confirmed AI-led by product design — the candidate talks live to an AI system rather than a human. Append an **AI-Interviewer Notes** block right after Process Overview:
 
 ```markdown
 ## AI-Interviewer Notes

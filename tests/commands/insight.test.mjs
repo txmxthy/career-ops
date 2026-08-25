@@ -104,21 +104,21 @@ test('exports the noun, fifteen commands, and { run, help, flags } on each', () 
  */
 test('every ADR 0003 insight row has a command, renames recorded', () => {
   const taxonomy = {
-    'analyze-patterns.mjs': 'patterns',        // renamed: the noun already says "analysis"
-    'classify-tier.mjs': 'tier',               // renamed: reads as a question, not an order
-    'company-funded.mjs': 'funded',
-    'company-history.mjs': 'history',
-    'detect-reposts.mjs': 'reposts',           // renamed: "detect-" earns nothing
-    'funnel-velocity.mjs': 'funnel-velocity',
-    'jd-capture.mjs': 'jd-lookup',             // renamed: it finds a capture, it does not make one
-    'jd-similarity.mjs': 'jd-similarity',
-    'jd-skill-gap.mjs': 'jd-skill-gap',
-    'process-quality.mjs': 'process-quality',
-    'rejection-latency.mjs': 'rejection-latency',
-    'salary-gap.mjs': 'salary-gap',
-    'stats.mjs': 'stats',
-    'upskill.mjs': 'upskill',
-    'weekly-digest.mjs': 'weekly-digest',
+    'src/scripts/analyze-patterns.mjs': 'patterns',        // renamed: the noun already says "analysis"
+    'src/scripts/classify-tier.mjs': 'tier',               // renamed: reads as a question, not an order
+    'src/scripts/company-funded.mjs': 'funded',
+    'src/scripts/company-history.mjs': 'history',
+    'src/scripts/detect-reposts.mjs': 'reposts',           // renamed: "detect-" earns nothing
+    'src/scripts/funnel-velocity.mjs': 'funnel-velocity',
+    'src/scripts/jd-capture.mjs': 'jd-lookup',             // renamed: it finds a capture, it does not make one
+    'src/scripts/jd-similarity.mjs': 'jd-similarity',
+    'src/scripts/jd-skill-gap.mjs': 'jd-skill-gap',
+    'src/scripts/process-quality.mjs': 'process-quality',
+    'src/scripts/rejection-latency.mjs': 'rejection-latency',
+    'src/scripts/salary-gap.mjs': 'salary-gap',
+    'src/scripts/stats.mjs': 'stats',
+    'src/scripts/upskill.mjs': 'upskill',
+    'src/scripts/weekly-digest.mjs': 'weekly-digest',
   };
   assert.equal(Object.keys(taxonomy).length, 15);
   assert.deepEqual([...new Set(Object.values(taxonomy))].sort(), verbs.slice().sort());
@@ -204,7 +204,7 @@ test('with nothing to read, every command reports could-not-verify at exit 3', a
 });
 
 test('funded rejects an out-of-range flag rather than substituting a default', async () => {
-  // company-funded.mjs reads `opts.limit || DEFAULT_LIMIT`, so `--limit 0`
+  // src/scripts/company-funded.mjs reads `opts.limit || DEFAULT_LIMIT`, so `--limit 0`
   // would come back as a 25-company report nobody asked for, at exit 0.
   const r = await commands.funded.run(['--limit', '0'], ctx(box('funded')));
   assert.equal(r.exitCode, EXIT.USAGE);
@@ -273,7 +273,7 @@ test('jd-skill-gap classifies against a CV, and calls an inconclusive extraction
   assert.ok(r.envelope.data.existing.includes('Python'), 'a named skill is existing');
   assert.equal(r.envelope.data.lowConfidence, null);
 
-  // jd-skill-gap.mjs prints the three buckets and exits 0 with a LOW CONFIDENCE
+  // src/scripts/jd-skill-gap.mjs prints the three buckets and exits 0 with a LOW CONFIDENCE
   // banner. Three empty buckets at exit 0 are indistinguishable from a clean
   // bill of health, which is the state ADR 0006 forbids sharing.
   writeFileSync(join(dir, 'empty-jd.txt'), 'This posting says nothing about tools.\n');
@@ -365,7 +365,7 @@ test('reposts clusters real scan history, and says so when there is none', async
   const dir = box('reposts');
   mkdirSync(join(dir, 'data'));
   const history = join(dir, 'data', 'scan-history.tsv');
-  // Dates relative to today, not fixed: detect-reposts.mjs only looks back 90
+  // Dates relative to today, not fixed: src/scripts/detect-reposts.mjs only looks back 90
   // days, so a hard-coded fixture stops clustering the moment it ages out and
   // the test would then be asserting "no reposts" against a check that never
   // examined the rows.
@@ -439,7 +439,7 @@ test('funnel-velocity calibrates against a tracker, and refuses to without one',
   assert.equal(r.envelope.data.calibration.everApplied, 1);
   assert.ok(r.envelope.warnings.some((w) => /no status log at/.test(w)));
 
-  // funnel-velocity.mjs prints `{"calibration": null, …}` at exit 0 with no
+  // src/scripts/funnel-velocity.mjs prints `{"calibration": null, …}` at exit 0 with no
   // tracker — a calibration report for a calibration that never happened.
   const gone = await commands['funnel-velocity'].run([], ctx(ROOT, { CAREER_OPS_TRACKER: join(dir, 'nope.md') }));
   assert.equal(gone.exitCode, EXIT.UNVERIFIED);
@@ -458,7 +458,7 @@ test('history builds company cards, and separates an unknown company from a miss
     '',
   ].join('\n'));
 
-  // company-history.mjs's loaders take a rootDir and read process.env
+  // src/scripts/company-history.mjs's loaders take a rootDir and read process.env
   // themselves, so this is the one case that cannot be driven by the injected
   // env alone. Restored immediately; noted so the coupling is visible rather
   // than mysterious.
@@ -509,11 +509,11 @@ function spawnBox(scripts) {
 }
 
 test('a child that reports an empty input becomes exit 3, not a finding', async () => {
-  // analyze-patterns.mjs's live behaviour: `{"error": "No applications found
+  // src/scripts/analyze-patterns.mjs's live behaviour: `{"error": "No applications found
   // in tracker."}` at exit 1 — ADR 0006's banned phrasing on ADR 0006's code
   // for a real negative finding. The adapter is where that is corrected.
   const dir = spawnBox({
-    'analyze-patterns.mjs': 'console.log(JSON.stringify({ error: "No applications found in tracker." }));\nprocess.exit(1);\n',
+    'src/scripts/analyze-patterns.mjs': 'console.log(JSON.stringify({ error: "No applications found in tracker." }));\nprocess.exit(1);\n',
   });
   const r = await commands.patterns.run([], ctx(dir));
   assert.equal(r.exitCode, EXIT.UNVERIFIED);
@@ -524,7 +524,7 @@ test('a child that reports an empty input becomes exit 3, not a finding', async 
 
 test('a child that succeeds is lifted into the envelope, stderr becomes warnings', async () => {
   const dir = spawnBox({
-    'upskill.mjs': 'console.error("cv.md not found, using the example");\nconsole.log(JSON.stringify({ gaps: [{ skill: "Rust" }] }));\n',
+    'src/scripts/upskill.mjs': 'console.error("cv.md not found, using the example");\nconsole.log(JSON.stringify({ gaps: [{ skill: "Rust" }] }));\n',
   });
   const r = await commands.upskill.run([], ctx(dir));
   assert.equal(r.exitCode, EXIT.OK);
@@ -535,7 +535,7 @@ test('a child that succeeds is lifted into the envelope, stderr becomes warnings
 
 test('a child that crashes is could-not-verify, never a negative finding', async () => {
   const dir = spawnBox({
-    'salary-gap.mjs': 'console.error("TypeError: cannot read properties of undefined");\nprocess.exit(1);\n',
+    'src/scripts/salary-gap.mjs': 'console.error("TypeError: cannot read properties of undefined");\nprocess.exit(1);\n',
   });
   const r = await commands['salary-gap'].run([], ctx(dir));
   assert.equal(r.exitCode, EXIT.UNVERIFIED, 'an unfinished run is not a result');
@@ -545,7 +545,7 @@ test('a child that crashes is could-not-verify, never a negative finding', async
 
 test("a child's own usage rejection stays a usage error", async () => {
   const dir = spawnBox({
-    'rejection-latency.mjs': 'console.error("--today expects YYYY-MM-DD");\nprocess.exit(2);\n',
+    'src/scripts/rejection-latency.mjs': 'console.error("--today expects YYYY-MM-DD");\nprocess.exit(2);\n',
   });
   const r = await commands['rejection-latency'].run([], ctx(dir));
   assert.equal(r.exitCode, EXIT.USAGE);
@@ -553,7 +553,7 @@ test("a child's own usage rejection stays a usage error", async () => {
 });
 
 test('a child that prints prose instead of JSON is could-not-verify', async () => {
-  const dir = spawnBox({ 'upskill.mjs': 'console.log("everything looks fine!");\n' });
+  const dir = spawnBox({ 'src/scripts/upskill.mjs': 'console.log("everything looks fine!");\n' });
   const r = await commands.upskill.run([], ctx(dir));
   assert.equal(r.exitCode, EXIT.UNVERIFIED, 'unparseable output is not evidence of anything');
   assert.match(r.envelope.errors[0].message, /did not emit JSON/);
@@ -562,7 +562,7 @@ test('a child that prints prose instead of JSON is could-not-verify', async () =
 test('a spawned command checks its inputs before starting the child', async () => {
   // The stub would exit 0 with an empty result. The preflight has to fire
   // first, or an absent tracker is reported as an analysis that found nothing.
-  const dir = spawnBox({ 'analyze-patterns.mjs': 'console.log("{}");\n' });
+  const dir = spawnBox({ 'src/scripts/analyze-patterns.mjs': 'console.log("{}");\n' });
   rmSync(join(dir, 'data', 'applications.md'));
   const r = await commands.patterns.run([], ctx(dir));
   assert.equal(r.exitCode, EXIT.UNVERIFIED);
@@ -577,7 +577,7 @@ test('a spawned command reports a missing script rather than exiting 1 on it', a
 
 test('flags reach the child in the spelling it understands', async () => {
   const dir = spawnBox({
-    'analyze-patterns.mjs': 'console.log(JSON.stringify({ argv: process.argv.slice(2) }));\n',
+    'src/scripts/analyze-patterns.mjs': 'console.log(JSON.stringify({ argv: process.argv.slice(2) }));\n',
   });
   const r = await commands.patterns.run(['--min-threshold', '9', '--min-vendor-n', '3'], ctx(dir));
   assert.equal(r.exitCode, EXIT.OK);
@@ -591,7 +591,7 @@ test('flags reach the child in the spelling it understands', async () => {
 
 test('upskill sends only the flags the mode it selected understands', async () => {
   const dir = spawnBox({
-    'upskill.mjs': 'console.log(JSON.stringify({ argv: process.argv.slice(2) }));\n',
+    'src/scripts/upskill.mjs': 'console.log(JSON.stringify({ argv: process.argv.slice(2) }));\n',
   });
   const aggregate = await commands.upskill.run(['--min-reports', '7'], ctx(dir));
   assert.deepEqual(aggregate.envelope.data.argv, ['--min-reports', '7']);

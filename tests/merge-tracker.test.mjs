@@ -151,7 +151,7 @@ try {
     fail(`downgrade left a stale report link: ${downRow.trim()}`);
   }
 
-  // The fuzzy matcher can mis-pair genuinely different roles (role-matcher.mjs
+  // The fuzzy matcher can mis-pair genuinely different roles (src/lib/role-matcher.mjs
   // drops "Senior" and short tokens), so a downgrade must stay recoverable.
   if (/Superseded report \[7\] \(was 3\.8\/5\)/.test(downRow)) {
     pass('downgrade records the superseded report number in Notes');

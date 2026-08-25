@@ -12,7 +12,7 @@
  *
  * The implementation imports reach up out of src/ because those files are still
  * at the repo root; they become intra-src imports when step 5 moves them. This
- * is the same reach store.js makes for pipeline-lock.mjs, for the same reason.
+ * is the same reach store.js makes for src/lib/pipeline-lock.mjs, for the same reason.
  *
  * ── The command contract the facade consumes ─────────────────────────
  *
@@ -54,18 +54,18 @@ import {
 
 import {
   normalizeApplicationAnswersSnapshot, upsertApplicationAnswersSection,
-} from '../../application-answers.mjs';
+} from '../scripts/application-answers.mjs';
 import {
   applicationArtifactPaths, ensureApplicationArtifactDirs,
-} from '../../application-artifacts.mjs';
-import { parseAssessments, summarize as summarizeAssessments } from '../../assessment-log.mjs';
-import { findMatches, parsePdfIndex, parseTrackerRows } from '../../find.mjs';
+} from '../scripts/application-artifacts.mjs';
+import { parseAssessments, summarize as summarizeAssessments } from '../scripts/assessment-log.mjs';
+import { findMatches, parsePdfIndex, parseTrackerRows } from '../scripts/find.mjs';
 import {
   analyze as analyzeRoi, parsePositiveNumberFlag, resolveFrequency,
-} from '../../negotiation-roi.mjs';
+} from '../scripts/negotiation-roi.mjs';
 import {
   classifyStoryBank, diagnose as diagnoseStoryBank, parseStoryBlocks,
-} from '../../story-provenance-check.mjs';
+} from '../scripts/story-provenance-check.mjs';
 
 /** Repo root: src/commands/apply.js sits two levels down from it. */
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -177,13 +177,13 @@ const FIND = {
     'Find an application by report #, tracker # or a company/role fragment.',
     '',
     'Exit 1 means the tracker was searched and nothing matched. Exit 3 means',
-    'there was no tracker to search — find.mjs reported both as 1.',
+    'there was no tracker to search — src/scripts/find.mjs reported both as 1.',
   ].join('\n'),
   flags: {},
   positionals: { name: 'query', min: 1, max: Infinity },
 };
 
-/** Fixed-width columns, the same set find.mjs prints. */
+/** Fixed-width columns, the same set src/scripts/find.mjs prints. */
 function renderMatches(matches) {
   const headers = ['Tracker#', 'Report#', 'Company', 'Role', 'Status', 'PDF', 'Report'];
   const table = matches.map((m) => [
@@ -290,7 +290,7 @@ const answers = defineCommand(ANSWERS, (parsed, ctx, help) => {
     state: parsed.values['--state'] ?? input.state,
   };
   const updated = upsertApplicationAnswersSection(report.content, snapshot);
-  // Atomic, unlike application-answers.mjs's writeFileSync: a report is the
+  // Atomic, unlike src/scripts/application-answers.mjs's writeFileSync: a report is the
   // durable record of what was submitted, and a half-written one is worse than
   // an unwritten one.
   writeFileAtomic(reportPath, updated);
@@ -327,7 +327,7 @@ const artifacts = defineCommand(ARTIFACTS, (parsed, ctx, help) => {
   const missing = missingRequired(parsed.values, ['--report', '--company', '--role']);
   if (missing.length) return usageError(ARTIFACTS, missing, help);
 
-  // application-artifacts.mjs defaults to resolve('output') — the cwd's output
+  // src/scripts/application-artifacts.mjs defaults to resolve('output') — the cwd's output
   // directory, wherever that happens to be. Anchored to the injected root here,
   // which is what every other path in this noun does.
   const root = parsed.values['--root']
@@ -373,7 +373,7 @@ const ASSESSMENTS = {
 };
 
 const assessments = defineCommand(ASSESSMENTS, (parsed, ctx) => {
-  // assessment-log.mjs hardcodes <script dir>/data/assessments.tsv, so a lane
+  // src/scripts/assessment-log.mjs hardcodes <script dir>/data/assessments.tsv, so a lane
   // redirected with CAREER_OPS_TRACKER read the default install's log. The
   // shared resolver moves it with the rest of the workspace.
   const path = parsed.values['--file']
@@ -417,7 +417,7 @@ const ROI = {
     'Arithmetic only: it does not judge whether an achievement\'s context',
     'transfers to the role you are negotiating for.',
     '',
-    'A missing story bank or cv.md is exit 3 — negotiation-roi.mjs exited 1,',
+    'A missing story bank or cv.md is exit 3 — src/scripts/negotiation-roi.mjs exited 1,',
     'which is the code reserved for a claim that failed verification.',
   ].join('\n'),
   flags: {
@@ -438,7 +438,7 @@ const negotiationRoi = defineCommand(ROI, (parsed, ctx, help) => {
   }
 
   const frequency = parsed.values['--frequency'] ?? null;
-  // The cadence vocabulary lives in negotiation-roi.mjs and is not exported, so
+  // The cadence vocabulary lives in src/scripts/negotiation-roi.mjs and is not exported, so
   // it is probed rather than copied: resolveFrequency answers null for a
   // cadence it does not know. A second copy of that table here is exactly the
   // drift this refactor exists to remove.
@@ -497,7 +497,7 @@ const PROVENANCE = {
     'so. user-cannot-confirm is a durable, accepted state and does not fail.',
     '',
     'Exit 3 for anything the checker itself calls low-confidence: no story bank,',
-    'no cv.md, no stories parsed, no claims found. story-provenance-check.mjs',
+    'no cv.md, no stories parsed, no claims found. src/scripts/story-provenance-check.mjs',
     'printed "LOW CONFIDENCE" and exited 0, which is the exact shape ADR 0006',
     'forbids — an unperformed check reported as a clean one.',
   ].join('\n'),
@@ -562,19 +562,19 @@ const storyProvenance = defineCommand(PROVENANCE, (parsed, ctx) => {
 // adapter for it would have to copy its body into this file. Recorded here so
 // the gap is a known quantity rather than a silent omission.
 //
-//   intake              intake.mjs's main() owns the documents/ walk; only
+//   intake              src/scripts/intake.mjs's main() owns the documents/ walk; only
 //                       classifySource/computeDelta/sha256 are exported.
-//   manifesto           manifesto.mjs is 36 lines of top-level statements with
+//   manifesto           src/scripts/manifesto.mjs is 36 lines of top-level statements with
 //                       no exports, and its effect is spawning a browser.
-//   outcome             outcome.mjs runs at import: argv parsing, set-status
+//   outcome             src/scripts/outcome.mjs runs at import: argv parsing, set-status
 //                       and archive-posting subprocesses, no exports at all.
-//   prepare             prepare-application.mjs is top-level statements;
+//   prepare             src/scripts/prepare-application.mjs is top-level statements;
 //                       detectAts and the prefill builder are not exported.
-//   rank                rank-pipeline.mjs exports its pure parts but not the
+//   rank                src/scripts/rank-pipeline.mjs exports its pure parts but not the
 //                       main() that drives the LLM CLI, and the pure parts
 //                       alone are a preflight, not the command.
 //
-// `apply assessments` covers assessment-log.mjs's reporting path only. Its
+// `apply assessments` covers src/scripts/assessment-log.mjs's reporting path only. Its
 // `add` subcommand appends a row, and store.js has no append — an atomic
 // replace would break the file's append-only rule under concurrent writers.
 

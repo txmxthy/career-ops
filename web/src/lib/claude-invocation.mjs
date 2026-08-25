@@ -2,7 +2,7 @@
  * claude-invocation.mjs — how a headless `claude` run is invoked: which tools each
  * web worker kind may use, and the argv that carries that decision (#2185).
  *
- * Everything here is asserted on as VALUES (test-all.mjs §55.6), never by matching
+ * Everything here is asserted on as VALUES (tests/run-all.mjs §55.6), never by matching
  * route.ts's source: five source-text versions of that guard were each defeated by
  * rewriting the route around them while pdf kept full write access. So the argv is
  * built here — `claudeCliArgs({kind:"pdf"})` IS the command line — and the only

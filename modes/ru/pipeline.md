@@ -34,7 +34,7 @@
 ## Определение JD из URL
 
 1. **Playwright (предпочтительно):** `browser_navigate` + `browser_snapshot`. Работает со всеми SPA.
-   - **Опционально — CLI-экстрактор (`scan.extractor: cli` в `config/profile.yml`):** вместо этого запустите `node browser-extract.mjs <url>` (`--mode jd`) — компактный `{ "url", "title", "text" }`, меньше токенов (зависит от портала). При ошибке или отсутствии **молча** откатывайтесь на `browser_navigate` + `browser_snapshot`.
+   - **Опционально — CLI-экстрактор (`scan.extractor: cli` в `config/profile.yml`):** вместо этого запустите `node src/scripts/browser-extract.mjs <url>` (`--mode jd`) — компактный `{ "url", "title", "text" }`, меньше токенов (зависит от портала). При ошибке или отсутствии **молча** откатывайтесь на `browser_navigate` + `browser_snapshot`.
 2. **WebFetch (fallback):** Для статических страниц.
 3. **WebSearch (последний ресурс):** Поиск на вторичных порталах.
 
@@ -54,6 +54,6 @@
 
 Перед обработкой URL:
 ```bash
-node cv-sync-check.mjs
+node src/scripts/cv-sync-check.mjs
 ```
 Если рассинхронизация — предупредить пользователя.

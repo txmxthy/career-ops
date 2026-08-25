@@ -35,8 +35,8 @@
  *
  * ## Why the legacy imports are shielded
  *
- * contacts.mjs, followup-cadence.mjs and invite-match.mjs read `process.argv`
- * at module scope — contacts.mjs even runs validateFlags there, which exits the
+ * src/scripts/contacts.mjs, followup-cadence.mjs and src/scripts/invite-match.mjs read `process.argv`
+ * at module scope — src/scripts/contacts.mjs even runs validateFlags there, which exits the
  * process on a flag it does not know. Importing them from a facade whose argv
  * is `followup contacts --json` would kill the CLI before the adapter ran. Each
  * dynamic import therefore swaps in an argv those modules can accept, and
@@ -349,9 +349,9 @@ const contactsSpec = {
     'The recruiter/hiring-manager phonebook from data/contacts.tsv, with the row-level\n'
     + 'quality problems that would otherwise be silently skipped.\n'
     + '\n'
-    + 'vCard export is not here yet: contacts.mjs keeps its writer and its\n'
+    + 'vCard export is not here yet: src/scripts/contacts.mjs keeps its writer and its\n'
     + 'path-containment guard private, and an adapter must not re-implement either.\n'
-    + 'Use `node contacts.mjs --vcf [path]` until that moves into core.',
+    + 'Use `node src/scripts/contacts.mjs --vcf [path]` until that moves into core.',
   flags: {},
 };
 
@@ -364,7 +364,7 @@ async function runContacts(argv, { env = process.env, stdin = process.stdin } = 
   const { exists, content } = readFile(path);
   if (!exists) return unverified(contactsSpec.command, `no contacts file at ${path}`);
 
-  const { parseContacts } = await importShielded('../../contacts.mjs');
+  const { parseContacts } = await importShielded('../../src/scripts/contacts.mjs');
   const { contacts, quality } = parseContacts(content);
 
   // Quality problems are warnings, not failures: the contacts that did parse
@@ -423,7 +423,7 @@ async function runMatchInvite(argv, { env = process.env, stdin = process.stdin }
     return unverified(matchInviteSpec.command, 'the email text is empty — nothing to classify');
   }
 
-  const invite = await importShielded('../../invite-match.mjs');
+  const invite = await importShielded('../../src/scripts/invite-match.mjs');
   const analysis = invite.analyzeInvite(input.text);
 
   const summary = `${analysis.classification} — company "${analysis.signals.company || '(not found)'}", `
@@ -481,7 +481,7 @@ async function runAddReply(argv, { env = process.env, stdin = process.stdin } = 
   const input = readInput(addReplySpec.command, values['--file'], stdin);
   if (input.done) return input.done;
 
-  const paste = await import('../../paste-reply.mjs');
+  const paste = await import('../scripts/paste-reply.mjs');
   const parsedInput = paste.parseFileInput(input.text);
   if (!parsedInput.subject && !parsedInput.body) {
     return unverified(addReplySpec.command, 'the input carried no subject and no body — nothing to add');
@@ -531,7 +531,7 @@ async function runMatchReplies(argv, { env = process.env, stdin = process.stdin 
   const tracker = await loadTrackerRows(matchRepliesSpec.command, env);
   if (tracker.done) return tracker.done;
 
-  const { matchCandidates } = await import('../../reply-matcher.mjs');
+  const { matchCandidates } = await import('../scripts/reply-matcher.mjs');
   const matches = matchCandidates(store.candidates, tracker.rows, await loadFollowups(env));
   const matched = matches.filter((m) => m.application_num !== null).length;
 
@@ -559,9 +559,9 @@ const reviewRepliesSpec = {
     'The reply review digest: every stored reply matched to its application, classified,\n'
     + 'and the tracker status transition it proposes.\n'
     + '\n'
-    + 'Read-only. Applying the transitions is not here yet: reply-watch.mjs keeps its\n'
+    + 'Read-only. Applying the transitions is not here yet: src/scripts/reply-watch.mjs keeps its\n'
     + 'recommendation grouping and its locked tracker write private, and an adapter must\n'
-    + 'not re-implement either. Use `node reply-watch.mjs`, or apply one row with\n'
+    + 'not re-implement either. Use `node src/scripts/reply-watch.mjs`, or apply one row with\n'
     + '`career-ops tracker set-status`, until those move into core.',
   flags: {
     '--file': { type: 'string', describe: 'Candidates JSON (default data/reply-candidates.json)' },
@@ -579,7 +579,7 @@ async function runReviewReplies(argv, { env = process.env, stdin = process.stdin
   const tracker = await loadTrackerRows(reviewRepliesSpec.command, env);
   if (tracker.done) return tracker.done;
 
-  const { matchCandidates, classifyReply } = await import('../../reply-matcher.mjs');
+  const { matchCandidates, classifyReply } = await import('../scripts/reply-matcher.mjs');
   const matches = matchCandidates(store.candidates, tracker.rows, await loadFollowups(env));
 
   const reviewed = [];

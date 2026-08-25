@@ -1,11 +1,11 @@
 // tests/pdf-index-path.test.mjs — the PDF manifest must follow the tracker (#2471).
 //
-// sync-pdf-flags.mjs and find.mjs used to resolve data/pdf-index.tsv from their
+// src/scripts/sync-pdf-flags.mjs and src/scripts/find.mjs used to resolve data/pdf-index.tsv from their
 // own install directory while resolving the tracker through CAREER_OPS_TRACKER.
 // Redirecting the tracker therefore reconciled one workspace's rows against
 // another workspace's manifest: the merge-tracker suite read the developer's
 // real manifest and flipped an isolated fixture's PDF cells, so `node
-// test-all.mjs` failed locally for anyone who had ever generated a PDF while
+// tests/run-all.mjs` failed locally for anyone who had ever generated a PDF while
 // staying green in CI (data/ is gitignored).
 import { pass, fail } from './helpers.mjs';
 import { join } from 'path';

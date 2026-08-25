@@ -271,9 +271,9 @@ cp .env.example .env
 npm install
 
 # 3. Bir iş ilanını değerlendirin
-node gemini-eval.mjs "We are looking for a Senior AI Engineer..."
-node gemini-eval.mjs --file ./jds/my-job.txt
-node agent-inbox.mjs add "..."   # bir sonraki oturum için isteği kuyruğa alır
+node src/scripts/gemini-eval.mjs "We are looking for a Senior AI Engineer..."
+node src/scripts/gemini-eval.mjs --file ./jds/my-job.txt
+node src/scripts/agent-inbox.mjs add "..."   # bir sonraki oturum için isteği kuyruğa alır
 npm run gemini:eval -- "JD text here"
 ```
 

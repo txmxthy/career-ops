@@ -1,4 +1,4 @@
-// funnel-velocity.mjs must handle help and reject unknown flags before it
+// src/scripts/funnel-velocity.mjs must handle help and reject unknown flags before it
 // reads report inputs. A typo must never fall through to a plausible JSON
 // report at exit 0.
 import { after, test } from 'node:test';
@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const SCRIPT = join(ROOT, 'funnel-velocity.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/funnel-velocity.mjs');
 const SANDBOX = mkdtempSync(join(tmpdir(), 'career-ops-funnel-flags-'));
 const NO_TRACKER = join(SANDBOX, 'applications.md');
 const NO_BENCHMARKS = join(SANDBOX, 'benchmarks.yml');
@@ -24,8 +24,8 @@ function runFunnel(...args) {
     timeout: 30_000,
     env: { ...process.env, CAREER_OPS_TRACKER: NO_TRACKER },
   });
-  assert.equal(result.error, undefined, `funnel-velocity.mjs failed to spawn: ${result.error?.message}`);
-  assert.equal(result.signal, null, `funnel-velocity.mjs was killed by ${result.signal} (timeout?)`);
+  assert.equal(result.error, undefined, `src/scripts/funnel-velocity.mjs failed to spawn: ${result.error?.message}`);
+  assert.equal(result.signal, null, `src/scripts/funnel-velocity.mjs was killed by ${result.signal} (timeout?)`);
   return { ...result, all: `${result.stdout ?? ''}${result.stderr ?? ''}` };
 }
 

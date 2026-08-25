@@ -1,5 +1,5 @@
 import { pass, fail } from './helpers.mjs';
-import { factClaims, verifyFacts } from '../verify-cv-facts.mjs';
+import { factClaims, verifyFacts } from '../src/scripts/verify-cv-facts.mjs';
 import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';

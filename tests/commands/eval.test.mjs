@@ -152,7 +152,7 @@ test('--json emits a valid envelope on success, carrying the delegated argv', as
 
   assert.equal(res.code, 0);
   assertEnvelope(res.envelope, { command: 'eval golden', ok: true });
-  assert.equal(res.envelope.data.runner, 'eval-golden.mjs');
+  assert.equal(res.envelope.data.runner, 'src/scripts/eval-golden.mjs');
   assert.deepEqual(res.envelope.data.argv, ['--replay', '--golden', dir]);
   assert.equal(res.envelope.data.exitCode, 0);
   assert.equal(res.envelope.data.stdout, '✅ PASS\n');
@@ -183,7 +183,7 @@ test('a missing golden-set directory is could-not-verify, not a failed gate', as
   assert.match(res.envelope.errors[0].message, /^could not verify: golden-set directory not found/);
 });
 
-test('an empty golden set is could-not-verify — eval-golden.mjs exits 1 here', async (t) => {
+test('an empty golden set is could-not-verify — src/scripts/eval-golden.mjs exits 1 here', async (t) => {
   const dir = tempDir(t);
   const res = await commands.golden.run(['--golden', dir], { env: BARE_ENV, spawnFn: forbiddenSpawn });
   assert.equal(res.code, 3);
@@ -257,7 +257,7 @@ test('a missing pipeline is could-not-verify — the runner returns 0 saying "No
     assert.match(withKey.envelope.errors[0].message, /could not verify: pipeline not found/);
   } else {
     assert.equal(withKey.envelope.ok, true);
-    assert.equal(withKey.envelope.data.runner, 'batch-evaluate-gemini.mjs');
+    assert.equal(withKey.envelope.data.runner, 'src/scripts/batch-evaluate-gemini.mjs');
   }
 });
 
@@ -327,7 +327,7 @@ test('an unknown flag is a usage error on every command, and spawns nothing', as
   }
 });
 
-test('golden refuses --replay and --live together — eval-golden.mjs silently preferred --live', async () => {
+test('golden refuses --replay and --live together — src/scripts/eval-golden.mjs silently preferred --live', async () => {
   const res = await commands.golden.run(['--replay', '--live'], { env: BARE_ENV, spawnFn: forbiddenSpawn });
   assert.equal(res.code, 2);
   assert.match(res.envelope.errors[0].message, /mutually exclusive/);
@@ -369,7 +369,7 @@ test('openrouter rejects a missing, unknown, or under-specified action at exit 2
   assert.equal(unknown.code, 2);
   assert.match(unknown.envelope.errors[0].message, /unknown action: summarise/);
 
-  // openrouter-runner.mjs prints a usage line here and exits 0.
+  // src/scripts/openrouter-runner.mjs prints a usage line here and exits 0.
   const apply = await commands.openrouter.run(['apply'], { env, spawnFn: forbiddenSpawn });
   assert.equal(apply.code, 2);
   assert.match(apply.envelope.errors[0].message, /needs a report number/);

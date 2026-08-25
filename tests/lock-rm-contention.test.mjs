@@ -19,7 +19,7 @@ import { readFileSync, readdirSync, mkdirSync, existsSync, rmSync, mkdtempSync }
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { pass, fail, ROOT } from './helpers.mjs';
-import { isMkdirContention, isRmContention, rmLockArtifactSync } from '../pipeline-lock.mjs';
+import { isMkdirContention, isRmContention, rmLockArtifactSync } from '../src/lib/pipeline-lock.mjs';
 
 console.log('\n🔒 lock artifacts: rm contention is contention, not death (#2777)');
 
@@ -66,7 +66,7 @@ const mkErr = (code) => Object.assign(new Error(code), { code });
 // ── 3. One definition, EVERY copy of the protocol ────────────────────
 // The list is DERIVED, not written down. #2984 patched two files and said "one
 // definition, no sibling drift" — and there were four. followup-seed.mjs and
-// portal-health-lock.mjs had been carrying all three faces of #2777 the whole
+// src/lib/portal-health-lock.mjs had been carrying all three faces of #2777 the whole
 // time, invisible because nobody had asked the repo how many copies there were.
 // A hand-kept list would have aged the same way (lesson #52): so the test asks.
 //
@@ -77,9 +77,9 @@ const mkErr = (code) => Object.assign(new Error(code), { code });
   const implementors = protocolImplementors();
 
   ok(implementors.length >= 2, `found ${implementors.length} files implementing the lock protocol (${implementors.join(', ')})`);
-  ok(implementors.includes('pipeline-lock.mjs'), 'pipeline-lock.mjs is among them (it is the definition)');
+  ok(implementors.includes('src/lib/pipeline-lock.mjs'), 'src/lib/pipeline-lock.mjs is among them (it is the definition)');
 
-  for (const file of implementors.filter((f) => f !== 'pipeline-lock.mjs')) {
+  for (const file of implementors.filter((f) => f !== 'src/lib/pipeline-lock.mjs')) {
     const src = readFileSync(join(ROOT, file), 'utf-8');
     ok(
       /import\s*\{[^}]*isMkdirContention[^}]*\}\s*from\s*'\.\/pipeline-lock\.mjs'/.test(src),
@@ -122,14 +122,14 @@ const mkErr = (code) => Object.assign(new Error(code), { code });
 // and only one of them licenses a delete: acting on "it was gone when I looked"
 // destroys a lock a rival acquirer created in the interim.
 {
-  const src = readFileSync(join(ROOT, 'pipeline-lock.mjs'), 'utf-8');
+  const src = readFileSync(join(ROOT, 'src/lib/pipeline-lock.mjs'), 'utf-8');
   ok(
     /return err\?\.code === 'ENOENT' \? RECOVER_VANISHED : RECOVER_LIVE;/.test(src),
-    'pipeline-lock.mjs: the stat catch answers VANISHED only on ENOENT, never on "could not look"',
+    'src/lib/pipeline-lock.mjs: the stat catch answers VANISHED only on ENOENT, never on "could not look"',
   );
   ok(
     !/return err\?\.code === 'ENOENT';/.test(src),
-    'pipeline-lock.mjs: the judgment is a verdict, not a boolean that conflates vanished with stale',
+    'src/lib/pipeline-lock.mjs: the judgment is a verdict, not a boolean that conflates vanished with stale',
   );
   for (const file of protocolImplementors()) {
     ok(
@@ -151,7 +151,7 @@ const mkErr = (code) => Object.assign(new Error(code), { code });
     const guardCalls = [...src.matchAll(/rmSync\(\s*recoverGuardDir\b/g)].length;
     ok(guardCalls === 0, `${file}: no bare rmSync(recoverGuardDir) remains (found ${guardCalls})`);
     const lockCalls = [...src.matchAll(/rmSync\(\s*lockDir\b/g)].length;
-    const permitido = file === 'pipeline-lock.mjs' ? 1 : 0;  // release() de pipeline-lock lleva su propio catch deliberado
+    const permitido = file === 'src/lib/pipeline-lock.mjs' ? 1 : 0;  // release() de pipeline-lock lleva su propio catch deliberado
     ok(lockCalls <= permitido, `${file}: bare rmSync(lockDir) within budget (found ${lockCalls}, allowed ${permitido})`);
   }
 }

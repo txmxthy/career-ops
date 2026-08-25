@@ -12,7 +12,7 @@ Pattern credit: [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/a
 `documents/` intake + idempotent `/setup` merge, adapted to career-ops'
 user-layer contract.
 
-Division of labor: `intake.mjs` does everything deterministic (enumerate
+Division of labor: `src/scripts/intake.mjs` does everything deterministic (enumerate
 `documents/`, extract text locally, fingerprint sources so re-runs surface
 only new material). This mode does the semantic mapping and the
 human-in-the-loop gate. **Nothing is written without an explicit user
@@ -24,7 +24,7 @@ confirm.**
   `diplomas/`, `references/`
 - `config/profile.yml`, `cv.md`, `modes/_profile.md` — merge targets
 - `data/intake-state.json` — fingerprints of already-ingested sources
-  (written by `intake.mjs --commit`, user layer)
+  (written by `src/scripts/intake.mjs --commit`, user layer)
 
 > **Symlinks inside `documents/` are followed.** Linking a master CV that lives
 > elsewhere is the point, so the scan reads through the link rather than
@@ -37,7 +37,7 @@ confirm.**
 ## Step 1 — Scan and extract
 
 ```bash
-node intake.mjs            # JSON: per-source status + preview
+node src/scripts/intake.mjs            # JSON: per-source status + preview
 ```
 
 - If `pdfExtractor` is `null` and there are PDF sources, relay the `pdfHint`
@@ -51,7 +51,7 @@ node intake.mjs            # JSON: per-source status + preview
 ## Step 2 — Read the full text of each new or changed source
 
 ```bash
-node intake.mjs --text <path-relative-to-documents/>
+node src/scripts/intake.mjs --text <path-relative-to-documents/>
 ```
 
 ## Step 3 — Map to proposals (read-before-write)
@@ -99,8 +99,8 @@ Show one consolidated proposal table: target file → field → proposed value
    proposes only new material:
 
 ```bash
-node intake.mjs --commit <path> [<path> …]   # the confirmed sources
-node intake.mjs --commit --all               # only if ALL were merged
+node src/scripts/intake.mjs --commit <path> [<path> …]   # the confirmed sources
+node src/scripts/intake.mjs --commit --all               # only if ALL were merged
 ```
 
    Never blanket-commit after a partial confirmation — a declined source

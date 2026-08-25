@@ -17,11 +17,11 @@
  *
  * Two ways of reaching that code, for one reason:
  *
- *   - `verify-facts` imports `verifyFacts` from verify-cv-facts.mjs, which is
+ *   - `verify-facts` imports `verifyFacts` from src/scripts/verify-cv-facts.mjs, which is
  *     already argv-free and exported.
  *   - `build-html`, `build-latex`, `cover-letter` and `sync-check` run their
  *     root script as a child process. Those four export nothing usable —
- *     cv-sync-check.mjs does its work at module scope and exits, and the two
+ *     src/scripts/cv-sync-check.mjs does its work at module scope and exits, and the two
  *     builders keep `renderHtml`/`buildEducation` module-local. Copying those
  *     bodies in here is exactly the duplication this refactor exists to remove,
  *     so the process boundary stands in until the logic moves into core. The
@@ -50,7 +50,7 @@ import {
  */
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-/** Fact sources verify-cv-facts.mjs:20 falls back to when none are named. */
+/** Fact sources src/scripts/verify-cv-facts.mjs:20 falls back to when none are named. */
 const DEFAULT_FACT_SOURCES = ['cv.md', 'article-digest.md'];
 
 /** Page formats generate-pdf accepts; anything else is a usage error, not a
@@ -226,8 +226,8 @@ async function buildHtml(argv, { cwd = process.cwd() } = {}) {
   const childArgs = preview ? ['--preview', input] : [input, output];
   if (template) childArgs.push(template);
 
-  const proc = await runScript('build-cv-html.mjs', childArgs, cwd);
-  return fromChild(BUILD_HTML, parse.json, 'build-cv-html.mjs', proc, {}, (d) => `CV HTML: ${d.path ?? output ?? 'output/cv-preview.html'}`);
+  const proc = await runScript('src/scripts/build-cv-html.mjs', childArgs, cwd);
+  return fromChild(BUILD_HTML, parse.json, 'src/scripts/build-cv-html.mjs', proc, {}, (d) => `CV HTML: ${d.path ?? output ?? 'output/cv-preview.html'}`);
 }
 
 // ── cv build-latex ──────────────────────────────────────────────────
@@ -237,7 +237,7 @@ const BUILD_LATEX = {
   usage: 'career-ops cv build-latex <input.json> <output.tex> [--template <name>]',
   description: 'Render a CV payload to LaTeX. Data: the builder\'s report — file, path, sizeKB, per-section counts.',
   flags: {
-    // A NAME resolved through cv-templates.mjs, unlike build-html's template
+    // A NAME resolved through src/lib/cv-templates.mjs, unlike build-html's template
     // path. The two root scripts differ here; the help says which is which
     // rather than papering over it.
     '--template': { type: 'string', describe: 'Template name resolved through cv-templates (a name, not a path)' },
@@ -255,15 +255,15 @@ async function buildLatex(argv, { cwd = process.cwd() } = {}) {
   if (!existsSync(input)) return unverified(BUILD_LATEX, parse.json, `input payload not found: ${input}`);
   const output = at(cwd, outputArg);
 
-  // The template flag goes last: build-cv-latex.mjs reads its two positionals
+  // The template flag goes last: src/scripts/build-cv-latex.mjs reads its two positionals
   // straight off argv[0] and argv[1], so a leading flag would become the input
   // path.
   const childArgs = [input, output];
   const name = parse.values['--template'];
   if (name) childArgs.push(`--template=${name}`);
 
-  const proc = await runScript('build-cv-latex.mjs', childArgs, cwd);
-  return fromChild(BUILD_LATEX, parse.json, 'build-cv-latex.mjs', proc, {}, (d) => `CV LaTeX: ${d.path ?? output}`);
+  const proc = await runScript('src/scripts/build-cv-latex.mjs', childArgs, cwd);
+  return fromChild(BUILD_LATEX, parse.json, 'src/scripts/build-cv-latex.mjs', proc, {}, (d) => `CV LaTeX: ${d.path ?? output}`);
 }
 
 // ── cv sync-check ───────────────────────────────────────────────────
@@ -275,7 +275,7 @@ const SYNC_CHECK = {
   flags: {},
 };
 
-/** Pull the `  ERROR: …` / `  WARN: …` lines cv-sync-check.mjs prints. */
+/** Pull the `  ERROR: …` / `  WARN: …` lines src/scripts/cv-sync-check.mjs prints. */
 function syncFindings(stdout) {
   const errors = [];
   const warnings = [];
@@ -292,15 +292,15 @@ async function syncCheck(argv, { cwd = process.cwd() } = {}) {
   const stop = gate(SYNC_CHECK, parse);
   if (stop) return stop;
 
-  const proc = await runScript('cv-sync-check.mjs', [], cwd);
+  const proc = await runScript('src/scripts/cv-sync-check.mjs', [], cwd);
   if (!proc.spawned) {
-    return unverified(SYNC_CHECK, parse.json, `could not start cv-sync-check.mjs: ${proc.error?.message ?? 'spawn failed'}`);
+    return unverified(SYNC_CHECK, parse.json, `could not start src/scripts/cv-sync-check.mjs: ${proc.error?.message ?? 'spawn failed'}`);
   }
   // The script speaks two exit codes and only two. Anything else — a throw, a
   // signal — means it did not finish its checks, which is exit 3, not a clean
   // bill of health and not a finding.
   if (proc.code !== 0 && proc.code !== 1) {
-    return unverified(SYNC_CHECK, parse.json, `cv-sync-check.mjs exited ${proc.code}: ${childMessage(proc)}`);
+    return unverified(SYNC_CHECK, parse.json, `src/scripts/cv-sync-check.mjs exited ${proc.code}: ${childMessage(proc)}`);
   }
 
   const { errors, warnings } = syncFindings(proc.stdout);
@@ -364,16 +364,16 @@ async function coverLetter(argv, { cwd = process.cwd() } = {}) {
   if (format !== undefined) childArgs.push('--format', format);
   if (parse.values['--report'] !== undefined) childArgs.push('--report', parse.values['--report']);
 
-  const proc = await runScript('generate-cover-letter.mjs', childArgs, cwd);
+  const proc = await runScript('src/scripts/generate-cover-letter.mjs', childArgs, cwd);
   if (proc.spawned && proc.code === 0) {
     // The script's one success line, `Cover letter PDF: <path>`.
     const match = proc.stdout.match(/^Cover letter PDF:\s*(.+)$/m);
     const output = match ? match[1].trim() : null;
-    const warnings = output ? [] : ['generate-cover-letter.mjs exited 0 without naming an output path'];
+    const warnings = output ? [] : ['src/scripts/generate-cover-letter.mjs exited 0 without naming an output path'];
     const env = envelope(COVER_LETTER.command, { data: { output }, warnings });
     return result(env, EXIT.OK, parse.json, `Cover letter PDF: ${output ?? '(path not reported)'}`);
   }
-  return fromChild(COVER_LETTER, parse.json, 'generate-cover-letter.mjs', proc);
+  return fromChild(COVER_LETTER, parse.json, 'src/scripts/generate-cover-letter.mjs', proc);
 }
 
 // ── cv verify-facts ─────────────────────────────────────────────────
@@ -400,7 +400,7 @@ async function verifyFactsCmd(argv, { cwd = process.cwd() } = {}) {
   const named = parse.values['--source'];
   const sources = (named.length ? named : DEFAULT_FACT_SOURCES).map((p) => at(cwd, p));
   const present = sources.filter((p) => existsSync(p));
-  // verify-cv-facts.mjs reads sources with readText, which turns an absent file
+  // src/scripts/verify-cv-facts.mjs reads sources with readText, which turns an absent file
   // into ''. With no evidence at all every metric in the document looks
   // invented and the gate reports a confident `block` — a finding produced by a
   // check that never ran. That is the exact ADR 0006 confusion; refuse instead.
@@ -420,9 +420,9 @@ async function verifyFactsCmd(argv, { cwd = process.cwd() } = {}) {
 
   let verifyFacts;
   try {
-    ({ verifyFacts } = await import('../../verify-cv-facts.mjs'));
+    ({ verifyFacts } = await import('../scripts/verify-cv-facts.mjs'));
   } catch (err) {
-    return unverified(VERIFY_FACTS, parse.json, `verify-cv-facts.mjs could not be loaded: ${err?.message ?? err}`, { warnings });
+    return unverified(VERIFY_FACTS, parse.json, `src/scripts/verify-cv-facts.mjs could not be loaded: ${err?.message ?? err}`, { warnings });
   }
 
   let outcome;

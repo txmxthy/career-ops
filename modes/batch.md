@@ -90,7 +90,7 @@ node reserve-report-num.mjs --release 042-049
 
 **Two things to know:**
 
-- **4-hour protection window.** Sentinels older than 4h are garbage-collected (`verify-pipeline.mjs` triggers this). Reserve the range immediately before spawning workers, not at the start of a long session. Once a worker writes its real report, that slot is permanently safe — only slow or unstarted slots are at risk after 4h.
+- **4-hour protection window.** Sentinels older than 4h are garbage-collected (`src/scripts/verify-pipeline.mjs` triggers this). Reserve the range immediately before spawning workers, not at the start of a long session. Once a worker writes its real report, that slot is permanently safe — only slow or unstarted slots are at risk after 4h.
 - **Gaps are normal.** If a reservation collides and restarts, skipped numbers (e.g. `006`) are never reused. Report numbers are opaque IDs; a gap is not corruption.
 
 ## Mode B: Standalone script

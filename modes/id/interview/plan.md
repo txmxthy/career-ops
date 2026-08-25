@@ -14,7 +14,7 @@ Diberikan deskripsi pekerjaan dan tanggal/waktu wawancara, buat rencana persiapa
 6. **Profile** di `config/profile.yml` + `modes/_profile.md` — baca untuk memahami narasi, archetypes, dan targets
 7. **Story bank** di `interview-prep/story-bank.md` — cerita STAR+R yang sudah ada
 8. **Question bank** di `interview-prep/question-bank.md` — kesenjangan yang sudah ada (jika file tersedia)
-9. **Prior stated compensation** — jika tracker# diketahui, jalankan `node salary-gap.mjs --stated-for <tracker#>` (zero tokens). Setiap observasi `stated` sebelumnya adalah angka yang sudah dikomitmenkan kandidat pada putaran sebelumnya kepada pewawancara tertentu — masukkan ke quick-reference Step 4 agar kandidat tetap konsisten dan tidak secara tidak sengaja melakukan negosiasi ulang.
+9. **Prior stated compensation** — jika tracker# diketahui, jalankan `node src/scripts/salary-gap.mjs --stated-for <tracker#>` (zero tokens). Setiap observasi `stated` sebelumnya adalah angka yang sudah dikomitmenkan kandidat pada putaran sebelumnya kepada pewawancara tertentu — masukkan ke quick-reference Step 4 agar kandidat tetap konsisten dan tidak secara tidak sengaja melakukan negosiasi ulang.
 
 ---
 

@@ -7,9 +7,9 @@
  * the scripts themselves.
  *
  * The load-bearing assertions are the exit-3 ones. Several backing scripts
- * report a clean pass for a check that never ran — `fix-slugs.mjs` exits 0
- * printing "nothing to fix" when portals.yml is absent, `sync-pdf-flags.mjs`
- * exits 2 for a missing tracker, `plugin-audit.mjs` exits 2 when the audit
+ * report a clean pass for a check that never ran — `src/scripts/fix-slugs.mjs` exits 0
+ * printing "nothing to fix" when portals.yml is absent, `src/scripts/sync-pdf-flags.mjs`
+ * exits 2 for a missing tracker, `src/scripts/plugin-audit.mjs` exits 2 when the audit
  * throws. ADR 0006 makes 1 and 3 distinct precisely so those cannot be
  * confused with a finding, and each translation is pinned below by the exit
  * code the script produces today.
@@ -31,15 +31,15 @@ const ROOT = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const SCRIPTS = [
   'doctor.mjs',
   'update-system.mjs',
-  'check-table-freshness.mjs',
-  'fix-slugs.mjs',
-  'generate-latex.mjs',
-  'plugin-audit.mjs',
-  'plugins.mjs',
-  'sync-pdf-flags.mjs',
-  'validate-plugin-registry.mjs',
-  'validate-system-paths-coverage.mjs',
-  'validate-untrusted-content-coverage.mjs',
+  'src/scripts/check-table-freshness.mjs',
+  'src/scripts/fix-slugs.mjs',
+  'src/scripts/generate-latex.mjs',
+  'src/scripts/plugin-audit.mjs',
+  'src/scripts/plugins.mjs',
+  'src/scripts/sync-pdf-flags.mjs',
+  'src/scripts/validate-plugin-registry.mjs',
+  'src/scripts/validate-system-paths-coverage.mjs',
+  'src/scripts/validate-untrusted-content-coverage.mjs',
 ];
 
 const sandboxes = [];
@@ -270,7 +270,7 @@ test('a missing backing script is could-not-verify, not a clean pass', async () 
 });
 
 test('fix-slugs without a portals file is exit 3, where the script exits 0', async () => {
-  // fix-slugs.mjs prints "no portals file at … — nothing to fix" and returns
+  // src/scripts/fix-slugs.mjs prints "no portals file at … — nothing to fix" and returns
   // normally. That is a check that never ran, reported as clean.
   const root = sandbox();
   rmSync(join(root, 'portals.yml'));
@@ -352,7 +352,7 @@ test('a child that cannot be started is exit 3, not exit 1', async () => {
 test('a child that ran out of time is exit 3', async () => {
   const res = await invoke('fix-slugs', [], {
     root: sandbox(),
-    exec: fakeExec({ code: null, failure: 'fix-slugs.mjs did not finish within 300000ms' }),
+    exec: fakeExec({ code: null, failure: 'src/scripts/fix-slugs.mjs did not finish within 300000ms' }),
   });
   assert.equal(res.exitCode, EXIT.UNVERIFIED);
   assert.match(res.envelope.errors[0].message, /did not finish within/);
@@ -604,7 +604,7 @@ test('the adapters print nothing and exit nothing', () => {
   //
   // Comments are stripped first: the header discusses the backing scripts
   // exiting at module top level, and a doc comment naming the thing is not
-  // the thing. (test-all.mjs greps discovered suites for the same call, so
+  // the thing. (tests/run-all.mjs greps discovered suites for the same call, so
   // the literal must not appear here either.)
   const code = readFileSync(join(ROOT, 'src/commands/system.js'), 'utf-8')
     .replace(/\/\*[\s\S]*?\*\//g, '')

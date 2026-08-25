@@ -255,7 +255,7 @@ cover_letter:
 # How the scan and JD-extraction steps read SPA job pages.
 #   mcp (default) — the browser MCP (browser_navigate + browser_snapshot). Works
 #                   out of the box; the snapshot is token-heavy.
-#   cli           — the headless `browser-extract.mjs` helper: renders the page
+#   cli           — the headless `src/scripts/browser-extract.mjs` helper: renders the page
 #                   and returns compact JSON, cutting per-page tokens ~2–5×. Opt-in.
 #                   If the helper isn't available, the modes fall back to mcp
 #                   silently, so nothing breaks. `doctor` reports the active mode.

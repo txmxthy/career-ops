@@ -1,11 +1,11 @@
-// tests/jd-capture.test.mjs — Unit tests for jd-capture.mjs report-keyed capture lookup (#134).
+// tests/jd-capture.test.mjs — Unit tests for src/scripts/jd-capture.mjs report-keyed capture lookup (#134).
 import { pass, fail, ROOT } from './helpers.mjs';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, utimesSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { pathToFileURL } from 'url';
 
-const { findCaptureForReport, reportPrefix } = await import(pathToFileURL(join(ROOT, 'jd-capture.mjs')).href);
+const { findCaptureForReport, reportPrefix } = await import(pathToFileURL(join(ROOT, 'src/scripts/jd-capture.mjs')).href);
 
 console.log('\njd-capture.mjs — report-keyed capture lookup');
 
@@ -91,7 +91,7 @@ try {
   // ── cross-company prefix collision ─────────────────────────────────────────
   // `04-mission-preborn-vp-marketing.txt` parses to report 4. When report 4 is a
   // different company, no candidate is that company's posting, and returning the
-  // mismatch is worse than returning nothing: outcome.mjs copies the result to
+  // mismatch is worse than returning nothing: src/scripts/outcome.mjs copies the result to
   // the outcome dir as the permanent posting record, and treats the lookup as a
   // success, so it never archives the real posting.
   writeCapture('04-mission-preborn-vp-marketing.txt');
@@ -101,7 +101,7 @@ try {
   // ── the slug must identify the company, not merely occur in the name ───────
   // Both grammars this repo writes put the company first, after the report
   // prefix and an optional capture date:
-  //   {NNN}-{YYYY-MM-DD}_{company}_{role}.pdf   (archive-posting.mjs)
+  //   {NNN}-{YYYY-MM-DD}_{company}_{role}.pdf   (src/scripts/archive-posting.mjs)
   //   {NNN}-{company}-{role}.{ext}              (hand-named / plugin captures)
   // Substring matching let a role word stand in for a company, which is the
   // same mistake as matching on the number alone.

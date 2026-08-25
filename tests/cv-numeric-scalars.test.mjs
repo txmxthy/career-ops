@@ -7,7 +7,7 @@
 // shipped with employment dates and graduation/certification years missing, and
 // the builder still exited 0 with `"valid": true`. Coercing scalars via String()
 // fixes it. End-to-end through the real builder and the shipped default template,
-// because build-cv-html.mjs exports nothing.
+// because src/scripts/build-cv-html.mjs exports nothing.
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -33,11 +33,11 @@ try {
   const output = join(dir, 'num.html');
   writeFileSync(input, JSON.stringify(PAYLOAD));
 
-  if (run(NODE, [join(ROOT, 'build-cv-html.mjs'), input, output]) === null) {
+  if (run(NODE, [join(ROOT, 'src/scripts/build-cv-html.mjs'), input, output]) === null) {
     const f = lastRunFailure();
-    fail(`build-cv-html.mjs crashed (exit ${f?.status}) - ${(f?.stderr || '').trim().split('\n').pop()}`);
+    fail(`src/scripts/build-cv-html.mjs crashed (exit ${f?.status}) - ${(f?.stderr || '').trim().split('\n').pop()}`);
   } else if (!existsSync(output)) {
-    fail('build-cv-html.mjs exited 0 but wrote no output file');
+    fail('src/scripts/build-cv-html.mjs exited 0 but wrote no output file');
   } else {
     const html = readFileSync(output, 'utf-8');
     const cell = (cls) => {

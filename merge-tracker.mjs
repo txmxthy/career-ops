@@ -18,14 +18,14 @@ import { readFileSync, readdirSync, mkdirSync, renameSync, existsSync } from 'fs
 import { join, basename, dirname, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
-import { normalizeReportLink as normalizeLink } from './tracker-links.mjs';
-import { roleFuzzyMatch } from './role-matcher.mjs';
-import { parsePdfIndex } from './find.mjs';
+import { normalizeReportLink as normalizeLink } from './src/scripts/tracker-links.mjs';
+import { roleFuzzyMatch } from './src/lib/role-matcher.mjs';
+import { parsePdfIndex } from './src/scripts/find.mjs';
 import { LEGACY_COLMAP, detectColumns, isHeaderRow, resolveScoreStatus, normalizeVia, SEPARATOR_ROW_RE } from './tracker-parse.mjs';
 import { resolveTrackerPath, resolveWorkspaceRoot, resolvePdfIndexPath, trackerLockDirFor, acquireTrackerLock, writeFileAtomic, normalizeCompany, cell } from './tracker-utils.mjs';
 // Canonical posting-URL key. Kept in its own module so scan.mjs / scan-history
 // can adopt the same key later without the definitions drifting.
-import { normalizeUrl } from './url-key.mjs';
+import { normalizeUrl } from './src/lib/url-key.mjs';
 
 const CAREER_OPS = dirname(fileURLToPath(import.meta.url));
 // Support both layouts: data/applications.md (boilerplate) and applications.md
@@ -82,7 +82,7 @@ const TRACKER_LOCK_DIR = trackerLockDirFor(APPS_FILE);
 
 // The reports/ dir sits at the repo root, which is the tracker's parent in the
 // data/ layout (data/applications.md) and the tracker's own dir at root layout.
-// Shared with sync-pdf-flags.mjs so the two agree on where a workspace's
+// Shared with src/scripts/sync-pdf-flags.mjs so the two agree on where a workspace's
 // siblings live — they disagreed before #2471.
 const REPORTS_ROOT = resolveWorkspaceRoot(APPS_FILE);
 const PDF_INDEX_FILE = resolvePdfIndexPath(APPS_FILE);
@@ -1173,7 +1173,7 @@ for (const file of tsvFiles) {
     // the notes and report link are still fresher than what the row holds.
     //
     // Because the fuzzy matcher can mis-pair genuinely different roles (see
-    // role-matcher.mjs — "Senior" is a stopword and short tokens are dropped), a
+    // src/lib/role-matcher.mjs — "Senior" is a stopword and short tokens are dropped), a
     // downgrade records the superseded report number so a bad match stays
     // recoverable from the tracker alone. mergeNotes() keeps the existing cell
     // verbatim and first, so a second downgrade preserves the earlier marker
@@ -1367,7 +1367,7 @@ trackerLock.release();
 // Sync PDF flags (idempotent; uses its own lock/transaction)
 if (!DRY_RUN) {
   try {
-    execFileSync('node', [join(CAREER_OPS, 'sync-pdf-flags.mjs')], { stdio: 'inherit' });
+    execFileSync('node', [join(CAREER_OPS, 'src/scripts/sync-pdf-flags.mjs')], { stdio: 'inherit' });
   } catch (e) {
     console.warn(`⚠️  Failed to sync PDF flags: ${e.message}`);
   }
@@ -1377,7 +1377,7 @@ if (!DRY_RUN) {
 if (VERIFY && !DRY_RUN) {
   console.log('\n--- Running verification ---');
   try {
-    execFileSync('node', [join(CAREER_OPS, 'verify-pipeline.mjs')], { stdio: 'inherit' });
+    execFileSync('node', [join(CAREER_OPS, 'src/scripts/verify-pipeline.mjs')], { stdio: 'inherit' });
   } catch (e) {
     process.exit(1);
   }

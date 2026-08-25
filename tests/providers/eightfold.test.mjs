@@ -1,6 +1,6 @@
 // tests/providers/eightfold.test.mjs — contract test for the Eightfold AI
-// provider. Auto-discovered by test-all.mjs under tests/**; no registration.
-// Run alone with: node test-all.mjs --only providers/eightfold
+// provider. Auto-discovered by tests/run-all.mjs under tests/**; no registration.
+// Run alone with: node tests/run-all.mjs --only providers/eightfold
 //
 // Every fixture here is synthetic (acme/other/big.eightfold.ai). Nothing in
 // this file touches the network.

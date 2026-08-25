@@ -11,9 +11,9 @@
  *
  * Delegation is by CHILD PROCESS, not by import, and that is forced rather than
  * chosen: seven of the eight runners parse `process.argv` and call
- * `process.exit()` at module scope (batch-tailor.mjs:28, eval-golden.mjs:56,
- * gemini-eval.mjs:84, ollama-eval.mjs:61, openai-eval.mjs:65,
- * openai-tailor.mjs:50, plus openrouter-runner.mjs's guarded switch). Importing
+ * `process.exit()` at module scope (src/scripts/batch-tailor.mjs:28, src/scripts/eval-golden.mjs:56,
+ * src/scripts/gemini-eval.mjs:84, src/scripts/ollama-eval.mjs:61, src/scripts/openai-eval.mjs:65,
+ * src/scripts/openai-tailor.mjs:50, plus src/scripts/openrouter-runner.mjs's guarded switch). Importing
  * one runs it. When ADR 0005 step 5 moves them into src/ and gives them
  * argv-free entry points, `plan()` stays exactly as it is and only `runChild`
  * changes.
@@ -21,8 +21,8 @@
  * What the adapter adds over `node <runner>.mjs`, which is the whole point:
  *
  *   - **Exit code 3 instead of a lie.** Every runner collapses "could not run"
- *     into exit 1 — or worse. `batch-evaluate-gemini.mjs:325` prints "No
- *     pipeline.md found." and returns 0; `openrouter-runner.mjs:826` prints a
+ *     into exit 1 — or worse. `src/scripts/batch-evaluate-gemini.mjs:325` prints "No
+ *     pipeline.md found." and returns 0; `src/scripts/openrouter-runner.mjs:826` prints a
  *     usage line for `apply` with no report and falls through to 0. Both report
  *     success for a check that never executed, which is the exact pattern
  *     ADR 0006 exists to end. The preflight in each `plan()` below separates
@@ -38,7 +38,7 @@
  * Deliberate contract changes, each pinned by a test in
  * tests/commands/eval.test.mjs:
  *   - Usage errors are exit 2, not 1 (ADR 0006).
- *   - `golden --live --replay` is a usage error; eval-golden.mjs:56 silently
+ *   - `golden --live --replay` is a usage error; src/scripts/eval-golden.mjs:56 silently
  *     preferred `--live`.
  *   - A JD given as both `--file` and inline text is a usage error; the runners
  *     appended the inline text to the file's contents.
@@ -88,7 +88,7 @@ const ready = (argv, extra = {}) => ({ ok: true, argv, warnings: [], ...extra })
 /**
  * Locate a runner script.
  *
- * @param {string} file - Runner filename, e.g. 'gemini-eval.mjs'.
+ * @param {string} file - Runner filename, e.g. 'src/scripts/gemini-eval.mjs'.
  * @returns {string|null} Absolute path, or null when it is in neither dir.
  */
 function resolveRunner(file) {
@@ -140,7 +140,7 @@ function jdSource(parsed, cwd) {
 /**
  * Endpoint and credential guard for the OpenAI-compatible runners.
  *
- * Mirrors openai-eval.mjs:155-186 — cv.md, the JD and the key go to this
+ * Mirrors src/scripts/openai-eval.mjs:155-186 — cv.md, the JD and the key go to this
  * endpoint, so a remote host must be HTTPS and must have a key. These are
  * environment faults, not findings: exit 4.
  *
@@ -348,7 +348,7 @@ const JD_POSITIONALS = { name: 'jd-text', min: 0, max: Infinity };
 
 const golden = makeCommand({
   command: 'eval golden',
-  runner: 'eval-golden.mjs',
+  runner: 'src/scripts/eval-golden.mjs',
   description: 'Run the golden-set gate: score a candidate model against the labelled cases and check archetype agreement.',
   usage: 'career-ops eval golden [--replay|--live] [--model <id>] [--golden <dir>]',
   flags: {
@@ -361,7 +361,7 @@ const golden = makeCommand({
   plan(parsed, { env, cwd }) {
     const live = parsed.values['--live'];
     if (live && parsed.values['--replay']) {
-      // eval-golden.mjs:56 resolves this by preferring --live, so a caller who
+      // src/scripts/eval-golden.mjs:56 resolves this by preferring --live, so a caller who
       // meant to stay offline could be billed for a live run.
       return usageError('--replay and --live are mutually exclusive');
     }
@@ -377,7 +377,7 @@ const golden = makeCommand({
     if (!existsSync(dir)) return cannotRun(`golden-set directory not found: ${dir}`);
     if (!statSync(dir).isDirectory()) return cannotRun(`golden-set path is not a directory: ${dir}`);
     const cases = readdirSync(dir).filter((f) => f.endsWith('.json'));
-    // eval-golden.mjs:198 exits 1 here, which reads as "the gate failed". A
+    // src/scripts/eval-golden.mjs:198 exits 1 here, which reads as "the gate failed". A
     // gate with nothing to run did not fail; it did not run.
     if (cases.length === 0) return cannotRun(`no golden cases (*.json) in ${dir}`);
 
@@ -385,7 +385,7 @@ const golden = makeCommand({
     if (parsed.values['--fixtures']) argv.push('--fixtures', fromCwd(parsed.values['--fixtures'], cwd));
 
     if (live) {
-      // Live mode shells out to the OpenAI-compatible runner (eval-golden.mjs:227),
+      // Live mode shells out to the OpenAI-compatible runner (src/scripts/eval-golden.mjs:227),
       // so its endpoint rules apply before a single case is spent.
       const endpoint = openAiEndpoint(parsed, env);
       if (!endpoint.ok) return endpoint;
@@ -396,7 +396,7 @@ const golden = makeCommand({
 
 const gemini = makeCommand({
   command: 'eval gemini',
-  runner: 'gemini-eval.mjs',
+  runner: 'src/scripts/gemini-eval.mjs',
   description: 'Evaluate one job description with Google Gemini.',
   usage: 'career-ops eval gemini [--file <path> | <jd text>] [--model <id>]',
   flags: {
@@ -416,7 +416,7 @@ const gemini = makeCommand({
 
 const ollama = makeCommand({
   command: 'eval ollama',
-  runner: 'ollama-eval.mjs',
+  runner: 'src/scripts/ollama-eval.mjs',
   description: 'Evaluate one job description with a local Ollama model.',
   usage: 'career-ops eval ollama [--file <path> | <jd text>] [--model <id>] [--url <base>]',
   flags: {
@@ -435,7 +435,7 @@ const ollama = makeCommand({
     } catch {
       return configError(`invalid Ollama base URL: "${base}"`);
     }
-    // ollama-eval.mjs:167 — cv.md and the full JD go to this endpoint, so a
+    // src/scripts/ollama-eval.mjs:167 — cv.md and the full JD go to this endpoint, so a
     // remote one has to be opted into explicitly.
     if (!LOOPBACK.has(url.hostname) && env.OLLAMA_ALLOW_REMOTE !== '1') {
       return configError(`refusing a remote Ollama endpoint: ${base} — your CV and job description would leave this machine. Set OLLAMA_ALLOW_REMOTE=1 to allow it.`);
@@ -458,7 +458,7 @@ const ollama = makeCommand({
 
 const openai = makeCommand({
   command: 'eval openai',
-  runner: 'openai-eval.mjs',
+  runner: 'src/scripts/openai-eval.mjs',
   description: 'Evaluate one job description with any OpenAI-compatible chat API.',
   usage: 'career-ops eval openai [--file <path> | <jd text>] [--url <base>] [--model <id>]',
   flags: {
@@ -482,7 +482,7 @@ const openai = makeCommand({
 
 const tailor = makeCommand({
   command: 'eval tailor',
-  runner: 'openai-tailor.mjs',
+  runner: 'src/scripts/openai-tailor.mjs',
   description: 'Tailor the CV for one role from its JD and evaluation report, with any OpenAI-compatible API.',
   usage: 'career-ops eval tailor --jd <path> --report <path> [--model <id>]',
   flags: {
@@ -509,14 +509,14 @@ const tailor = makeCommand({
 
 const batchTailor = makeCommand({
   command: 'eval batch-tailor',
-  runner: 'batch-tailor.mjs',
+  runner: 'src/scripts/batch-tailor.mjs',
   description: 'Tailor a CV for every completed batch job scoring at or above a threshold.',
   usage: 'career-ops eval batch-tailor [--min-score <n>]',
   flags: {
     '--min-score': { type: 'number', describe: 'Minimum score to tailor (default: 4.0)' },
   },
   plan(parsed, { env }) {
-    // batch-tailor.mjs:14 honours CAREER_OPS_BATCH_STATE; check the same path
+    // src/scripts/batch-tailor.mjs:14 honours CAREER_OPS_BATCH_STATE; check the same path
     // the child will read, not a store.js resolution it does not use.
     const stateFile = env.CAREER_OPS_BATCH_STATE
       ? resolve(env.CAREER_OPS_BATCH_STATE)
@@ -530,7 +530,7 @@ const batchTailor = makeCommand({
 
 const batchGemini = makeCommand({
   command: 'eval batch-gemini',
-  runner: 'batch-evaluate-gemini.mjs',
+  runner: 'src/scripts/batch-evaluate-gemini.mjs',
   description: 'Evaluate every pending pipeline entry with Gemini, then merge the tracker additions.',
   usage: 'career-ops eval batch-gemini [--limit <n>] [--concurrency <n>] [--model <id>]',
   flags: {
@@ -542,7 +542,7 @@ const batchGemini = makeCommand({
     if (!env.GEMINI_API_KEY) {
       return configError('GEMINI_API_KEY is not set — get a free key at https://aistudio.google.com/apikey and add it to .env');
     }
-    // batch-evaluate-gemini.mjs:39 anchors the pipeline to `data/pipeline.md`
+    // src/scripts/batch-evaluate-gemini.mjs:39 anchors the pipeline to `data/pipeline.md`
     // and ignores CAREER_OPS_PIPELINE (audit Part III, row 5), so the preflight
     // checks that literal path — a store.js resolution would pass on a file the
     // child never opens. The child prints "No pipeline.md found." and returns
@@ -563,15 +563,15 @@ const batchGemini = makeCommand({
   },
 });
 
-/** openrouter-runner.mjs's own sub-commands, and the one alias it accepts. */
+/** src/scripts/openrouter-runner.mjs's own sub-commands, and the one alias it accepts. */
 const OPENROUTER_ACTIONS = ['scan', 'evaluate', 'pipeline', 'apply', 'models'];
 const OPENROUTER_ALIASES = { eval: 'evaluate' };
-/** Actions that call the model, and so need a key (openrouter-runner.mjs:200). */
+/** Actions that call the model, and so need a key (src/scripts/openrouter-runner.mjs:200). */
 const OPENROUTER_KEYED = new Set(['evaluate', 'pipeline', 'apply', 'models']);
 
 const openrouter = makeCommand({
   command: 'eval openrouter',
-  runner: 'openrouter-runner.mjs',
+  runner: 'src/scripts/openrouter-runner.mjs',
   description: `Run the OpenRouter free-model rotation. Actions: ${OPENROUTER_ACTIONS.join(', ')}.`,
   usage: 'career-ops eval openrouter <action> [args]',
   flags: {},
@@ -587,7 +587,7 @@ const openrouter = makeCommand({
     if (!OPENROUTER_ACTIONS.includes(action)) {
       return usageError(`unknown action: ${raw}. Valid actions: ${OPENROUTER_ACTIONS.join(', ')}`);
     }
-    // openrouter-runner.mjs:826 prints a usage line and breaks — exit 0 for a
+    // src/scripts/openrouter-runner.mjs:826 prints a usage line and breaks — exit 0 for a
     // run that never happened.
     if (action === 'apply' && rest.length === 0) {
       return usageError('openrouter apply needs a report number or report path');

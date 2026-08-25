@@ -24,7 +24,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-// Namespace import, not default: js-yaml has no default export (test-all.mjs
+// Namespace import, not default: js-yaml has no default export (tests/run-all.mjs
 // enforces this — a default import breaks on js-yaml 5).
 import * as yaml from "js-yaml";
 import { STATUS_ALIAS, canonStatus } from "../../src/lib/status-alias.mjs";

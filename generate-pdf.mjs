@@ -39,7 +39,7 @@ import { readFile } from 'fs/promises';
 import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { randomUUID } from 'node:crypto';
-import { readStyleTokens, injectThemeStyle, readCvSectionOrder } from './theme-style.mjs';
+import { readStyleTokens, injectThemeStyle, readCvSectionOrder } from './src/lib/theme-style.mjs';
 import { resolvePdfIndexPath, resolveTrackerPath, resolveWorkspaceRoot } from './tracker-utils.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -375,7 +375,7 @@ export function validateCvSectionOrder(html, cvMarkdown, { allowReorder = false 
 export const CV_SECTION_KEYS = [...new Set(SECTION_ALIASES.values())];
 
 // The all-caps comments the templates use to delimit sections, matched exactly
-// as cv-sections-core.mjs matches them when stripping empty sections.
+// as src/lib/cv-sections-core.mjs matches them when stripping empty sections.
 const SECTION_MARKER_RE = /<!--\s+[A-Z][A-Z ]*-->/g;
 const SECTION_TITLE_RE = /class=["'][^"']*\bsection-title\b[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/gi;
 

@@ -24,7 +24,7 @@ const TRACKER_HEADER = [
   '',
 ].join('\n');
 
-// The exact shape openrouter-runner writes (openrouter-runner.mjs `tsvLine`):
+// The exact shape openrouter-runner writes (src/scripts/openrouter-runner.mjs `tsvLine`):
 // num, date, company, "(see report)", status, score, pdf, report-link, notes.
 const num = 35, today = '2026-08-09', slug = 'acme-corp';
 const company = slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -81,11 +81,11 @@ try {
   }
 
   // Guard: the source must not prepend a header to the tracker-addition write.
-  const src = readFileSync(join(ROOT, 'openrouter-runner.mjs'), 'utf-8');
+  const src = readFileSync(join(ROOT, 'src/scripts/openrouter-runner.mjs'), 'utf-8');
   if (/num\\tdate\\tcompany\\trole\\tstatus/.test(src)) {
-    fail('openrouter-runner.mjs still writes a header row into the tracker-addition TSV');
+    fail('src/scripts/openrouter-runner.mjs still writes a header row into the tracker-addition TSV');
   } else {
-    pass('openrouter-runner.mjs writes only the data line (no header)');
+    pass('src/scripts/openrouter-runner.mjs writes only the data line (no header)');
   }
 } finally {
   try { rmSync(work, { recursive: true, force: true }); } catch { /* best effort */ }

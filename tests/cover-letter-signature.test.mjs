@@ -9,7 +9,7 @@
 // between them, never injected into escaped content.
 import { join } from 'path';
 import { pass, fail, ROOT } from './helpers.mjs';
-import { buildHtml } from '../generate-cover-letter.mjs';
+import { buildHtml } from '../src/scripts/generate-cover-letter.mjs';
 
 console.log('\nCover letter signature block');
 

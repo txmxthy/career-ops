@@ -9,7 +9,7 @@
 // next to rows with three, and the columns drifted.
 //
 // End-to-end through the real builder and the shipped partials on purpose.
-// build-cv-html.mjs exports nothing, and the bug lived in the seam between the
+// src/scripts/build-cv-html.mjs exports nothing, and the bug lived in the seam between the
 // partial's block names and the builder's lookup — a unit test of either half
 // alone would have passed.
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, cpSync, existsSync } from 'fs';
@@ -71,17 +71,17 @@ function build(label, templateArg) {
   const output = join(dir, `${label}.html`);
   writeFileSync(input, JSON.stringify(PAYLOAD));
 
-  const args = [join(ROOT, 'build-cv-html.mjs'), input, output];
+  const args = [join(ROOT, 'src/scripts/build-cv-html.mjs'), input, output];
   if (templateArg) args.push(templateArg);
 
   if (run(NODE, args) === null) {
     const f = lastRunFailure();
-    fail(`${label}: build-cv-html.mjs crashed (exit ${f?.status}) - ${(f?.stderr || '').trim().split('\n').pop()}`);
+    fail(`${label}: src/scripts/build-cv-html.mjs crashed (exit ${f?.status}) - ${(f?.stderr || '').trim().split('\n').pop()}`);
     return null;
   }
   // A zero exit with no file would otherwise surface as a bare ENOENT.
   if (!existsSync(output)) {
-    fail(`${label}: build-cv-html.mjs exited 0 but wrote no output file`);
+    fail(`${label}: src/scripts/build-cv-html.mjs exited 0 but wrote no output file`);
     return null;
   }
   return readFileSync(output, 'utf-8');

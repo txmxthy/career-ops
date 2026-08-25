@@ -10,7 +10,7 @@ import { pass, fail, ROOT } from './helpers.mjs';
 
 console.log('\nShared User-Agent constants');
 
-const { DEFAULT_USER_AGENT, BROWSER_LIKE_USER_AGENT } = await import(pathToFileURL(join(ROOT, 'user-agent.mjs')).href);
+const { DEFAULT_USER_AGENT, BROWSER_LIKE_USER_AGENT } = await import(pathToFileURL(join(ROOT, 'src/lib/user-agent.mjs')).href);
 const { fetchJson } = await import(pathToFileURL(join(ROOT, 'providers/_http.mjs')).href);
 
 // 1. Pinned to a literal, not derived from package.json — the exact

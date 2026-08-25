@@ -24,7 +24,7 @@ import { mkdtempSync, mkdirSync, chmodSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { pass, fail } from './helpers.mjs';
-import { acquirePipelineLock, LockTimeoutError } from '../pipeline-lock.mjs';
+import { acquirePipelineLock, LockTimeoutError } from '../src/lib/pipeline-lock.mjs';
 
 console.log('\n🔒 pipeline-lock: a non-EEXIST mkdir refusal is contention, not fatal');
 

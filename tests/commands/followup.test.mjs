@@ -404,7 +404,7 @@ test('review-replies classifies a reply and proposes the status it implies', asy
 });
 
 test('review-replies documents that it cannot apply the transitions it proposes', () => {
-  // reply-watch.mjs keeps groupStatusRecommendations/updateTrackerStatuses
+  // src/scripts/reply-watch.mjs keeps groupStatusRecommendations/updateTrackerStatuses
   // private, so the adapter has nothing to call. --help has to say so rather
   // than let a caller assume --apply exists.
   assert.match(commands['review-replies'].help, /Read-only/);

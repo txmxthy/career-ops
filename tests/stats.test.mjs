@@ -1,4 +1,4 @@
-// tests/stats.test.mjs — moved verbatim from test-all.mjs (#1604).
+// tests/stats.test.mjs — moved verbatim from tests/run-all.mjs (#1604).
 import { pass, fail, run, NODE, ROOT, lastRunFailure } from './helpers.mjs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
@@ -7,7 +7,7 @@ import { tmpdir } from 'os';
 
 console.log('\nstats.mjs — lifetime pipeline stats aggregator (#1604)');
 try {
-  const stats = await import(pathToFileURL(join(ROOT, 'stats.mjs')).href);
+  const stats = await import(pathToFileURL(join(ROOT, 'src/scripts/stats.mjs')).href);
 
   // Tracker roll-up — CRLF input on purpose (Windows checkouts).
   const trackerMd = [
@@ -210,45 +210,45 @@ try {
 
   // CLI smoke — must emit the full contract with null sections in a checkout
   // with no user data (exactly the CI environment).
-  const cliOut = run(NODE, [join(ROOT, 'stats.mjs')]);
+  const cliOut = run(NODE, [join(ROOT, 'src/scripts/stats.mjs')]);
   const parsed = JSON.parse(cliOut);
   if (parsed && parsed.metadata && 'tracker' in parsed && 'scan' in parsed && 'portals' in parsed
       && 'followups' in parsed && 'funnel' in parsed && 'runs' in parsed) {
-    pass('stats.mjs CLI emits the full JSON contract (sections null when sources missing)');
+    pass('src/scripts/stats.mjs CLI emits the full JSON contract (sections null when sources missing)');
   } else {
-    fail(`stats.mjs CLI missing sections: ${parsed ? Object.keys(parsed).join(',') : cliOut}`);
+    fail(`src/scripts/stats.mjs CLI missing sections: ${parsed ? Object.keys(parsed).join(',') : cliOut}`);
   }
-  const summaryOut = run(NODE, [join(ROOT, 'stats.mjs'), '--summary']);
+  const summaryOut = run(NODE, [join(ROOT, 'src/scripts/stats.mjs'), '--summary']);
   if (summaryOut && summaryOut.includes('Pipeline Stats')) {
-    pass('stats.mjs --summary renders the human table');
+    pass('src/scripts/stats.mjs --summary renders the human table');
   } else {
-    fail('stats.mjs --summary missing header');
+    fail('src/scripts/stats.mjs --summary missing header');
   }
 
   // --help smoke: must print usage, exit 0, and not read any data file.
-  const helpOut = run(NODE, [join(ROOT, 'stats.mjs'), '--help']);
+  const helpOut = run(NODE, [join(ROOT, 'src/scripts/stats.mjs'), '--help']);
   if (helpOut && helpOut.includes('Usage:') && helpOut.includes('--summary') && helpOut.includes('--help|-h')) {
-    pass('stats.mjs --help prints the usage block and exits 0');
+    pass('src/scripts/stats.mjs --help prints the usage block and exits 0');
   } else {
-    fail(`stats.mjs --help missing usage output: ${helpOut}`);
+    fail(`src/scripts/stats.mjs --help missing usage output: ${helpOut}`);
   }
 
   // -h alias smoke: same behavior as --help.
-  const hOut = run(NODE, [join(ROOT, 'stats.mjs'), '-h']);
+  const hOut = run(NODE, [join(ROOT, 'src/scripts/stats.mjs'), '-h']);
   if (hOut && hOut.includes('Usage:') && hOut.includes('--help|-h')) {
-    pass('stats.mjs -h prints the usage block and exits 0');
+    pass('src/scripts/stats.mjs -h prints the usage block and exits 0');
   } else {
-    fail(`stats.mjs -h missing usage output: ${hOut}`);
+    fail(`src/scripts/stats.mjs -h missing usage output: ${hOut}`);
   }
 
   // Unknown flag smoke: must fail cleanly and report the invalid-flag message.
-  const bogusOut = run(NODE, [join(ROOT, 'stats.mjs'), '--bogus']);
+  const bogusOut = run(NODE, [join(ROOT, 'src/scripts/stats.mjs'), '--bogus']);
   const bogusFailure = lastRunFailure();
   const bogusOutput = `${bogusFailure?.stdout ?? ''}\n${bogusFailure?.stderr ?? ''}`;
   if (bogusOut === null && bogusFailure?.status !== 0 && /invalid|unrecognized|unknown/i.test(bogusOutput)) {
-    pass('stats.mjs --bogus rejects unknown flags with a non-zero exit status');
+    pass('src/scripts/stats.mjs --bogus rejects unknown flags with a non-zero exit status');
   } else {
-    fail(`stats.mjs --bogus did not fail as expected: exit=${bogusFailure?.status ?? 'null'} output=${bogusOutput.trim()}`);
+    fail(`src/scripts/stats.mjs --bogus did not fail as expected: exit=${bogusFailure?.status ?? 'null'} output=${bogusOutput.trim()}`);
   }
 
   // --summary cold-classification integration (#2123): the CLI reads its
@@ -266,16 +266,16 @@ try {
     if (!dataDirExisted) mkdirSync(join(ROOT, 'data'), { recursive: true });
     writeFileSync(liveAppsFile, coldTrackerMd);
     writeFileSync(liveFupsFile, coldFollowupsMd);
-    const coldSummaryOut = run(NODE, [join(ROOT, 'stats.mjs'), '--summary']);
+    const coldSummaryOut = run(NODE, [join(ROOT, 'src/scripts/stats.mjs'), '--summary']);
     if (coldSummaryOut && coldSummaryOut.includes('3 active (2 live, 1 cold)')) {
-      pass('stats.mjs --summary integrates live/cold counts into the existing Tracker line');
+      pass('src/scripts/stats.mjs --summary integrates live/cold counts into the existing Tracker line');
     } else {
-      fail(`stats.mjs --summary missing live/cold breakdown: ${coldSummaryOut}`);
+      fail(`src/scripts/stats.mjs --summary missing live/cold breakdown: ${coldSummaryOut}`);
     }
   } finally {
     if (appsBackup !== null) writeFileSync(liveAppsFile, appsBackup); else if (!appsExisted) rmSync(liveAppsFile, { force: true });
     if (fupsBackup !== null) writeFileSync(liveFupsFile, fupsBackup); else if (!fupsExisted) rmSync(liveFupsFile, { force: true });
   }
 } catch (e) {
-  fail(`stats.mjs tests crashed: ${e.message}`);
+  fail(`src/scripts/stats.mjs tests crashed: ${e.message}`);
 }

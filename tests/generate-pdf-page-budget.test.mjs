@@ -32,21 +32,21 @@ writeFileSync(manifest, '', 'utf-8');
 const playwrightStub = join(sandbox, 'node_modules', 'playwright');
 
 copyFileSync(join(ROOT, 'generate-pdf.mjs'), script);
-// generate-pdf.mjs imports its local sibling ./theme-style.mjs (dynamic PDF
+// generate-pdf.mjs imports its local sibling src/lib/theme-style.mjs (dynamic PDF
 // theming, #1837); copy it into the sandbox too or the isolated script fails
 // to load with ERR_MODULE_NOT_FOUND before it can parse any --max-pages arg.
-copyFileSync(join(ROOT, 'theme-style.mjs'), join(sandbox, 'theme-style.mjs'));
+copyFileSync(join(ROOT, 'src/lib/theme-style.mjs'), join(sandbox, 'src/lib/theme-style.mjs'));
 // generate-pdf resolves output and manifest paths from the tracker-owned
 // workspace. Copy the shared resolver and its local parser dependency so this
 // remains a genuinely isolated CLI test.
 copyFileSync(join(ROOT, 'tracker-utils.mjs'), join(sandbox, 'tracker-utils.mjs'));
 copyFileSync(join(ROOT, 'tracker-parse.mjs'), join(sandbox, 'tracker-parse.mjs'));
 copyFileSync(join(ROOT, 'tracker-aliases.json'), join(sandbox, 'tracker-aliases.json'));
-copyFileSync(join(ROOT, 'pipeline-lock.mjs'), join(sandbox, 'pipeline-lock.mjs'));
+copyFileSync(join(ROOT, 'src/lib/pipeline-lock.mjs'), join(sandbox, 'src/lib/pipeline-lock.mjs'));
 // Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
 copyCoreModules(sandbox);
 
-// theme-style.mjs and tracker-utils.mjs both `import * as yaml from 'js-yaml'`,
+// src/lib/theme-style.mjs and tracker-utils.mjs both `import * as yaml from 'js-yaml'`,
 // which resolves by walking up into the repo's node_modules -- from the
 // sandbox's REALPATH, so a checkout with a symlinked output/ never reaches it
 // and every spawned generate-pdf dies before parsing argv (#3165). Link the

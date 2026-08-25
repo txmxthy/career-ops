@@ -41,11 +41,11 @@ tracked_companies:
     careers_url: "https://jobs.lever.co/acme"
 `, 'utf-8');
 
-  const typoResult = run(NODE, ['validate-portals.mjs', '--file', typoPath]);
+  const typoResult = run(NODE, ['src/scripts/validate-portals.mjs', '--file', typoPath]);
   if (typoResult === null) pass('validate-portals rejects a misspelled title_filter_full field');
   else fail('validate-portals should reject a misspelled title_filter_full field');
 
-  const emptyResult = run(NODE, ['validate-portals.mjs', '--file', emptyPath]);
+  const emptyResult = run(NODE, ['src/scripts/validate-portals.mjs', '--file', emptyPath]);
   if (emptyResult !== null && emptyResult.includes('0 errors')) {
     pass('validate-portals accepts an explicitly empty title_filter_full.positive');
   } else {

@@ -37,7 +37,7 @@ Processa URLs de vagas acumuladas em `data/pipeline.md`. O candidato adiciona UR
 ## Detecção inteligente de JD a partir da URL
 
 1. **Playwright (preferido):** `browser_navigate` + `browser_snapshot`. Funciona com todas as SPAs.
-   - **Opcional — extrator CLI (`scan.extractor: cli` em `config/profile.yml`):** execute `node browser-extract.mjs <url>` (`--mode jd`) em vez disso — `{ "url", "title", "text" }` compacto, menos tokens (depende do portal). **Recorre em silêncio** a `browser_navigate` + `browser_snapshot` em caso de erro ou ausência.
+   - **Opcional — extrator CLI (`scan.extractor: cli` em `config/profile.yml`):** execute `node src/scripts/browser-extract.mjs <url>` (`--mode jd`) em vez disso — `{ "url", "title", "text" }` compacto, menos tokens (depende do portal). **Recorre em silêncio** a `browser_navigate` + `browser_snapshot` em caso de erro ou ausência.
 2. **WebFetch (fallback):** Para páginas estáticas ou quando Playwright não está disponível.
 3. **WebSearch (último recurso):** Buscar em portais secundários que indexam o JD.
 
@@ -60,7 +60,7 @@ Processa URLs de vagas acumuladas em `data/pipeline.md`. O candidato adiciona UR
 Antes de processar qualquer URL, verificar sincronização:
 
 ```bash
-node cv-sync-check.mjs
+node src/scripts/cv-sync-check.mjs
 ```
 
 Se houver dessincronização, avisar o candidato antes de continuar.

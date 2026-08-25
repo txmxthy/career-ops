@@ -1,7 +1,7 @@
 // tests/scan-history-lock.test.mjs — appendToScanHistory() must write
 // data/scan-history.tsv under the same lock appendToPipeline() uses.
 //
-// scan.mjs, scan-ats-full.mjs, scan-interamt.mjs and plugins.mjs all append to
+// scan.mjs, scan-ats-full.mjs, src/scripts/scan-interamt.mjs and src/scripts/plugins.mjs all append to
 // this one file, which is why appendToPipeline() takes a lock. scan-history
 // took none, leaving two races (#2600):
 //
@@ -32,7 +32,7 @@ import { mkdtempSync, rmSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { promisify } from 'util';
-import { acquirePipelineLock } from '../pipeline-lock.mjs';
+import { acquirePipelineLock } from '../src/lib/pipeline-lock.mjs';
 
 const execFileAsync = promisify(execFile);
 

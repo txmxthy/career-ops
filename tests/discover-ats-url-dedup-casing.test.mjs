@@ -1,4 +1,4 @@
-// tests/discover-ats-url-dedup-casing.test.mjs — records discover-ats.mjs's
+// tests/discover-ats-url-dedup-casing.test.mjs — records src/scripts/discover-ats.mjs's
 // portal dedupe key, and specifically its URL path casing.
 //
 // ADR 0004 resolves URL path casing by PRESERVING case: lowercasing risks
@@ -6,7 +6,7 @@
 // lowercasing risks a visible duplicate row, which the user can fix. It names
 // scan.mjs:1067 as the loser.
 //
-// discover-ats.mjs:402 normalizeUrl lowercases the WHOLE careers_url, path
+// src/scripts/discover-ats.mjs:402 normalizeUrl lowercases the WHOLE careers_url, path
 // included — the same over-normalization, at a site the ADR does not name. It
 // is left as-is deliberately: this dedupes company BOARD urls against
 // portals.yml rather than individual postings, and flipping it would newly
@@ -16,7 +16,7 @@
 // visible and any future consolidation onto src/core/text.js has to decide it
 // on purpose rather than inherit it.
 import { pass, fail } from './helpers.mjs';
-import { dedupeAgainstPortals } from '../discover-ats.mjs';
+import { dedupeAgainstPortals } from '../src/scripts/discover-ats.mjs';
 
 console.log('\ndiscover-ats.mjs — portal dedupe URL casing');
 

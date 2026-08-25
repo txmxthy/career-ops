@@ -12,7 +12,7 @@ import {
   validateTemplate,
   resolveTemplate,
   loadProfileDefault,
-} from '../cv-templates.mjs';
+} from '../src/lib/cv-templates.mjs';
 
 test('prettify: kebab to Title Case', () => {
   assert.equal(prettify('executive-authority'), 'Executive Authority');

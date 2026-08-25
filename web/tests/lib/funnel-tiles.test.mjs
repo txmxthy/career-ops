@@ -18,7 +18,7 @@ test("an offer-holder has already interviewed", () => {
 });
 
 test("a hire counts as both an interview and an offer", () => {
-  // Landing the job proves the offer and everything before it (stats.mjs
+  // Landing the job proves the offer and everything before it (src/scripts/stats.mjs
   // computeFunnel: everOffer = Offer + Hired). Previously BOTH tiles read 0
   // and BOTH nudges fired at a candidate who had just been hired.
   const t = cumulativeTiles(["HIRED"]);
@@ -39,7 +39,7 @@ test("stages that never reached an interview are not counted", () => {
 });
 
 test("a rejection is not folded in — its stage is unknowable from a snapshot", () => {
-  // stats.mjs calls the middle stages lower bounds for exactly this reason: a
+  // src/scripts/stats.mjs calls the middle stages lower bounds for exactly this reason: a
   // Rejected row that never got a reply is indistinguishable from one rejected
   // after onsites, so counting it would overstate the funnel.
   const t = cumulativeTiles(["REJECTED", "REJECTED"]);

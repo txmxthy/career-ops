@@ -1,5 +1,5 @@
 /**
- * Characterisation of plugins.mjs's snapshot table reader.
+ * Characterisation of src/scripts/plugins.mjs's snapshot table reader.
  *
  * Pins the contract the `export` hook sees, across the move onto
  * src/core/table.js. Two behaviours change deliberately and are marked; the
@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseMarkdownTable } from '../plugins.mjs';
+import { parseMarkdownTable } from '../src/scripts/plugins.mjs';
 
 const table = (...lines) => lines.join('\n');
 
@@ -17,7 +17,7 @@ test('rows are keyed by the lowercased header cell', () => {
 });
 
 test('a row shorter than the header is padded, not dropped', () => {
-  // plugins.mjs keeps its own padding policy: an export hook relies on every
+  // src/scripts/plugins.mjs keeps its own padding policy: an export hook relies on every
   // header key being present on every row.
   const rows = parseMarkdownTable(table('| A | B | C |', '|---|---|---|', '| 1 | 2 |'));
   assert.deepEqual(rows, [{ a: '1', b: '2', c: '' }]);

@@ -4,9 +4,9 @@
 // The failure class lib/cli-flags.mjs exists to end: an unrecognized flag is
 // ignored, the value flag it was meant to be falls back to its default, and
 // the script reports a result for inputs nobody asked for at exit 0. Already
-// fixed in scan-ats-full.mjs (#1633/#1635), reply-watch.mjs (#2743/#2745),
-// dedup-tracker.mjs (#2744/#2746), scan.mjs (#2270), doctor.mjs (#2874),
-// and fix-slugs.mjs (#2980).
+// fixed in scan-ats-full.mjs (#1633/#1635), src/scripts/reply-watch.mjs (#2743/#2745),
+// src/scripts/dedup-tracker.mjs (#2744/#2746), scan.mjs (#2270), doctor.mjs (#2874),
+// and src/scripts/fix-slugs.mjs (#2980).
 //
 // HERMETIC: paths use tmpdir fixtures; nothing reads or writes the real data.
 import { test } from 'node:test';
@@ -32,8 +32,8 @@ function runScript(script, ...args) {
 
 // Each script paired with a realistic typo of one of ITS OWN flags
 const SCRIPTS = [
-  ['fix-slugs.mjs', '--dryrun'],
-  ['fix-slugs.mjs', '--fle'],
+  ['src/scripts/fix-slugs.mjs', '--dryrun'],
+  ['src/scripts/fix-slugs.mjs', '--fle'],
 ];
 
 for (const [script, typo] of SCRIPTS) {
@@ -46,27 +46,27 @@ for (const [script, typo] of SCRIPTS) {
 }
 
 
-test('fix-slugs.mjs --help exits 0 and prints usage', () => {
-  const r = runScript('fix-slugs.mjs', '--help');
-  assert.equal(r.status, 0, `fix-slugs.mjs --help exited ${r.status}, want 0`);
-  assert.match(r.all, /Usage:/i, 'fix-slugs.mjs --help printed no usage block');
+test('src/scripts/fix-slugs.mjs --help exits 0 and prints usage', () => {
+  const r = runScript('src/scripts/fix-slugs.mjs', '--help');
+  assert.equal(r.status, 0, `src/scripts/fix-slugs.mjs --help exited ${r.status}, want 0`);
+  assert.match(r.all, /Usage:/i, 'src/scripts/fix-slugs.mjs --help printed no usage block');
 });
 
-test('fix-slugs.mjs -h exits 0 and prints usage', () => {
-  const r = runScript('fix-slugs.mjs', '-h');
-  assert.equal(r.status, 0, `fix-slugs.mjs -h exited ${r.status}, want 0`);
-  assert.match(r.all, /Usage:/i, 'fix-slugs.mjs -h printed no usage block');
+test('src/scripts/fix-slugs.mjs -h exits 0 and prints usage', () => {
+  const r = runScript('src/scripts/fix-slugs.mjs', '-h');
+  assert.equal(r.status, 0, `src/scripts/fix-slugs.mjs -h exited ${r.status}, want 0`);
+  assert.match(r.all, /Usage:/i, 'src/scripts/fix-slugs.mjs -h printed no usage block');
 });
 
-test('fix-slugs.mjs --help --bogus still errors', () => {
-  const r = runScript('fix-slugs.mjs', '--help', '--bogus');
-  assert.equal(r.status, 1, `fix-slugs.mjs --help --bogus exited ${r.status}, want 1`);
+test('src/scripts/fix-slugs.mjs --help --bogus still errors', () => {
+  const r = runScript('src/scripts/fix-slugs.mjs', '--help', '--bogus');
+  assert.equal(r.status, 1, `src/scripts/fix-slugs.mjs --help --bogus exited ${r.status}, want 1`);
   assert.match(r.all, /unrecognized flag/i);
 });
 
 
 test('fix-slugs rejects unknown flags before checking or reading portals file', () => {
-  const r = runScript('fix-slugs.mjs', '--file', join(tmpdir(), 'non-existent-portals.yml'), '--unknown-flag');
+  const r = runScript('src/scripts/fix-slugs.mjs', '--file', join(tmpdir(), 'non-existent-portals.yml'), '--unknown-flag');
   assert.equal(r.status, 1);
   assert.match(r.all, /unrecognized flag\(s\): --unknown-flag/);
   assert.doesNotMatch(r.all, /no portals file at/i);
@@ -77,10 +77,10 @@ test('fix-slugs honours both --file <path> and --file=<path> syntax', () => {
   try {
     const customPortals = join(dir, 'custom.yml');
     // Non-existent custom path should be reported when flags are valid
-    const r1 = runScript('fix-slugs.mjs', '--file', customPortals);
+    const r1 = runScript('src/scripts/fix-slugs.mjs', '--file', customPortals);
     assert.match(r1.all, new RegExp(`no portals file at ${customPortals.replace(/\\/g, '\\\\')}`));
 
-    const r2 = runScript('fix-slugs.mjs', `--file=${customPortals}`);
+    const r2 = runScript('src/scripts/fix-slugs.mjs', `--file=${customPortals}`);
     assert.match(r2.all, new RegExp(`no portals file at ${customPortals.replace(/\\/g, '\\\\')}`));
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -88,32 +88,32 @@ test('fix-slugs honours both --file <path> and --file=<path> syntax', () => {
 });
 
 test('fix-slugs rejects missing --file values (bare, empty, or next-is-flag)', () => {
-  const rBare = runScript('fix-slugs.mjs', '--file');
+  const rBare = runScript('src/scripts/fix-slugs.mjs', '--file');
   assert.equal(rBare.status, 1, 'bare --file must exit 1');
   assert.match(rBare.all, /--file requires a value/);
 
-  const rEmpty = runScript('fix-slugs.mjs', '--file=');
+  const rEmpty = runScript('src/scripts/fix-slugs.mjs', '--file=');
   assert.equal(rEmpty.status, 1, '--file= must exit 1');
   assert.match(rEmpty.all, /--file requires a value/);
 
-  const rFlag = runScript('fix-slugs.mjs', '--file', '--fix');
+  const rFlag = runScript('src/scripts/fix-slugs.mjs', '--file', '--fix');
   assert.equal(rFlag.status, 1, '--file --fix must exit 1 without treating --fix as a filename');
   assert.match(rFlag.all, /--file requires a value/);
 
-  const rApply = runScript('fix-slugs.mjs', '--file', '--apply');
+  const rApply = runScript('src/scripts/fix-slugs.mjs', '--file', '--apply');
   assert.equal(rApply.status, 1, '--file --apply must exit 1');
   assert.match(rApply.all, /--file requires a value/);
 
-  const rDryRun = runScript('fix-slugs.mjs', '--file', '--dry-run');
+  const rDryRun = runScript('src/scripts/fix-slugs.mjs', '--file', '--dry-run');
   assert.equal(rDryRun.status, 1, '--file --dry-run must exit 1');
   assert.match(rDryRun.all, /--file requires a value/);
 
-  const rShortFlag = runScript('fix-slugs.mjs', '--file', '-h');
+  const rShortFlag = runScript('src/scripts/fix-slugs.mjs', '--file', '-h');
   assert.equal(rShortFlag.status, 1, '--file -h must exit 1 without treating -h as a filename');
   assert.match(rShortFlag.all, /--file requires a value/);
   assert.doesNotMatch(rShortFlag.all, /no portals file at/i);
 
-  const rShortFlagEq = runScript('fix-slugs.mjs', '--file=-h');
+  const rShortFlagEq = runScript('src/scripts/fix-slugs.mjs', '--file=-h');
   assert.equal(rShortFlagEq.status, 1, '--file=-h must exit 1 without treating -h as a filename');
   assert.match(rShortFlagEq.all, /--file requires a value/);
   assert.doesNotMatch(rShortFlagEq.all, /no portals file at/i);
@@ -137,40 +137,40 @@ test('doctor: --target --json does not diagnose a directory named "--json"', () 
 });
 
 test('detect-reposts: --window --summary does not silently fall back to the default window', () => {
-  const r = runScript('detect-reposts.mjs', '--window', '--summary');
+  const r = runScript('src/scripts/detect-reposts.mjs', '--window', '--summary');
   assert.equal(r.status, 1, `want exit 1, got ${r.status}`);
   assert.match(r.all, /--window requires a value/);
 });
 
 test('process-quality: --file --min-threshold does not read --min-threshold as a path', () => {
-  const r = runScript('process-quality.mjs', '--file', '--min-threshold');
+  const r = runScript('src/scripts/process-quality.mjs', '--file', '--min-threshold');
   assert.equal(r.status, 1, `want exit 1, got ${r.status}`);
   assert.match(r.all, /--file requires a value/);
 });
 
 test('process-quality: --min-threshold --summary does not silently fall back to threshold 1', () => {
-  const r = runScript('process-quality.mjs', '--min-threshold', '--summary');
+  const r = runScript('src/scripts/process-quality.mjs', '--min-threshold', '--summary');
   assert.equal(r.status, 1, `want exit 1, got ${r.status}`);
   assert.match(r.all, /--min-threshold requires a value/);
 });
 
 test('weekly-digest: --dir --summary does not scan a directory named "--summary"', () => {
-  const r = runScript('weekly-digest.mjs', '--dir', '--summary');
+  const r = runScript('src/scripts/weekly-digest.mjs', '--dir', '--summary');
   assert.equal(r.status, 1, `want exit 1, got ${r.status}`);
   assert.match(r.all, /--dir requires a value/);
 });
 
-// archive-posting.mjs hand-rolls its own argv loop rather than going through
+// src/scripts/archive-posting.mjs hand-rolls its own argv loop rather than going through
 // validateFlags, so its --company/--role handling needed its own adjacency
-// check (the same class of bug through a different door — see archive-posting.mjs).
+// check (the same class of bug through a different door — see src/scripts/archive-posting.mjs).
 test('archive-posting: --company --pipeline does not set the company slug to "--pipeline"', () => {
-  const r = runScript('archive-posting.mjs', 'https://example.com/job', '--company', '--pipeline');
+  const r = runScript('src/scripts/archive-posting.mjs', 'https://example.com/job', '--company', '--pipeline');
   assert.equal(r.status, 1, `want exit 1, got ${r.status}`);
   assert.match(r.all, /--company requires a value/);
 });
 
 test('archive-posting: --role --dry-run does not set the role slug to "--dry-run"', () => {
-  const r = runScript('archive-posting.mjs', 'https://example.com/job', '--role', '--dry-run');
+  const r = runScript('src/scripts/archive-posting.mjs', 'https://example.com/job', '--role', '--dry-run');
   assert.equal(r.status, 1, `want exit 1, got ${r.status}`);
   assert.match(r.all, /--role requires a value/);
 });

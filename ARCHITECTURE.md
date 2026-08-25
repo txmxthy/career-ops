@@ -17,7 +17,7 @@ The single most important architectural rule: **system files** and **user files*
 - **System layer** — the tool itself: `modes/`, scripts (`*.mjs`), templates, the dashboard. These are versioned and updated by `update-system.mjs`. Listed in `SYSTEM_PATHS`.
 - **User layer** — your data: `cv.md`, `config/profile.yml`, `modes/_profile.md`, `data/`, `reports/`, `jds/`, etc. The updater **never** touches these. Listed in `USER_PATHS`.
 
-`DATA_CONTRACT.md` is the source of truth for this boundary, and `updater-migration-tests.mjs` enforces that no system path ever overlaps a user path.
+`DATA_CONTRACT.md` is the source of truth for this boundary, and `tests/updater-migration.test.mjs` enforces that no system path ever overlaps a user path.
 
 ## Files are canonical — databases are derived
 
@@ -49,16 +49,16 @@ Finds jobs from **open, no-auth public sources**. `scan.mjs` is zero-token: it c
 ### Evaluation — `modes/oferta.md` + `modes/_shared.md`
 The heart of the tool. `oferta.md` defines the A–H evaluation blocks (H is conditional, on scores of 4.5 and above); `_shared.md` defines the 1–5 scoring system, archetype detection, posting-legitimacy signals, and global rules. The AI reads these plus your `cv.md` and produces a structured report.
 
-**Standalone evaluators** let you run the same scoring without an interactive CLI, against cheaper/local models: `gemini-eval.mjs` (Google free tier), `ollama-eval.mjs` (fully local), and `openai-eval.mjs` (any OpenAI-compatible endpoint).
+**Standalone evaluators** let you run the same scoring without an interactive CLI, against cheaper/local models: `src/scripts/gemini-eval.mjs` (Google free tier), `src/scripts/ollama-eval.mjs` (fully local), and `src/scripts/openai-eval.mjs` (any OpenAI-compatible endpoint).
 
 ### Generation — PDFs, CVs, cover letters
-`generate-pdf.mjs` (Playwright HTML→PDF), `generate-latex.mjs` / `build-cv-latex.mjs`, `generate-cover-letter.mjs`. ATS-safe templates live in `templates/` and `fonts/`.
+`generate-pdf.mjs` (Playwright HTML→PDF), `src/scripts/generate-latex.mjs` / `src/scripts/build-cv-latex.mjs`, `src/scripts/generate-cover-letter.mjs`. ATS-safe templates live in `templates/` and `fonts/`.
 
 ### Tracking — `data/` + `reports/` + tracker scripts
-Every evaluated offer is registered. `data/applications.md` is the canonical tracker table; `reports/{NNN}-{company}-{date}.md` holds full evaluations. `tracker.mjs`, `merge-tracker.mjs`, `dedup-tracker.mjs`, `normalize-statuses.mjs`, and `reconcile-pipeline.mjs` keep it consistent (atomic writes + a SQLite index). Report numbers are claimed atomically via `reserve-report-num.mjs`.
+Every evaluated offer is registered. `data/applications.md` is the canonical tracker table; `reports/{NNN}-{company}-{date}.md` holds full evaluations. `tracker.mjs`, `merge-tracker.mjs`, `src/scripts/dedup-tracker.mjs`, `src/scripts/normalize-statuses.mjs`, and `src/scripts/reconcile-pipeline.mjs` keep it consistent (atomic writes + a SQLite index). Report numbers are claimed atomically via `reserve-report-num.mjs`.
 
 ### Liveness — never evaluate a dead posting
-`check-liveness.mjs` / `liveness-*.mjs` verify a posting is still open (zero-token) before it costs evaluation time.
+`src/scripts/check-liveness.mjs` / `liveness-*.mjs` verify a posting is still open (zero-token) before it costs evaluation time.
 
 ### Self-update — `update-system.mjs`
 Safely pulls new system files from upstream without touching user data. It backs up, fetches, re-execs the target updater (resolving its import closure so a new import can't break the upgrade), then checks out only `SYSTEM_PATHS`. `BOOTSTRAP_PATHS` covers very old installs.
@@ -81,8 +81,8 @@ scan ──► data/pipeline.md ──► evaluate (oferta + cv) ──► repor
 
 ## Quality gates
 
-- `test-all.mjs` — the full suite (500+ checks across scoring, scan, tracker, PDF, security, updater).
-- `updater-migration-tests.mjs` — enforces the system/user boundary and safe cross-version upgrades.
+- `tests/run-all.mjs` — the full suite (500+ checks across scoring, scan, tracker, PDF, security, updater).
+- `tests/updater-migration.test.mjs` — enforces the system/user boundary and safe cross-version upgrades.
 - CI: `test` + CodeQL are required; CodeRabbit reviews every PR; Renovate keeps deps current.
 
 ## Where to start reading

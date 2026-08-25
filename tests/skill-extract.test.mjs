@@ -1,5 +1,5 @@
 // tests/skill-extract.test.mjs — the shared skill vocabulary + canonical
-// extractor (#1896). These fixtures moved here verbatim from upskill.mjs's
+// extractor (#1896). These fixtures moved here verbatim from src/scripts/upskill.mjs's
 // self-test when the tokenizer was relocated (PR 1, pure relocation) — behavior
 // must stay byte-identical, so the same assertions now guard the shared module.
 import { pass, fail, ROOT } from './helpers.mjs';
@@ -9,7 +9,7 @@ import { pathToFileURL } from 'url';
 console.log('\nskill-extract.mjs (shared skill tokenizer, #1896)');
 
 try {
-  const { extractSkills, canonicalize } = await import(pathToFileURL(join(ROOT, 'skill-extract.mjs')).href);
+  const { extractSkills, canonicalize } = await import(pathToFileURL(join(ROOT, 'src/lib/skill-extract.mjs')).href);
 
   // canonicalization: aliases + display casing, unknown tokens pass through
   const s1 = extractSkills('Needs k8s, golang and Postgres experience; NodeJS a plus');

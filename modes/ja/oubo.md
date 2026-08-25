@@ -38,7 +38,7 @@ Application answers を生成する前に、form が意図した active job を�
 
 この preflight が解決するまで Step 6 に進まない。
 
-**Applying to several roles in one sitting?** この preflight は目の前の単一 form を確認する。Multi-role session の前、特に scanner entries が `**Verification:** unconfirmed (batch mode)` と marked されている場合は、`pipeline` mode の **Liveness sweep** を先に実行する（`node check-liveness.mjs --file <urls>`）。これにより `data/pipeline.md` から dead postings がまとめて落ち、expired role の tab を開かずに済む。
+**Applying to several roles in one sitting?** この preflight は目の前の単一 form を確認する。Multi-role session の前、特に scanner entries が `**Verification:** unconfirmed (batch mode)` と marked されている場合は、`pipeline` mode の **Liveness sweep** を先に実行する（`node src/scripts/check-liveness.mjs --file <urls>`）。これにより `data/pipeline.md` から dead postings がまとめて落ち、expired role の tab を開かずに済む。
 
 ## Step 1 -- Detect the job
 

@@ -1,4 +1,4 @@
-// Pins intake.mjs's documents/ and state-file resolution after it moved onto
+// Pins src/scripts/intake.mjs's documents/ and state-file resolution after it moved onto
 // src/core/store.js's workspaceDir().
 //
 // tests/intake.test.mjs sets CAREER_OPS_DOCUMENTS_DIR and CAREER_OPS_INTAKE_STATE
@@ -18,14 +18,14 @@ import { fileURLToPath } from 'node:url';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 
-// intake.mjs anchors both paths to its own directory, so a temp checkout holding
+// src/scripts/intake.mjs anchors both paths to its own directory, so a temp checkout holding
 // a real copy of it is the only way to vary the layout underneath it.
 function makeRoot(layout) {
   // realpath: macOS hands out /var/folders/… for a /private/var/folders/… dir,
-  // and intake.mjs resolves its own location, so the two spellings must be
+  // and src/scripts/intake.mjs resolves its own location, so the two spellings must be
   // reconciled here or every path assertion below compares the wrong pair.
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'intake-paths-')));
-  copyFileSync(join(REPO, 'intake.mjs'), join(root, 'intake.mjs'));
+  copyFileSync(join(REPO, 'src/scripts/intake.mjs'), join(root, 'src/scripts/intake.mjs'));
   symlinkSync(join(REPO, 'src'), join(root, 'src'), 'dir');
   if (layout) {
     mkdirSync(join(root, layout, 'cv'), { recursive: true });
@@ -36,7 +36,7 @@ function makeRoot(layout) {
 
 function scan(root) {
   // The env overrides are deliberately NOT set: this is the branch under test.
-  const r = spawnSync(process.execPath, ['intake.mjs'], { cwd: root, encoding: 'utf-8' });
+  const r = spawnSync(process.execPath, ['src/scripts/intake.mjs'], { cwd: root, encoding: 'utf-8' });
   assert.equal(r.status, 0, `${r.stdout}${r.stderr}`);
   return JSON.parse(r.stdout);
 }
@@ -88,7 +88,7 @@ test('the env overrides still beat both layouts', () => {
     mkdirSync(join(elsewhere, 'cv'), { recursive: true });
     writeFileSync(join(elsewhere, 'cv', 'override.md'), '# CV\n\nOverridden.\n');
     const state = join(elsewhere, 'state.json');
-    const r = spawnSync(process.execPath, ['intake.mjs'], {
+    const r = spawnSync(process.execPath, ['src/scripts/intake.mjs'], {
       cwd: root,
       encoding: 'utf-8',
       env: { ...process.env, CAREER_OPS_DOCUMENTS_DIR: elsewhere, CAREER_OPS_INTAKE_STATE: state },
@@ -106,7 +106,7 @@ test('the env overrides still beat both layouts', () => {
 test('--text accepts both flag forms and refuses a missing operand', () => {
   const root = makeRoot('documents');
   try {
-    const run = (...args) => spawnSync(process.execPath, ['intake.mjs', ...args], { cwd: root, encoding: 'utf-8' });
+    const run = (...args) => spawnSync(process.execPath, ['src/scripts/intake.mjs', ...args], { cwd: root, encoding: 'utf-8' });
 
     for (const args of [['--text', 'cv/master.md'], ['--text=cv/master.md']]) {
       const r = run(...args);

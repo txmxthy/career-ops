@@ -224,8 +224,8 @@ export function removeRowByNum(content, num) {
 
 // Parse + normalize the markdown into index-ready rows. The markdown itself is
 // never modified — normalization lives only in the derived index, and the
-// diagnostics tell the user what to fix at the source (normalize-statuses.mjs,
-// dedup-tracker.mjs).
+// diagnostics tell the user what to fix at the source (src/scripts/normalize-statuses.mjs,
+// src/scripts/dedup-tracker.mjs).
 function parseTracker(states) {
   const diag = { mojibake: 0, scoreInStatus: 0, unknownStatus: 0, badId: 0, badDate: 0, strayPipes: 0 };
   const rows = parseMarkdownRows(readFileSync(MD_PATH, 'utf-8'), diag);
@@ -297,7 +297,7 @@ function reportDiagnostics(diag) {
   if (diag.badId) console.error(`  ${diag.badId} missing/duplicate id(s), reassigned in the index`);
   if (diag.badDate) console.error(`  ${diag.badDate} malformed date(s), kept as-is`);
   if (diag.strayPipes) console.error(`  ${diag.strayPipes} row(s) with stray pipes, folded into notes`);
-  console.error('Fix at the source with `node normalize-statuses.mjs` / `node dedup-tracker.mjs`, then re-sync.');
+  console.error('Fix at the source with `node src/scripts/normalize-statuses.mjs` / `node src/scripts/dedup-tracker.mjs`, then re-sync.');
   return total;
 }
 

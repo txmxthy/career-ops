@@ -134,29 +134,29 @@ To propose a source (yours or anyone's): [open a source proposal](https://github
 ```bash
 # Scripts
 npm run doctor                # Setup validation
-node verify-pipeline.mjs     # Health check
-node cv-sync-check.mjs        # Config check
+node src/scripts/verify-pipeline.mjs     # Health check
+node src/scripts/cv-sync-check.mjs        # Config check
 
 # Dashboard
 npm run build:dashboard       # go build with platform-correct binary name
 npm run serve:dashboard       # launch the TUI against the repo root
 
 # Tests
-node test-all.mjs             # Full suite — run before pushing/opening a PR
-node test-all.mjs --quick     # Full suite, skipping the dashboard build
-node test-all.mjs --only providers/themuse   # Run just one provider's test(s)
+node tests/run-all.mjs             # Full suite — run before pushing/opening a PR
+node tests/run-all.mjs --quick     # Full suite, skipping the dashboard build
+node tests/run-all.mjs --only providers/themuse   # Run just one provider's test(s)
 ```
 
 **Adding a test for a new scanner provider:** add one file at
 **Any new test belongs in its own file** under `tests/`, not as a numbered
-section inside `test-all.mjs`. Anything matching `tests/**/*.test.mjs` is
+section inside `tests/run-all.mjs`. Anything matching `tests/**/*.test.mjs` is
 auto-discovered, so there is nothing to register and no section number to pick.
 A new file also collides with nobody: several contributors adding sections to
-`test-all.mjs` at the same time all edit its final lines, and each merge forces
+`tests/run-all.mjs` at the same time all edit its final lines, and each merge forces
 a rebase on the rest.
 
 `tests/providers/{name}.test.mjs` — it's auto-discovered (`tests/**/*.test.mjs`),
-no registration needed. Do not add a section to `test-all.mjs` for this.
+no registration needed. Do not add a section to `tests/run-all.mjs` for this.
 
 **Adding a test for the web app:** web suites live under `web/tests/`, mirroring
 the tested module's path below `web/src/` (`src/lib/clean-chips.mjs` →
@@ -170,7 +170,7 @@ detail; `tests/web-test-layout.test.mjs` enforces it on every PR.
 `tests/` files matching the given substring and skips every inline core
 section (syntax, scripts, dashboard, data contract, personal data, paths,
 etc.). A green `--only` run is **not** a green suite — always run the full
-`node test-all.mjs` before pushing.
+`node tests/run-all.mjs` before pushing.
 
 ## Brand and Trademark
 

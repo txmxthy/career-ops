@@ -2,11 +2,11 @@
 //
 // mark-pdf-ready.mjs is the canonical write path for the tracker's PDF column
 // (❌→✅), used by the web dashboard's "pdf" mode after the backend confirms a
-// successful render. Same sandboxing pattern as set-status-tests.mjs /
-// tracker-columns-tests.mjs: a throwaway tracker via the CAREER_OPS_TRACKER /
+// successful render. Same sandboxing pattern as tests/set-status.test.mjs /
+// tests/tracker-columns.test.mjs: a throwaway tracker via the CAREER_OPS_TRACKER /
 // CAREER_OPS_TRACKER_LOCK env overrides tracker-utils.mjs already respects.
 //
-// Auto-discovered by test-all.mjs (tests/**/*.test.mjs, #1440) — imported
+// Auto-discovered by tests/run-all.mjs (tests/**/*.test.mjs, #1440) — imported
 // in-process alongside every other discovered suite, so this file must NEVER
 // exit the process itself; only pass()/fail() from ./helpers.mjs.
 import { pass, fail, NODE, ROOT } from './helpers.mjs';
@@ -415,7 +415,7 @@ const TRACKER_DUP_REPORT = `# Applications Tracker
     const lock = join(dir, 'career-ops-merge-tracker-wf.lock');
     // On Windows, directory read-only bits don't block file creation — deny
     // write-data/append-data for Everyone (*S-1-1-0) via icacls instead
-    // (mirrors set-status-tests.mjs's write-failure test).
+    // (mirrors tests/set-status.test.mjs's write-failure test).
     const denyWrite = () => process.platform === 'win32'
       ? execFileSync('icacls', [roDir, '/deny', '*S-1-1-0:(WD,AD)'])
       : chmodSync(roDir, 0o555);

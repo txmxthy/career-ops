@@ -1,5 +1,5 @@
 import { pass, fail, rmSync, ROOT } from './helpers.mjs';
-import { processPipelineBatch, processOffer, PATHS } from '../batch-evaluate-gemini.mjs';
+import { processPipelineBatch, processOffer, PATHS } from '../src/scripts/batch-evaluate-gemini.mjs';
 import { mkdtempSync, mkdirSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -143,7 +143,7 @@ async function run() {
 }
 
 // Top-level await, not a floating `run()`: this suite is imported in-process by
-// test-all.mjs, and it sets CAREER_OPS_TRACKER for its own fixture. Without the
+// tests/run-all.mjs, and it sets CAREER_OPS_TRACKER for its own fixture. Without the
 // await the import resolves immediately, the async work keeps running alongside
 // later sections, and that variable stays pointed at this temp directory for a
 // window whose length depends on how fast the fixture runs — which is exactly

@@ -1,5 +1,5 @@
 /**
- * Characterisation of tracker-sync-check.mjs's argv reading and its two file
+ * Characterisation of src/scripts/tracker-sync-check.mjs's argv reading and its two file
  * loaders, taken as they moved onto src/core/flags.js and src/core/store.js.
  *
  * The `--apps-file` reader was an `args.indexOf()` lookup, so it could not see
@@ -17,7 +17,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const SCRIPT = join(ROOT, 'tracker-sync-check.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/tracker-sync-check.mjs');
 
 const APPS = '| # | Company | Role | Status |\n| --- | --- | --- | --- |\n| 1 | Acme | Dev | applied |\n';
 const INTERVIEWS = '| Company | Role | Status |\n| --- | --- | --- |\n| Acme | Dev | offer |\n';

@@ -1,5 +1,5 @@
 // tests/title-recall-corpus.test.mjs — a recall regression corpus for the shared
-// title matcher (title-keywords.mjs).
+// title matcher (src/lib/title-keywords.mjs).
 //
 // #3103 and #3104 established the guarantee this file exists to keep: a change to
 // keyword matching must not silently stop matching real roles. Both directions of
@@ -23,7 +23,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { pass, fail, ROOT } from './helpers.mjs';
-import { buildTitleFilter } from '../title-keywords.mjs';
+import { buildTitleFilter } from '../src/lib/title-keywords.mjs';
 
 console.log('\ntitle recall corpus — real titles, checked against the current matcher');
 

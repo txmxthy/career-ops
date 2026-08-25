@@ -7,8 +7,8 @@
  *      which exit code and which envelope. These are the rules the adapter owns,
  *      so they are tested without a child process.
  *   2. Real end-to-end tests pin the CONTRACT the translation depends on: that
- *      verify-pipeline.mjs still emits the ✅/⚠️/❌ vocabulary and the
- *      "Pipeline Health" tally, and that agent-inbox.mjs still prints
+ *      src/scripts/verify-pipeline.mjs still emits the ✅/⚠️/❌ vocabulary and the
+ *      "Pipeline Health" tally, and that src/scripts/agent-inbox.mjs still prints
  *      "Queued:" / "Resolved #n:". If either script's output changes, layer 1
  *      keeps passing and layer 2 fails — which is the point. A parser tested
  *      only against its own fixtures is a parser that cannot notice drift.
@@ -251,7 +251,7 @@ test('verify: a glyph inside a message is not counted as a second finding', asyn
 });
 
 test('verify: the fresh-setup early exit is 3, not a clean pipeline', async () => {
-  // verify-pipeline.mjs prints this and exits 0. Fourteen checks were skipped;
+  // src/scripts/verify-pipeline.mjs prints this and exits 0. Fourteen checks were skipped;
   // reporting that as a pass is the "nothing found" conflation ADR 0006 bans.
   const stdout = '\n📊 No applications.md found. This is normal for a fresh setup.\n   The file will be created when you evaluate your first offer.\n\n';
   const r = await commands.verify.run([], withSpawn({ status: 0, stdout }));
@@ -316,7 +316,7 @@ test('inbox-add: a lock timeout is could-not-run, not a failed request', async (
 });
 
 test("inbox-add: the delegate's own arity failure is translated to a usage error", async () => {
-  const r = await commands['inbox-add'].run(['x'], withSpawn({ status: 1, stderr: 'agent-inbox.mjs: add needs a request, e.g. node agent-inbox.mjs add "evaluate https://..."\n' }));
+  const r = await commands['inbox-add'].run(['x'], withSpawn({ status: 1, stderr: 'src/scripts/agent-inbox.mjs: add needs a request, e.g. node src/scripts/agent-inbox.mjs add "evaluate https://..."\n' }));
   assert.equal(r.exitCode, EXIT.USAGE, 'ADR 0006 gives usage errors 2; the delegate exits 1');
   assert.equal(r.envelope.ok, false);
 });
@@ -363,13 +363,13 @@ test('inbox-resolve: no queue file is 3; an out-of-range item is 1', async () =>
 
   // The delegate reports both of these as "no pending item #1 (0 pending)",
   // exit 1. They are not the same state.
-  const noFile = await commands['inbox-resolve'].run(['1'], withSpawn({ status: 1, stderr: 'agent-inbox.mjs: no pending item #1 (0 pending)\n' }, ctx));
+  const noFile = await commands['inbox-resolve'].run(['1'], withSpawn({ status: 1, stderr: 'src/scripts/agent-inbox.mjs: no pending item #1 (0 pending)\n' }, ctx));
   assert.equal(noFile.exitCode, EXIT.UNVERIFIED);
   assert.equal(noFile.envelope.ok, false);
   assert.deepEqual(noFile.envelope.errors.map((e) => e.code), ['could-not-verify']);
 
   writeFileSync(inbox, '# Agent Inbox\n\n- [ ] 2026-08-24 10:00 — one thing\n');
-  const outOfRange = await commands['inbox-resolve'].run(['9'], withSpawn({ status: 1, stderr: 'agent-inbox.mjs: no pending item #9 (1 pending)\n' }, ctx));
+  const outOfRange = await commands['inbox-resolve'].run(['9'], withSpawn({ status: 1, stderr: 'src/scripts/agent-inbox.mjs: no pending item #9 (1 pending)\n' }, ctx));
   assert.equal(outOfRange.exitCode, EXIT.FAILED, 'the queue exists, so this ran and failed');
   assert.deepEqual(outOfRange.envelope.errors.map((e) => e.code), ['no-such-item']);
 });
@@ -413,7 +413,7 @@ test('end-to-end: verify against a real tracker parses, and does not report 3', 
 
   // The assertion that matters is structural: whatever the checkout's own state
   // makes of this tracker, the adapter could READ the result. A 3 here means
-  // verify-pipeline.mjs's output vocabulary has moved and the parser above is
+  // src/scripts/verify-pipeline.mjs's output vocabulary has moved and the parser above is
   // now blind — which is exactly what this test exists to catch.
   assert.notEqual(r.exitCode, EXIT.UNVERIFIED, `verify could not read its own delegate's output: ${JSON.stringify(r.envelope.errors)}`);
   assert.ok([EXIT.OK, EXIT.FAILED].includes(r.exitCode), `unexpected exit ${r.exitCode}`);

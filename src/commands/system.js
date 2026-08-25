@@ -2,7 +2,7 @@
  * system.js — the `career-ops system` noun.
  *
  * ADR 0003 assigns twelve rows to `system`. Eleven ship here as command
- * adapters; the twelfth (`plugin-install.mjs`) is reclassified as a library —
+ * adapters; the twelfth (`src/scripts/plugin-install.mjs`) is reclassified as a library —
  * see "Reclassified" below.
  *
  * ## What an adapter is allowed to do
@@ -17,8 +17,8 @@
  * ## Why the executor spawns instead of importing
  *
  * The eleven backing scripts are not yet importable cores. Four of them
- * (`sync-pdf-flags.mjs`, `validate-system-paths-coverage.mjs`, and the two
- * report writers inside `plugins.mjs`) run work and call `process.exit()` at
+ * (`src/scripts/sync-pdf-flags.mjs`, `src/scripts/validate-system-paths-coverage.mjs`, and the two
+ * report writers inside `src/scripts/plugins.mjs`) run work and call `process.exit()` at
  * module top level, so importing them executes them. Extracting an argv-free
  * core from each is ADR 0005 step 4 and belongs in `src/core/`, not in an
  * adapter. Until then the process boundary IS the port: the adapter hands the
@@ -31,14 +31,14 @@
  * ADR 0006 makes 1 ("ran and failed") and 3 ("could not verify") distinct, and
  * the backing scripts predate that. The conflicts, each translated in its row:
  *
- *   - `sync-pdf-flags.mjs` exits 2 for a missing tracker and 4 for a lock
+ *   - `src/scripts/sync-pdf-flags.mjs` exits 2 for a missing tracker and 4 for a lock
  *     timeout. Neither is a finding; both become 3.
- *   - `fix-slugs.mjs` exits 0 and prints "nothing to fix" when portals.yml is
+ *   - `src/scripts/fix-slugs.mjs` exits 0 and prints "nothing to fix" when portals.yml is
  *     absent — a check that never ran, reported as a clean pass. Preflight
  *     turns that into 3.
- *   - `check-table-freshness.mjs` reports `tablesScanned: 0` at exit 0 when
+ *   - `src/scripts/check-table-freshness.mjs` reports `tablesScanned: 0` at exit 0 when
  *     `templates/` is missing. Same shape, same fix.
- *   - `plugin-audit.mjs` exits 2 both for a usage error and for "audit
+ *   - `src/scripts/plugin-audit.mjs` exits 2 both for a usage error and for "audit
  *     failed" — the second is 3; the first never reaches the child, because
  *     flags are parsed here first and a usage error is 2 without spawning.
  *   - Anything whose stderr names an unreachable network or a timeout is 3,
@@ -56,10 +56,10 @@
  *
  * ## Reclassified
  *
- * `plugin-install.mjs` has no CLI: no `main`, no `import.meta.url` guard, six
- * exports and one consumer (`plugins.mjs`). ADR 0003's classifier gave it a
+ * `src/scripts/plugin-install.mjs` has no CLI: no `main`, no `import.meta.url` guard, six
+ * exports and one consumer (`src/scripts/plugins.mjs`). ADR 0003's classifier gave it a
  * command slot by prefix; ADR 0002's rule ("a module with one consumer stays
- * inline") and the file's own header ("Imported by plugins.mjs") both say
+ * inline") and the file's own header ("Imported by src/scripts/plugins.mjs") both say
  * library. Giving it a CLI would also mint a second install path that skips
  * the consent card and lock entry `plugins add` writes — a security
  * regression, not a missing feature. Its capabilities stay reachable through
@@ -446,7 +446,7 @@ const update = makeCommand({
  */
 const checkTableFreshness = makeCommand({
   command: 'system check-table-freshness',
-  script: 'check-table-freshness.mjs',
+  script: 'src/scripts/check-table-freshness.mjs',
   description: 'Report jurisdiction tables in templates/ that are past their review date.',
   flags: {
     '--max-age-months': { type: 'number', describe: 'Review-due threshold in whole months (default: 12)' },
@@ -493,7 +493,7 @@ const checkTableFreshness = makeCommand({
  */
 const fixSlugs = makeCommand({
   command: 'system fix-slugs',
-  script: 'fix-slugs.mjs',
+  script: 'src/scripts/fix-slugs.mjs',
   description: 'Verify portals.yml against live ATS boards and repair resolvable slugs. Read-only unless --fix.',
   flags: {
     '--file': { type: 'string', describe: 'Portals file to check (default: portals.yml)' },
@@ -524,7 +524,7 @@ const fixSlugs = makeCommand({
  */
 const generateLatex = makeCommand({
   command: 'system generate-latex',
-  script: 'generate-latex.mjs',
+  script: 'src/scripts/generate-latex.mjs',
   description: 'Validate a .tex file and compile it to PDF with tectonic or pdflatex.',
   flags: {
     '--compile-only': { type: 'boolean', describe: 'Skip content validation and compile as-is' },
@@ -560,7 +560,7 @@ const generateLatex = makeCommand({
  */
 const pluginAudit = makeCommand({
   command: 'system plugin-audit',
-  script: 'plugin-audit.mjs',
+  script: 'src/scripts/plugin-audit.mjs',
   description: 'Statically audit a plugin directory for egress, eval and manifest violations.',
   positionals: { name: 'dir', min: 1, max: 1 },
   preflight: (parsed, root) => {
@@ -576,7 +576,7 @@ const pluginAudit = makeCommand({
 /**
  * `system plugins` — the plugin lifecycle.
  *
- * `data.output` carries prose rather than structure: `plugins.mjs` renders
+ * `data.output` carries prose rather than structure: `src/scripts/plugins.mjs` renders
  * every action to the terminal and exposes no JSON. Wrapping that prose is the
  * honest representation until its listing moves into `src/core/`; inventing
  * fields by scraping the output would be business logic in an adapter and
@@ -585,7 +585,7 @@ const pluginAudit = makeCommand({
 const PLUGIN_ACTIONS = ['list', 'available', 'run', 'skill', 'new', 'add', 'enable', 'trust', 'remove'];
 const plugins = makeCommand({
   command: 'system plugins',
-  script: 'plugins.mjs',
+  script: 'src/scripts/plugins.mjs',
   description: `Manage plugins. Actions: ${PLUGIN_ACTIONS.join(', ')} (default: list). Use -- before a payload containing flags.`,
   flags: {
     '--dry-run': { type: 'boolean', describe: 'run: show what the hook would do without doing it' },
@@ -628,7 +628,7 @@ const plugins = makeCommand({
  */
 const syncPdfFlags = makeCommand({
   command: 'system sync-pdf-flags',
-  script: 'sync-pdf-flags.mjs',
+  script: 'src/scripts/sync-pdf-flags.mjs',
   description: 'Upgrade tracker PDF cells to ✅ for every report present in the PDF manifest.',
   flags: {
     '--dry-run': { type: 'boolean', describe: 'List the rows that would change without writing' },
@@ -654,7 +654,7 @@ const syncPdfFlags = makeCommand({
 /** `system validate-plugin-registry` — shape gate for the curated registry. */
 const validatePluginRegistry = makeCommand({
   command: 'system validate-plugin-registry',
-  script: 'validate-plugin-registry.mjs',
+  script: 'src/scripts/validate-plugin-registry.mjs',
   description: 'Check the plugin registry’s shape and uniqueness. --deep also clones each pinned entry.',
   flags: {
     '--deep': { type: 'boolean', describe: 'Clone every entry at its pinned SHA and audit it (network)' },
@@ -680,7 +680,7 @@ const validatePluginRegistry = makeCommand({
  */
 const validatePathCoverage = makeCommand({
   command: 'system validate-path-coverage',
-  script: 'validate-system-paths-coverage.mjs',
+  script: 'src/scripts/validate-system-paths-coverage.mjs',
   description: 'Find tracked files covered by neither SYSTEM_PATHS nor USER_PATHS — the updater would not ship them.',
   preflight: (parsed, root) => {
     if (!existsSync(join(root, '.git'))) return `${root} is not a git checkout — the tracked-file list is unavailable`;
@@ -710,7 +710,7 @@ const validatePathCoverage = makeCommand({
  */
 const validateUntrustedCoverage = makeCommand({
   command: 'system validate-untrusted-coverage',
-  script: 'validate-untrusted-content-coverage.mjs',
+  script: 'src/scripts/validate-untrusted-content-coverage.mjs',
   description: 'Check that every mode ingesting external text references the untrusted-content directive.',
   flags: {
     '--self-test': { type: 'boolean', describe: 'Run the script’s inline self-test instead of a scan' },

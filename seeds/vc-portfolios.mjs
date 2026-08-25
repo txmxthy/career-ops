@@ -24,7 +24,7 @@
  *   const companies = await fetchYCCompanies();
  */
 
-import { DEFAULT_USER_AGENT } from '../user-agent.mjs';
+import { DEFAULT_USER_AGENT } from '../src/lib/user-agent.mjs';
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -242,7 +242,7 @@ export function parseA16zPayload(html) {
   return [...seen.values()];
 }
 
-// ── Generic pure parser (entry point for test-all.mjs) ───────────────
+// ── Generic pure parser (entry point for tests/run-all.mjs) ───────────────
 
 /**
  * Parse a raw seed payload (either YC JSON or a16z HTML) into validated

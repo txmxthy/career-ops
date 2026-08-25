@@ -12,7 +12,7 @@
  * ADR 0005 puts command modules at step 4 and the file moves at step 5, so
  * these adapters have to drive the scripts as they stand today. None of the
  * nine exports a runnable entry point — `main()` is private in all of them —
- * and three (`scan-interamt.mjs`, `check-liveness.mjs`, `validate-portals.mjs`)
+ * and three (`src/scripts/scan-interamt.mjs`, `src/scripts/check-liveness.mjs`, `src/scripts/validate-portals.mjs`)
  * call `main()` at module scope, so importing them starts a browser. Spawning
  * is therefore the only delegation available without editing files this agent
  * does not own. When step 5 lands and the logic is importable and argv-free,
@@ -355,7 +355,7 @@ const SPECS = {
 
   hn: {
     command: 'scan hn',
-    delegate: 'scan-hn.mjs',
+    delegate: 'src/scripts/scan-hn.mjs',
     description: 'Scan the Hacker News "Who is hiring" feed and append matches to the pipeline.',
     usage: 'career-ops scan hn [options]',
     jsonMode: 'prose',
@@ -364,7 +364,7 @@ const SPECS = {
 
   interamt: {
     command: 'scan interamt',
-    delegate: 'scan-interamt.mjs',
+    delegate: 'src/scripts/scan-interamt.mjs',
     description: 'Scan Interamt.de (German public sector) via Playwright, driven by interamt_searches in portals.yml.',
     usage: 'career-ops scan interamt [options]',
     jsonMode: 'prose',
@@ -378,7 +378,7 @@ const SPECS = {
 
   extract: {
     command: 'scan extract',
-    delegate: 'browser-extract.mjs',
+    delegate: 'src/scripts/browser-extract.mjs',
     description: 'Read one page headlessly and return compact JSON — a job description, or a board\'s posting links.',
     usage: 'career-ops scan extract <url> [options]',
     jsonMode: 'stdout-json',
@@ -393,7 +393,7 @@ const SPECS = {
 
   liveness: {
     command: 'scan liveness',
-    delegate: 'check-liveness.mjs',
+    delegate: 'src/scripts/check-liveness.mjs',
     description: 'Check whether job posting URLs are still live, via the free public API first and Playwright second.',
     usage: 'career-ops scan liveness <url…> | --file <urls.txt>',
     jsonMode: 'prose',
@@ -420,7 +420,7 @@ const SPECS = {
 
   discover: {
     command: 'scan discover',
-    delegate: 'discover-ats.mjs',
+    delegate: 'src/scripts/discover-ats.mjs',
     description: 'Resolve company names to ATS portal entries. Previews by default; only --write touches portals.yml.',
     usage: 'career-ops scan discover [<company>…] [--in <companies.yml>] [options]',
     // --summary swaps the delegate's JSON for a human table, so --json cannot
@@ -449,7 +449,7 @@ const SPECS = {
 
   'validate-portals': {
     command: 'scan validate-portals',
-    delegate: 'validate-portals.mjs',
+    delegate: 'src/scripts/validate-portals.mjs',
     description: 'Check portals.yml against the schema offline — shape, duplicates, unknown providers. No network.',
     usage: 'career-ops scan validate-portals [--file <portals.yml>]',
     jsonMode: 'prose',

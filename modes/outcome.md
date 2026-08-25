@@ -38,7 +38,7 @@ Record the outcome of an application conversationally, archive per-application a
 Run the helper script:
 
 ```bash
-node outcome.mjs <report#|company> <outcome_type> [--stage "..."] [--feedback "..."] [--note "..."] [--role "..."]
+node src/scripts/outcome.mjs <report#|company> <outcome_type> [--stage "..."] [--feedback "..."] [--note "..."] [--role "..."]
 ```
 
 ### Script CLI Options
@@ -61,7 +61,7 @@ Each invocation creates or appends to `data/outcomes/{num}_{company_slug}_{role_
 
 1. `submitted_cv.md` — Snapshot of CV at application/outcome time
 2. `submitted_cover_letter.md` — Snapshot of cover letter (if provided)
-3. `posting.pdf` — Job posting PDF snapshot via `archive-posting.mjs` (or `posting_missing.md` stub if unavailable)
+3. `posting.pdf` — Job posting PDF snapshot via `src/scripts/archive-posting.mjs` (or `posting_missing.md` stub if unavailable)
 4. `outcome.md` — Append-only outcome journal logging date, status transition, stage, verbatim feedback, and notes
 
 ## Rules & Constraints

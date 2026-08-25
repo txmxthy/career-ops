@@ -112,7 +112,7 @@ If a field matches, warn the candidate BEFORE generating or filling an answer fo
 - **Phrasing discipline:** describe the form field and what the jurisdiction's law prohibits — never assert that the employer is breaking the law or committing a violation; exemptions and scope are not verifiable from the form.
 - This step adds a warning before the answer is drafted; it changes nothing about the existing prepare-don't-submit flow, the Step 6 `needs_candidate_confirmation` contract, or the Step 5b knock-out handling.
 
-**Applying to several roles in one sitting?** This preflight verifies the single form in front of you. Before a multi-role session — especially against scanner entries marked `**Verification:** unconfirmed (batch mode)` — run the `pipeline` mode **Liveness sweep** first (`node check-liveness.mjs --file <urls>`). It drops the dead postings from `data/pipeline.md` in one batch so you never open a tab on an expired role.
+**Applying to several roles in one sitting?** This preflight verifies the single form in front of you. Before a multi-role session — especially against scanner entries marked `**Verification:** unconfirmed (batch mode)` — run the `pipeline` mode **Liveness sweep** first (`node src/scripts/check-liveness.mjs --file <urls>`). It drops the dead postings from `data/pipeline.md` in one batch so you never open a tab on an expired role.
 
 ## Step 1 — Detect the job
 
@@ -214,10 +214,10 @@ The section must include:
 
 Write the section at the end of the report, or replace only the existing `## Application Answers` section if it already exists. Do not rename, reorder, or edit the existing A-H report blocks or `## Keywords extracted`.
 
-Use `application-answers.mjs` when possible to format/upsert the section:
+Use `src/scripts/application-answers.mjs` when possible to format/upsert the section:
 
 ```bash
-node application-answers.mjs --report reports/NNN-company-role-date.md --input answers.json --state filled
+node src/scripts/application-answers.mjs --report reports/NNN-company-role-date.md --input answers.json --state filled
 ```
 
 ## Step 9 — Post-apply (optional)
@@ -229,7 +229,7 @@ If the candidate confirms that they submitted the application:
 4. Suggest next step: run the `contacto` mode (`/career-ops contacto` where available) for LinkedIn outreach
 
 **Confirmed resume-verification failure at this vendor? Check the rest of the pipeline (#1870).** If the candidate confirms the ATS silently dropped or altered resume content that they had submitted (see the SuccessFactors-family quirk below), don't treat it as a one-off. Tracker rows in `data/applications.md` don't carry a canonical ATS-vendor field, so don't grep the tracker text for a vendor name — it will miss rows silently. Instead, resolve the vendor per row from its linked report's `**URL:**` field:
-- For clean-fingerprint vendors (Greenhouse, Lever, Ashby, Workday, iCIMS), match the URL's hostname the same way `detectVendor()` in `analyze-patterns.mjs` does — reuse that function/pattern rather than re-deriving it, so the two stay in sync.
+- For clean-fingerprint vendors (Greenhouse, Lever, Ashby, Workday, iCIMS), match the URL's hostname the same way `detectVendor()` in `src/scripts/analyze-patterns.mjs` does — reuse that function/pattern rather than re-deriving it, so the two stay in sync.
 - White-labeled ATS (SuccessFactors, UKG, Dayforce, and similar) are **not** detectable from the URL alone — the very vendor family this quirk was confirmed on falls in this bucket. For those, don't guess from the domain: ask the candidate directly which other in-flight rows (`Applied`, `Responded`, `Interview`) went through the same portal, since neither the tracker nor the URL structurally exposes it.
 
 Once the same-vendor rows are identified (by URL match or candidate confirmation), surface that list and prompt the candidate to spot-check each one via that portal's preview/profile step if one exists. One confirmed silent-truncation case at a vendor raises the prior that it happened elsewhere in-flight through the same vendor too.

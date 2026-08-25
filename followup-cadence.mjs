@@ -221,7 +221,7 @@ export function parseAppliedDate(notes, options = {}) {
   const own = matches.filter(m => !isCrossReferencedMention(text, m.index));
 
   // First-wins is preserved among a row's OWN dates: a later status date must
-  // not displace the submission date (see the fixture in test-all.mjs).
+  // not displace the submission date (see the fixture in tests/run-all.mjs).
   // Cross-reference filtering is orthogonal to that ordering rule.
   if (own.length > 0) return own[0].date;
 
@@ -394,7 +394,7 @@ export function addDays(date, days) {
 }
 
 // --- Parse applications.md ---
-// Content-based core so any consumer (stats.mjs, tests) can classify rows
+// Content-based core so any consumer (src/scripts/stats.mjs, tests) can classify rows
 // from in-memory strings without touching disk. The disk-backed wrapper
 // below is what the CLI path uses.
 function parseTrackerContent(content) {
@@ -459,7 +459,7 @@ export function parseFollowups(content) {
 
 // `parseFollowups` is the disk-agnostic content parser upstream/main and its
 // callers use internally (analyzeFromContent, external scripts); the branch's
-// test-all.mjs imports it as `parseFollowupsContent`. Same function, two names.
+// tests/run-all.mjs imports it as `parseFollowupsContent`. Same function, two names.
 export { parseFollowups as parseFollowupsContent };
 
 // --- Next-date overrides (pins) ---
@@ -734,7 +734,7 @@ export function computeNextFollowupDate(status, appDate, lastFollowupDate, follo
 }
 
 // --- Main analysis ---
-// Content-based core so consumers outside this CLI (stats.mjs, tests) can
+// Content-based core so consumers outside this CLI (src/scripts/stats.mjs, tests) can
 // reuse the exact same cadence/urgency math — including the 'cold'
 // classification — without duplicating it or touching disk. `followupsContent`
 // missing/empty (the common case when data/follow-ups.md doesn't exist yet)
@@ -949,7 +949,7 @@ const USAGE = `Usage:
 // --- Run (CLI only; guarded so the module is safely importable for tests) ---
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // Must run inside this guard, not at module top level: CADENCE (above) is a
-  // module-level singleton built at import time, and test-all.mjs section 12
+  // module-level singleton built at import time, and tests/run-all.mjs section 12
   // dynamic-imports this module in-process to read it — validating the host
   // process's own argv there would false-positive on the test runner's flags.
   validateFlags(args, KNOWN_FLAGS, USAGE, { valueFlags: VALUE_FLAGS, requireOperand: true });

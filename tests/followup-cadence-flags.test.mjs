@@ -3,7 +3,7 @@
 // couldn't see) must never fall through to a plausible JSON report at exit 0.
 //
 // followup-cadence.mjs's tracker/follow-ups paths are fixed to CAREER_OPS's
-// own data/ dir (unlike funnel-velocity.mjs, there is no env override), so
+// own data/ dir (unlike src/scripts/funnel-velocity.mjs, there is no env override), so
 // these tests only assert on flag validation itself — everything checked here
 // happens before analyze() ever touches disk, except the one test that
 // deliberately stops short of asserting on the (machine-dependent) analysis

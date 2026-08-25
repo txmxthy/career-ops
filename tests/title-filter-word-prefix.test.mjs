@@ -20,8 +20,8 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import * as yaml from 'js-yaml';
 import { buildTitleFilter, compileKeyword } from '../scan.mjs';
-import { AND_SEPARATOR } from '../title-keywords.mjs';
-import { parsePortals } from '../openrouter-runner.mjs';
+import { AND_SEPARATOR } from '../src/lib/title-keywords.mjs';
+import { parsePortals } from '../src/scripts/openrouter-runner.mjs';
 
 console.log('\ntitle filter — `word:` prefix and dead-positive guard');
 
@@ -141,7 +141,7 @@ if (vetoed.length === 0) {
 }
 
 // ── 4. Both title-filtering paths must agree ─────────────────────────
-// openrouter-runner.mjs cannot import scan.mjs (scan.mjs creates data/ at
+// src/scripts/openrouter-runner.mjs cannot import scan.mjs (scan.mjs creates data/ at
 // import time), so it used to keep a second copy of the matching rules. The two
 // had drifted in three ways, none of which the shipped config can expose,
 // because it has positives and no malformed entries. Each case below is a

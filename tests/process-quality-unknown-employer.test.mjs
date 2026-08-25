@@ -23,7 +23,7 @@ console.log('\nprocess-quality.mjs — an undisclosed employer is not a company'
 
 try {
   const { aggregateProcessQuality } = await import(
-    pathToFileURL(join(ROOT, 'process-quality.mjs')).href
+    pathToFileURL(join(ROOT, 'src/scripts/process-quality.mjs')).href
   );
 
   const rows = [

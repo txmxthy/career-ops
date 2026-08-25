@@ -119,7 +119,7 @@ During the agent's scan, keep the **`local_parser_ok`** set in memory. This set 
 
 **Every company MUST have a `careers_url` in portals.yml.** If it does not, search for it once, save it, and use it in future scans.
 
-> **Opt-in — CLI extractor (`scan.extractor: cli`).** When `config/profile.yml` sets `scan.extractor: cli`, run `node browser-extract.mjs <careers_url> --mode listing` for each company instead of `browser_navigate` + `browser_snapshot`. It renders the page headlessly and returns compact JSON — `{ "url": ..., "jobs": [{ "title", "url" }] }` — so the listing enters context at a fraction of a full snapshot's tokens (~2–3× smaller here). Read the `jobs` array directly; then apply `title_filter` as usual. **Fall back silently** to `browser_navigate` + `browser_snapshot` if the command errors (it prints `{ "error", "code" }` and exits non-zero) or isn't present — never let the flag break a scan. Default (`scan.extractor` absent or `mcp`): the `browser_navigate` + `browser_snapshot` flow above.
+> **Opt-in — CLI extractor (`scan.extractor: cli`).** When `config/profile.yml` sets `scan.extractor: cli`, run `node src/scripts/browser-extract.mjs <careers_url> --mode listing` for each company instead of `browser_navigate` + `browser_snapshot`. It renders the page headlessly and returns compact JSON — `{ "url": ..., "jobs": [{ "title", "url" }] }` — so the listing enters context at a fraction of a full snapshot's tokens (~2–3× smaller here). Read the `jobs` array directly; then apply `title_filter` as usual. **Fall back silently** to `browser_navigate` + `browser_snapshot` if the command errors (it prints `{ "error", "code" }` and exits non-zero) or isn't present — never let the flag break a scan. Default (`scan.extractor` absent or `mcp`): the `browser_navigate` + `browser_snapshot` flow above.
 
 ### Level 2 — ATS APIs / Feeds (COMPLEMENTARY)
 
@@ -151,7 +151,7 @@ For companies with a public API or structured feed **that are not in `local_pars
 
 The `search_queries` with `site:` filters cover portals transversally (all Ashby, all Greenhouse, etc.). Useful for discovering NEW companies that are not yet in `tracked_companies`, but results might be outdated. After filtering out hits from companies in `local_parser_ok`, the remaining results are deduplicated with Levels 0–2.
 
-> **Caution — Level-3 hits can be weeks stale.** WebSearch is fed by a search index that lags the live board, so a result can describe a posting that has already closed. Treat every Level-3 hit as unverified: before adding it to `data/pipeline.md` or evaluating it, confirm liveness against the real posting (`node check-liveness.mjs <url>` for ATS-hosted pages, or Playwright for non-ATS pages). Unlike the real-time ATS responses in Level 2, a Level-3 snippet is never proof a role is still open.
+> **Caution — Level-3 hits can be weeks stale.** WebSearch is fed by a search index that lags the live board, so a result can describe a posting that has already closed. Treat every Level-3 hit as unverified: before adding it to `data/pipeline.md` or evaluating it, confirm liveness against the real posting (`node src/scripts/check-liveness.mjs <url>` for ATS-hosted pages, or Playwright for non-ATS pages). Unlike the real-time ATS responses in Level 2, a Level-3 snippet is never proof a role is still open.
 
 **Execution Priority:**
 1. Level 0: Local Parser → companies with a configured `parser:` and existing script; build `local_parser_ok`

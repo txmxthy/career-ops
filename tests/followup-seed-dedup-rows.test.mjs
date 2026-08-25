@@ -3,7 +3,7 @@
  * across its move onto src/core/table.js.
  *
  * The de-dup reads the appNum out of an existing follow-ups TABLE row (the
- * other half, a `next:` pin override, is covered by followup-seed-tests.mjs).
+ * other half, a `next:` pin override, is covered by tests/followup-seed.test.mjs).
  * A miss here appends a second follow-up for one application, so the row
  * shapes it must recognise are pinned rather than left to the parser.
  */

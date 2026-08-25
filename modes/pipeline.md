@@ -9,7 +9,7 @@ Process job URLs stored in `data/pipeline.md`. The user adds URLs at any time an
 Sweep all pending URLs in one batch with the zero-token liveness checker before the per-URL loop:
 
 1. Collect every `- [ ]` URL from the "Pending" section into a temp file (one URL per line).
-2. Run `node check-liveness.mjs --file <tmpfile>` (add `--throttle` for large batches to stay under WAF rate limits; it's pure Playwright, zero Claude tokens). The checker prints a per-URL verdict and exits non-zero if any are expired/uncertain.
+2. Run `node src/scripts/check-liveness.mjs --file <tmpfile>` (add `--throttle` for large batches to stay under WAF rate limits; it's pure Playwright, zero Claude tokens). The checker prints a per-URL verdict and exits non-zero if any are expired/uncertain.
 3. For every URL the checker reports as **expired/closed**, resolve the pipeline entry instead of processing it: move it to "Processed" as `- [x] ~~URL | Company | Role~~ — posting expired (liveness sweep)` and, if it already has a tracker row, mark it `Discarded`. **Do not** extract the JD, evaluate, or generate a report/PDF for it.
 4. Leave `uncertain` results in place to be confirmed during normal per-URL extraction (a transient timeout shouldn't drop a possibly-live posting).
 5. Only the surviving live URLs continue to the per-URL processing loop below.
@@ -64,7 +64,7 @@ Read `spend_tier` from `config/profile.yml` (see `modes/_shared.md` -- Spend Tie
 - [x] #144 | https://boards.greenhouse.io/xyz/jobs/012 | BigCo | SA | 2.1/5 | PDF ❌
 ```
 
-> Note: the section headers may be in EN ("Pending"/"Processed"), ES ("Pendientes"/"Procesadas"), or any other language a market mode set writes them in. Be flexible when reading, faithful to the existing file's style when writing. `scan.mjs` (`PENDING_MARKERS`/`PROCESSED_MARKERS`) and `reconcile-pipeline.mjs` (`PENDING_RE`/`PROCESSED_RE`) already accept the EN and ES spellings.
+> Note: the section headers may be in EN ("Pending"/"Processed"), ES ("Pendientes"/"Procesadas"), or any other language a market mode set writes them in. Be flexible when reading, faithful to the existing file's style when writing. `scan.mjs` (`PENDING_MARKERS`/`PROCESSED_MARKERS`) and `src/scripts/reconcile-pipeline.mjs` (`PENDING_RE`/`PROCESSED_RE`) already accept the EN and ES spellings.
 
 Pending lines are variable-width. The rawest form is a bare pasted URL,
 `- [ ] {url}` (1 column) — what you drop into the inbox by hand. Scanner-written
@@ -102,7 +102,7 @@ are defined:
   deterministic scanner never sets it.
 
 - `| rank: {score}/5 — {reason}` — an **opt-in** LLM relevance annotation written
-  only by `node rank-pipeline.mjs`, never by a scan. The score is 0–5 to one
+  only by `node src/scripts/rank-pipeline.mjs`, never by a scan. The score is 0–5 to one
   decimal and always carries a one-line reason, so you can disagree with it. It
   is advisory only: the ranker never removes, reorders, or hides a row, and an
   unranked row simply has no usable annotation — not that it scored badly. (A
@@ -115,7 +115,7 @@ When more than one is present the order is `posted:` → `trust:` → `note:` �
 ## Intelligent JD detection from URL
 
 1. **Playwright (preferred):** `browser_navigate` + `browser_snapshot`. Works with all SPAs.
-   - **Opt-in — CLI extractor (`scan.extractor: cli` in `config/profile.yml`):** run `node browser-extract.mjs <url>` (default `--mode jd`) instead; it returns compact `{ "url", "title", "text" }` — the JD main text at ~4–5× fewer tokens than a full snapshot. Use its `text` as the JD. **Fall back silently** to `browser_navigate` + `browser_snapshot` if it errors or is missing.
+   - **Opt-in — CLI extractor (`scan.extractor: cli` in `config/profile.yml`):** run `node src/scripts/browser-extract.mjs <url>` (default `--mode jd`) instead; it returns compact `{ "url", "title", "text" }` — the JD main text at ~4–5× fewer tokens than a full snapshot. Use its `text` as the JD. **Fall back silently** to `browser_navigate` + `browser_snapshot` if it errors or is missing.
 2. **WebFetch (fallback):** For static pages or when Playwright is unavailable.
 3. **WebSearch (last resort):** Search in secondary portals that index the JD.
 
@@ -134,6 +134,6 @@ When more than one is present the order is `posted:` → `trust:` → `note:` �
 
 Before processing any URL, verify sync:
 ```bash
-node cv-sync-check.mjs
+node src/scripts/cv-sync-check.mjs
 ```
 If there is a desynchronization, warn the user before continuing.

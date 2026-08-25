@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { normalizeUrl as webKey } from "../../src/lib/core/url-key.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-const { normalizeUrl: coreKey } = await import(pathToFileURL(join(ROOT, "url-key.mjs")).href);
+const { normalizeUrl: coreKey } = await import(pathToFileURL(join(ROOT, "src/lib/url-key.mjs")).href);
 
 test("web mirror matches core on ordinary postings (https upgrade, hostname lowercase, trailing slash)", () => {
   const CASES = [

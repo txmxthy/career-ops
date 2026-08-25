@@ -11,7 +11,7 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { normalizeUrl } from '../url-key.mjs';
+import { normalizeUrl } from '../src/lib/url-key.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MERGE = join(HERE, '..', 'merge-tracker.mjs');

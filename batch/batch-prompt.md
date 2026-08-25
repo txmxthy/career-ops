@@ -323,7 +323,7 @@ Rules:
 - Use `[]` for `hard_stops`, `soft_gaps`, `top_strengths`, or `discard_reasons` when empty.
 - `score` is numeric only, without `/5`.
 - `final_decision` must reflect the full evaluation, not only the CV match.
-- `advertised_comp` is the JD's **own** figure, verbatim; `null` when the JD states nothing — never estimate it and never substitute researched market data (Block D research stays in Block D). Batch workers never write `data/salary-observations.tsv` — the report itself is the advertised observation (`salary-gap.mjs` reads it).
+- `advertised_comp` is the JD's **own** figure, verbatim; `null` when the JD states nothing — never estimate it and never substitute researched market data (Block D research stays in Block D). Batch workers never write `data/salary-observations.tsv` — the report itself is the advertised observation (`src/scripts/salary-gap.mjs` reads it).
 - `reports_to` is the reporting line the JD itself states, in the JD's own wording; `null` when the JD names none — never infer it from the title, the team size, or company research. It records the seat's altitude, which the title alone does not: an IC seat reporting to a Head of Marketing and one reporting to the CEO are different roles.
 - Do not invent missing data. If confidence is limited, set `confidence: "Low"` and explain the limitation in the human-readable sections.
 - `work_auth` reflects the Block A work-authorization tier: `no_sponsorship` only when the JD **explicitly** refuses sponsorship for a role outside the candidate's `authorized_in`; `unstated` when the JD is silent (neutral, not a blocker); `not_needed` when the role is within `authorized_in` or sponsorship isn't required; `sponsors` when the JD explicitly offers it.

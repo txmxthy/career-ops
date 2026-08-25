@@ -1,5 +1,5 @@
 // tests/upskill-targeted-input.test.mjs — regression coverage for the local-file
-// branch of `upskill.mjs --url-text` (#2810 follow-up).
+// branch of `src/scripts/upskill.mjs --url-text` (#2810 follow-up).
 //
 // `existsSync(p)` is TRUE for a directory, so the readFileSync that followed it
 // threw EISDIR — from inside an async IIFE with no catch, which means the
@@ -14,7 +14,7 @@
 // because the behaviour under test lives inside the isMain guard and is
 // therefore not importable by design.
 //
-// Auto-discovered by test-all.mjs (tests/**/*.test.mjs) and imported in-process
+// Auto-discovered by tests/run-all.mjs (tests/**/*.test.mjs) and imported in-process
 // alongside every other suite, so it must NEVER exit the process itself — only
 // pass()/fail() from ./helpers.mjs.
 import { pass, fail, NODE, ROOT } from './helpers.mjs';
@@ -31,7 +31,7 @@ const sandbox = mkdtempSync(join(tmpdir(), 'co-upskill-input-'));
 
 /** Run the targeted CLI against one path. @returns {{code:number, stdout:string, stderr:string}} */
 function runTargeted(path) {
-  const res = spawnSync(NODE, [join(ROOT, 'upskill.mjs'), '--url-text', path], {
+  const res = spawnSync(NODE, [join(ROOT, 'src/scripts/upskill.mjs'), '--url-text', path], {
     cwd: ROOT, encoding: 'utf-8', timeout: 60000, stdio: ['pipe', 'pipe', 'pipe'],
   });
   return { code: res.status, stdout: res.stdout || '', stderr: res.stderr || '' };

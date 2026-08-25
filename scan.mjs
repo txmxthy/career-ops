@@ -47,14 +47,14 @@ import { buildTrustValidator } from './providers/_trust-validator.mjs';
 import { loadProviders, resolveProvider } from './providers/_registry.mjs';
 import { mergeProviderPlugins } from './plugins/_engine.mjs';
 import { classifyFetchError } from './verify-portals.mjs';
-import { fingerprintText, findCrossListings } from './fingerprint-core.mjs';
+import { fingerprintText, findCrossListings } from './src/lib/fingerprint-core.mjs';
 import { resolveColumns, parseTrackerRow, normalizeTextKey } from './tracker-parse.mjs';
 import { normalizeCompany } from './tracker-utils.mjs';
-import { normalizeCompanyName } from './invite-match.mjs';
-import { withPipelineLock } from './pipeline-lock.mjs';
-import { compileKeyword, compilePositiveKeyword, buildTitleFilter } from './title-keywords.mjs';
+import { normalizeCompanyName } from './src/scripts/invite-match.mjs';
+import { withPipelineLock } from './src/lib/pipeline-lock.mjs';
+import { compileKeyword, compilePositiveKeyword, buildTitleFilter } from './src/lib/title-keywords.mjs';
 import { flagValue, hasFlag, validateFlags } from './lib/cli-flags.mjs';
-import { withPortalHealthLock } from './portal-health-lock.mjs';
+import { withPortalHealthLock } from './src/lib/portal-health-lock.mjs';
 import { localToday } from './lib/local-today.mjs';
 import { parseRow } from './src/core/table.js';
 
@@ -100,11 +100,11 @@ const CONCURRENCY = 10;
 
 // ── Title filter ────────────────────────────────────────────────────
 
-// How a title_filter matches a title lives in title-keywords.mjs, because
-// openrouter-runner.mjs filters titles too and cannot import this file (scan.mjs
+// How a title_filter matches a title lives in src/lib/title-keywords.mjs, because
+// src/scripts/openrouter-runner.mjs filters titles too and cannot import this file (scan.mjs
 // creates data/ at import time). It called a second, hand-kept copy of this
 // logic until the two drifted; there is now one implementation and this file
-// re-exports it, so existing importers — scan-ats-full.mjs and test-all.mjs's
+// re-exports it, so existing importers — scan-ats-full.mjs and tests/run-all.mjs's
 // sections 11b and 44 among them — keep resolving it from here.
 export { compileKeyword, compilePositiveKeyword, buildTitleFilter };
 
@@ -1149,7 +1149,7 @@ function pipelineEntry(line, checkboxRe) {
  * Six line shapes are documented across the modes, and only the one
  * `appendToPipeline` writes leads with the URL. The others lead with a report
  * number (`#NNN`, `modes/pipeline.md`), a report link
- * (`[NNN](reports/…)`, `reconcile-pipeline.mjs`), a pre-screen marker (`#--`,
+ * (`[NNN](reports/…)`, `src/scripts/reconcile-pipeline.mjs`), a pre-screen marker (`#--`,
  * `modes/pipeline.md`), or a strikethrough (`~~…~~`, `modes/pipeline.md` and
  * `modes/oferta.md`). Anchoring the URL to the checkbox missed all five.
  *
@@ -1466,7 +1466,7 @@ function isRoleLocationSuffix(tag) {
  * not split a key.
  *
  * This helper does not infer posting churn or detect repost clusters. Those
- * post-tracking facts remain the responsibility of detect-reposts.mjs and the
+ * post-tracking facts remain the responsibility of src/scripts/detect-reposts.mjs and the
  * company-history `postingChurn` axis.
  *
  * @param {unknown} role - Raw role title from a tracker row or provider job.
@@ -1869,7 +1869,7 @@ Paste job URLs below as \`- [ ] {url}\` then run \`/career-ops pipeline\`.
 const PENDING_MARKERS = ['## Pending', '## Pendientes'];
 const PROCESSED_MARKERS = ['## Processed', '## Procesadas'];
 
-// Locked (pipeline-lock.mjs) so scan.mjs, scan-ats-full.mjs, and plugins.mjs
+// Locked (src/lib/pipeline-lock.mjs) so scan.mjs, scan-ats-full.mjs, and src/scripts/plugins.mjs
 // (pipeline mode) — the three current callers — can never interleave their
 // read-modify-write and silently drop each other's offers.
 export async function appendToPipeline(offers) {
@@ -1910,8 +1910,8 @@ export async function appendToPipeline(offers) {
 }
 
 // data/scan-history.tsv has exactly the same set of concurrent writers as
-// data/pipeline.md — scan.mjs, scan-ats-full.mjs, scan-interamt.mjs and
-// plugins.mjs — so it takes the same lock appendToPipeline does, on its own
+// data/pipeline.md — scan.mjs, scan-ats-full.mjs, src/scripts/scan-interamt.mjs and
+// src/scripts/plugins.mjs — so it takes the same lock appendToPipeline does, on its own
 // path. Unlocked, two writers race in two places: the create branch below is a
 // check-then-write, and its writeFileSync truncates, so a scanner that loses
 // the race erases rows the winner already appended; and a multi-row
@@ -2056,7 +2056,7 @@ export function appendScanRunSummary(c, filePath = SCAN_RUNS_PATH) {
 const PORTAL_HEALTH_PATH = 'data/portal-health.tsv';
 export const PORTAL_HEALTH_HEADER = 'timestamp\tcompany\tstatus\n';
 
-// Locked (portal-health-lock.mjs) so a concurrent read-modify-write of this
+// Locked (src/lib/portal-health-lock.mjs) so a concurrent read-modify-write of this
 // same file — e.g. tests/portal-health-guard.mjs's regression-cleanup path —
 // can never interleave with this append and silently discard one side.
 export async function appendPortalHealth(healthRecords, filePath = PORTAL_HEALTH_PATH) {
@@ -2133,7 +2133,7 @@ async function verifyOffers(offers, { headedFallback = false, throttleBaseMs = 0
   let sleep;
   try {
     ({ chromium } = await import('playwright'));
-    ({ checkUrlLiveness, checkUrlLivenessWithFallback, createHeadedPageProvider, newLivenessPage, jitteredDelayMs, sleep } = await import('./liveness-browser.mjs'));
+    ({ checkUrlLiveness, checkUrlLivenessWithFallback, createHeadedPageProvider, newLivenessPage, jitteredDelayMs, sleep } = await import('./src/lib/liveness-browser.mjs'));
   } catch (err) {
     throw new Error(
       `--verify requires Playwright with Chromium (run "npx playwright install chromium"): ${err.message}`,
@@ -2247,7 +2247,7 @@ function guardStatusFor(code) {
 // #2270: `node scan.mjs --help` used to run a full live scan and write to
 // pipeline.md/scan-history.tsv instead of printing usage — the flag was
 // never checked at all. Same shape as scan-ats-full.mjs (#1633/#1635),
-// reply-watch.mjs (#2743/#2745) and dedup-tracker.mjs (#2744/#2746), shared
+// src/scripts/reply-watch.mjs (#2743/#2745) and src/scripts/dedup-tracker.mjs (#2744/#2746), shared
 // via lib/cli-flags.mjs's validateFlags() (#2775).
 const KNOWN_FLAGS = [
   '--dry-run', '--verify', '--headed-fallback', '--throttle', '--rediscover-404',
@@ -2393,7 +2393,7 @@ async function main() {
     ? config.skip_tiers.filter(t => typeof t === 'string').map(t => t.toLowerCase())
     : [];
   if (skipTiers.length > 0) {
-    const mod = await import('./classify-tier.mjs');
+    const mod = await import('./src/scripts/classify-tier.mjs');
     classifyTier = mod.classifyTier || mod.default;
   }
 

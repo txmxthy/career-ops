@@ -82,7 +82,7 @@ git ls-files --eol batch/batch-runner.sh
 ## 4. Running the tests
 
 ```powershell
-node test-all.mjs
+node tests/run-all.mjs
 ```
 
 To run one suite on its own — useful when you are adding tests, and the fastest way to see a specific failure:

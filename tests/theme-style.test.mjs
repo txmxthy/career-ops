@@ -12,7 +12,7 @@ console.log('\ntheme-style.mjs (dynamic PDF theming, #1837)');
 try {
   const {
     styleTokensFrom, readStyleTokens, buildThemeStyleBlock, injectThemeStyle,
-  } = await import(pathToFileURL(join(ROOT, 'theme-style.mjs')).href);
+  } = await import(pathToFileURL(join(ROOT, 'src/lib/theme-style.mjs')).href);
 
   // styleTokensFrom: recognized keys → css vars; ignore unknown/non-string/missing
   const t = styleTokensFrom({ accent_color: '#2563eb', font_family: 'Outfit, sans-serif', font_size: '10pt', margin: '0.5in', nope: 'x', font_weight: 700 });

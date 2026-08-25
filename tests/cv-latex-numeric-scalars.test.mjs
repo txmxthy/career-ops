@@ -3,12 +3,12 @@
 // #2641 removed `typeof text !== 'string' -> ''` from escapeHtml because a
 // machine-authored payload with `dates: 2024` (a JSON number, not "2024")
 // rendered an empty field while the section stayed present. escapeLatex — the
-// function build-cv-latex.mjs runs every value through — kept the same guard,
+// function src/scripts/build-cv-latex.mjs runs every value through — kept the same guard,
 // so the .tex shipped without employment dates, education dates, project dates
 // or award years, and the builder still reported "valid": true and exited 0.
 //
 // End-to-end through the real builder and the shipped template, because
-// build-cv-latex.mjs exports nothing. Field names are the ones THIS builder
+// src/scripts/build-cv-latex.mjs exports nothing. Field names are the ones THIS builder
 // reads (education uses `dates`, awards use `year`) — they differ from the HTML
 // builder's in places, which is a schema question this test does not touch.
 import { pass, fail, ROOT, NODE, run, lastRunFailure } from './helpers.mjs';
@@ -37,11 +37,11 @@ try {
   const output = join(dir, 'num.tex');
   writeFileSync(input, JSON.stringify(PAYLOAD));
 
-  if (run(NODE, [join(ROOT, 'build-cv-latex.mjs'), input, output]) === null) {
+  if (run(NODE, [join(ROOT, 'src/scripts/build-cv-latex.mjs'), input, output]) === null) {
     const f = lastRunFailure();
-    fail(`build-cv-latex.mjs crashed (exit ${f?.status}) - ${(f?.stderr || '').trim().split('\n').pop()}`);
+    fail(`src/scripts/build-cv-latex.mjs crashed (exit ${f?.status}) - ${(f?.stderr || '').trim().split('\n').pop()}`);
   } else if (!existsSync(output)) {
-    fail('build-cv-latex.mjs exited 0 but wrote no output file');
+    fail('src/scripts/build-cv-latex.mjs exited 0 but wrote no output file');
   } else {
     const tex = readFileSync(output, 'utf-8');
     const missing = [

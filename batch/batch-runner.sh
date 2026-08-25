@@ -980,7 +980,7 @@ process_offer() {
     # Without this check such offers were silently marked "completed" with no
     # report file on disk and score "-" (found 2026-07-29, offer id 6 / report
     # 019 — Deepgram JD unextractable in headless mode). Only the downstream
-    # reconcile-pipeline.mjs safety net (which leaves an entry in Pending when
+    # src/scripts/reconcile-pipeline.mjs safety net (which leaves an entry in Pending when
     # its report file is missing) prevented the offer from being lost.
     # Extract only the LAST ```json fenced block in the log -- that's the
     # worker's one authoritative final result (batch-prompt.md Step 6), not
@@ -1100,10 +1100,10 @@ merge_tracker() {
   node "$PROJECT_DIR/merge-tracker.mjs"
   echo ""
   echo "=== Reconciling pipeline.md ==="
-  node "$PROJECT_DIR/reconcile-pipeline.mjs" || echo "⚠️  Pipeline reconcile had issues (see above)"
+  node "$PROJECT_DIR/src/scripts/reconcile-pipeline.mjs" || echo "⚠️  Pipeline reconcile had issues (see above)"
   echo ""
   echo "=== Verifying pipeline integrity ==="
-  node "$PROJECT_DIR/verify-pipeline.mjs" || echo "⚠️  Verification found issues (see above)"
+  node "$PROJECT_DIR/src/scripts/verify-pipeline.mjs" || echo "⚠️  Verification found issues (see above)"
 }
 
 # Print summary
@@ -1249,11 +1249,11 @@ watch_status() {
   echo "Showing final status:"
   print_status_table
 
-  # Chain verify-pipeline.mjs
-  if [[ -f "$PROJECT_DIR/verify-pipeline.mjs" ]]; then
+  # Chain src/scripts/verify-pipeline.mjs
+  if [[ -f "$PROJECT_DIR/src/scripts/verify-pipeline.mjs" ]]; then
     echo ""
     echo "=== Running pipeline verification ==="
-    node "$PROJECT_DIR/verify-pipeline.mjs" || echo "⚠️  Verification found issues"
+    node "$PROJECT_DIR/src/scripts/verify-pipeline.mjs" || echo "⚠️  Verification found issues"
   fi
 }
 

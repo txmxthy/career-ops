@@ -12,8 +12,8 @@ import { fileURLToPath } from 'url';
 import * as yaml from 'js-yaml';
 import dotenv from 'dotenv';
 import { discoverPlugins, pluginRoots, pluginStatus } from './plugins/_engine.mjs';
-import { resolveExtractorMode } from './browser-extract.mjs';
-import { parseConfigByExtension } from './jsonc-parse.mjs';
+import { resolveExtractorMode } from './src/scripts/browser-extract.mjs';
+import { parseConfigByExtension } from './src/lib/jsonc-parse.mjs';
 import { validateFlags } from './lib/cli-flags.mjs';
 import { geminiNodeFloor } from './lib/gemini-node-floor.mjs';
 import { flagValue } from './src/core/flags.js';
@@ -345,13 +345,13 @@ function checkPlaywrightMcp(root, activeCli) {
 function checkScanExtractor(root) {
   const mode = resolveExtractorMode(join(root, 'config', 'profile.yml'));
   if (mode === 'cli') {
-    if (existsSync(join(root, 'browser-extract.mjs'))) {
-      return { pass: true, label: 'Scan extractor: cli (browser-extract.mjs)' };
+    if (existsSync(join(root, 'src/scripts/browser-extract.mjs'))) {
+      return { pass: true, label: 'Scan extractor: cli (src/scripts/browser-extract.mjs)' };
     }
     return {
       warn: true,
-      label: 'Scan extractor: cli set, but browser-extract.mjs is missing — falls back to MCP',
-      fix: ['Restore browser-extract.mjs, or set `scan.extractor: mcp` in config/profile.yml.'],
+      label: 'Scan extractor: cli set, but src/scripts/browser-extract.mjs is missing — falls back to MCP',
+      fix: ['Restore src/scripts/browser-extract.mjs, or set `scan.extractor: mcp` in config/profile.yml.'],
     };
   }
   return { pass: true, label: 'Scan extractor: mcp (default)' };

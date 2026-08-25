@@ -14,7 +14,7 @@
 //   1. web-ci.yml runs `npm ci` inside web/ only. Importing the core module
 //      resolves js-yaml from the repo root's node_modules, which does not exist
 //      there — the assertion cannot run on that side of the boundary at all.
-//   2. .github/workflows/test.yml runs test-all.mjs on every PR and is a
+//   2. .github/workflows/test.yml runs tests/run-all.mjs on every PR and is a
 //      required check; web-ci.yml is informative by design.
 // Same reach-into-web/ pattern as tests/web-test-layout.test.mjs.
 //
@@ -34,7 +34,7 @@ console.log('\nprofile-keywords — web mirror vs core helper');
 // web/ is NOT in update-system.mjs's SYSTEM_PATHS but tests/ is, so this file
 // ships to installs whose checkout has no web/ at all — and a static import
 // cannot be skipped, so it turns a core-only install into a permanent failure
-// (#1675 / #1677). Three branches, as in test-all.mjs's #2666 mirror-parity
+// (#1675 / #1677). Three branches, as in tests/run-all.mjs's #2666 mirror-parity
 // freeze: an absent web/ is a real absence, but a mirror missing under a
 // present web/ is a move, and a skip is how a parity freeze quietly stops
 // guarding.

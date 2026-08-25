@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const SCRIPT = join(ROOT, 'plugin-audit.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/plugin-audit.mjs');
 
 function runAudit(...args) {
   const r = spawnSync(process.execPath, [SCRIPT, ...args], {
@@ -13,8 +13,8 @@ function runAudit(...args) {
     encoding: 'utf-8',
     timeout: 10_000,
   });
-  assert.equal(r.error, undefined, `plugin-audit.mjs failed to spawn: ${r.error?.message}`);
-  assert.equal(r.signal, null, `plugin-audit.mjs was killed by ${r.signal} (timeout?)`);
+  assert.equal(r.error, undefined, `src/scripts/plugin-audit.mjs failed to spawn: ${r.error?.message}`);
+  assert.equal(r.signal, null, `src/scripts/plugin-audit.mjs was killed by ${r.signal} (timeout?)`);
   return { ...r, all: `${r.stdout ?? ''}${r.stderr ?? ''}` };
 }
 

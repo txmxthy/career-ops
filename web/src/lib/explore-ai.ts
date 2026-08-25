@@ -18,7 +18,7 @@ export type AiTraceChunk =
 
 /**
  * Normalize a URL for dedup. Delegates to the parity-tested normalizeUrl
- * mirror (url-key.mjs) instead of host+pathname — a bare host+path key
+ * mirror (src/lib/url-key.mjs) instead of host+pathname — a bare host+path key
  * discarded the query string unconditionally, so two DIFFERENT postings that
  * share a path and differ only by a functional query id (e.g. Greenhouse's
  * `?gh_jid=`) collapsed onto one key and every opening after the first at

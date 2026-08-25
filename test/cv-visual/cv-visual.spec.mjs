@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { resolveTemplate } from '../../cv-templates.mjs';
+import { resolveTemplate } from '../../src/lib/cv-templates.mjs';
 import { fixtures } from './fixtures.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -37,7 +37,7 @@ for (const fixture of fixtures) {
       const pngPath = join(ARTIFACTS, `${artifactBase}.png`);
       mkdirSync(ARTIFACTS, { recursive: true });
       writeFileSync(input, JSON.stringify(fixture.payload));
-      execFileSync(process.execPath, ['build-cv-html.mjs', input, html, TEMPLATE.path], { cwd: ROOT });
+      execFileSync(process.execPath, ['src/scripts/build-cv-html.mjs', input, html, TEMPLATE.path], { cwd: ROOT });
 
       await page.goto(pathToFileURL(html).href, { waitUntil: 'load' });
       await page.emulateMedia({ media: 'print' });

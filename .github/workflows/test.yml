@@ -42,7 +42,7 @@ jobs:
       # Skip the postinstall (npx playwright install chromium); the tests
       # never launch a browser, so the ~170 MB download is pure CI overhead.
       - run: npm install --ignore-scripts
-      - run: node test-all.mjs --quick
+      - run: node tests/run-all.mjs --quick
       - name: Go dashboard tests
         run: go test ./...
         working-directory: dashboard
@@ -86,8 +86,8 @@ jobs:
           go-version: '1.26'   # old updaters rebuild the dashboard during apply
       - run: npm install --ignore-scripts
       - name: Upgrade PR gate (newest old release -> this commit)
-        run: node upgrade-tests.mjs --pr-gate
+        run: node tests/upgrade.test.mjs --pr-gate
       - name: Canary (harness must be able to fail)
-        run: node upgrade-tests.mjs --canary
+        run: node tests/upgrade.test.mjs --canary
       - name: Local-paths declaration survives a real apply (#2421)
-        run: node upgrade-tests.mjs --local-paths
+        run: node tests/upgrade.test.mjs --local-paths

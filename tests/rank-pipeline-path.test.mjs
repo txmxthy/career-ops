@@ -1,9 +1,9 @@
-// tests/rank-pipeline-path.test.mjs — which pipeline.md rank-pipeline.mjs
+// tests/rank-pipeline-path.test.mjs — which pipeline.md src/scripts/rank-pipeline.mjs
 // actually annotates, pinned as part of moving it onto src/core/store.js.
 //
 // docs/audit/duplicate-functionality.md counts eight private resolutions of the
 // pipeline inbox and calls none of them fit (its §"pipeline path", entry 4 is
-// this file). rank-pipeline.mjs joined `data/pipeline.md` to its own script
+// this file). src/scripts/rank-pipeline.mjs joined `data/pipeline.md` to its own script
 // directory and honoured no override at all, so a second search lane — a
 // bridge track, a career-change track, a partner sharing the checkout — pointed
 // `CAREER_OPS_PIPELINE` somewhere else and this script silently annotated the
@@ -24,7 +24,7 @@ import { tmpdir } from 'os';
 
 console.log('\nrank-pipeline.mjs — pipeline inbox resolution (characterisation)');
 
-const SCRIPT = join(ROOT, 'rank-pipeline.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/rank-pipeline.mjs');
 const LANE = mkdtempSync(join(tmpdir(), 'rank-lane-'));
 const INBOX = join(LANE, 'pipeline.md');
 writeFileSync(INBOX, [

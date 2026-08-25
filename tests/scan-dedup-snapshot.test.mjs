@@ -90,7 +90,7 @@ const GOLDEN = {
 };
 
 // The module-level data/ paths are relative to process.cwd(), so run each call
-// chdir'd into a sandbox (same pattern as the #2065 fixture in test-all.mjs).
+// chdir'd into a sandbox (same pattern as the #2065 fixture in tests/run-all.mjs).
 function inSandbox(files, fn) {
   const dir = mkdtempSync(join(tmpdir(), 'dedup-snapshot-'));
   mkdirSync(join(dir, 'data'), { recursive: true });

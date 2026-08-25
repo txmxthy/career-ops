@@ -1,5 +1,5 @@
 /**
- * Characterisation of analyze-patterns.mjs's CLI surface across its move onto
+ * Characterisation of src/scripts/analyze-patterns.mjs's CLI surface across its move onto
  * src/core/{store,flags}.js.
  *
  * The script has no exports, so its inputs — where the tracker comes from and
@@ -15,7 +15,7 @@ import { tmpdir } from 'os';
 import { fileURLToPath } from 'url';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const SCRIPT = join(ROOT, 'analyze-patterns.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/analyze-patterns.mjs');
 
 const TRACKER = [
   '# Applications Tracker',

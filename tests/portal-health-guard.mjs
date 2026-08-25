@@ -5,11 +5,11 @@
 // same live file while the test's child process ran. This instead removes
 // only the marker row the test itself may have written, leaving everything
 // else in the file exactly as it was found. The read-modify-write shares
-// portal-health-lock.mjs's cross-process lock with appendPortalHealth()
+// src/lib/portal-health-lock.mjs's cross-process lock with appendPortalHealth()
 // (scan.mjs), so a concurrent appender can never land between this guard's
 // read and write.
 import { existsSync, readFileSync, writeFileSync, rmSync } from 'fs';
-import { withPortalHealthLock } from '../portal-health-lock.mjs';
+import { withPortalHealthLock } from '../src/lib/portal-health-lock.mjs';
 
 /**
  * Remove a fixture marker row from `path` without disturbing any other content.

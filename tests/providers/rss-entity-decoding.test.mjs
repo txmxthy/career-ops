@@ -195,7 +195,7 @@ for (const [label, getTitle] of checked) {
   // Without these, a regex that later matches NOTHING keeps every run green
   // over a real private copy — the exact failure this block exists to prevent.
   {
-    const IMPORT_LINE = "import { decodeEntities } from './_html-entities.mjs';\n";
+    const IMPORT_LINE = "import { decodeEntities } from '../../providers/_html-entities.mjs';\n";
     const planted = [
       // The senjob escape: singular name, no shared import.
       ['const decodeEntity = (m, r) => m;',

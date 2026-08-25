@@ -1,4 +1,4 @@
-// tests/providers/workday.test.mjs — moved verbatim from test-all.mjs (#1440).
+// tests/providers/workday.test.mjs — moved verbatim from tests/run-all.mjs (#1440).
 import { pass, fail, warn, run, ROOT, captureConsoleErrors } from '../helpers.mjs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';

@@ -1,5 +1,5 @@
 /**
- * Characterisation of negotiation-roi.mjs's flag reading, taken as it moved
+ * Characterisation of src/scripts/negotiation-roi.mjs's flag reading, taken as it moved
  * from lib/cli-flags.mjs onto src/core/flags.js.
  *
  * The file already states the contract it wants: "Argument validation runs
@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const SCRIPT = join(ROOT, 'negotiation-roi.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/negotiation-roi.mjs');
 
 function run(...args) {
   const r = spawnSync(process.execPath, [SCRIPT, ...args], {

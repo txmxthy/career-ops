@@ -172,7 +172,7 @@ test('cover-letter requires --payload', async () => {
 });
 
 test('cover-letter rejects a page format generate-pdf does not know', async () => {
-  // generate-cover-letter.mjs passes --format straight through, so a typo
+  // src/scripts/generate-cover-letter.mjs passes --format straight through, so a typo
   // renders at the default size and says nothing.
   const res = await commands['cover-letter'].run(['--payload', join(sandbox, 'payload.json'), '--format', 'tabloid']);
   assert.equal(res.exitCode, EXIT.USAGE);
@@ -190,7 +190,7 @@ test('sync-check takes no arguments', async () => {
 // ── Could not run — exit 3 ──────────────────────────────────────────
 
 test('a missing build payload is exit 3, not exit 1', async () => {
-  // build-cv-html.mjs:727 and build-cv-latex.mjs:114 both exit 1 here, which
+  // src/scripts/build-cv-html.mjs:727 and src/scripts/build-cv-latex.mjs:114 both exit 1 here, which
   // reads identically to a build that ran and produced a broken document.
   for (const verb of ['build-html', 'build-latex']) {
     const res = await commands[verb].run([join(sandbox, 'absent.json'), join(sandbox, 'out', 'x.out')]);
@@ -218,7 +218,7 @@ test('a missing verify-facts target is exit 3', async () => {
 });
 
 test('verify-facts with no readable sources is exit 3, never a clean block', async () => {
-  // The defect this closes: verify-cv-facts.mjs reads sources with readText,
+  // The defect this closes: src/scripts/verify-cv-facts.mjs reads sources with readText,
   // which turns an absent file into ''. With no evidence every metric in the
   // document looks invented, so the gate returns a confident `block` — a
   // finding produced by a check that never ran.

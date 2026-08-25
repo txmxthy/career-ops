@@ -1,4 +1,4 @@
-// tests/browser-extract-flags.test.mjs — browser-extract.mjs's CLI contract.
+// tests/browser-extract-flags.test.mjs — src/scripts/browser-extract.mjs's CLI contract.
 //
 // The script hand-rolled its argv parsing and matched tokens EXACTLY against a
 // local `FLAGS` set, which left three distinct failures on `main` (#3004). All
@@ -28,7 +28,7 @@ import { tmpdir } from 'os';
 console.log('\nbrowser-extract.mjs — flag validation and value forms');
 
 const NODE = process.execPath;
-const SCRIPT = join(ROOT, 'browser-extract.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/browser-extract.mjs');
 
 // cwd is deliberately not the project root: the script resolves its own paths
 // through import.meta.url, and a cwd-relative read would show up here.

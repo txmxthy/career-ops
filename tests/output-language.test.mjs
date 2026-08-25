@@ -1,6 +1,6 @@
 // tests/output-language.test.mjs — headless engines honor language.output (#1897).
 //
-// Discovered suites run IN-PROCESS inside test-all.mjs: they must report via
+// Discovered suites run IN-PROCESS inside tests/run-all.mjs: they must report via
 // the shared pass/fail counters from helpers.mjs and must never terminate the
 // process themselves — a stray exit call here would kill the whole suite
 // mid-run and forge its exit code (see the guard in test-all's runDiscovered).
@@ -10,7 +10,7 @@ import { pass, fail, ROOT } from './helpers.mjs';
 import {
   outputLanguageInstruction,
   parseOutputLanguage,
-} from '../profile-language.mjs';
+} from '../src/lib/profile-language.mjs';
 
 console.log('\noutput-language — headless engines honor language.output (#1897)');
 
@@ -35,10 +35,10 @@ check(directive.includes('regardless of the language of these instructions or th
 check(directive.includes('explain them in fr when needed'), 'directive preserves and explains market terms');
 
 const engines = [
-  'ollama-eval.mjs',
-  'openai-eval.mjs',
-  'gemini-eval.mjs',
-  'openrouter-runner.mjs',
+  'src/scripts/ollama-eval.mjs',
+  'src/scripts/openai-eval.mjs',
+  'src/scripts/gemini-eval.mjs',
+  'src/scripts/openrouter-runner.mjs',
 ];
 for (const engine of engines) {
   const source = readFileSync(join(ROOT, engine), 'utf-8');
@@ -51,7 +51,7 @@ for (const engine of engines) {
   );
 }
 
-const { buildSystemPrompt } = await import('../openrouter-runner.mjs');
+const { buildSystemPrompt } = await import('../src/scripts/openrouter-runner.mjs');
 const openrouterPrompt = buildSystemPrompt('MODE', {
   shared: 'SHARED',
   profileMode: 'PROFILE MODE',
@@ -60,5 +60,5 @@ const openrouterPrompt = buildSystemPrompt('MODE', {
 });
 check(openrouterPrompt.includes(outputLanguageInstruction('ja')), 'OpenRouter system prompt contains the resolved language instruction');
 
-const gemini = readFileSync(join(ROOT, 'gemini-eval.mjs'), 'utf-8');
+const gemini = readFileSync(join(ROOT, 'src/scripts/gemini-eval.mjs'), 'utf-8');
 check(!gemini.includes('in English, unless the JD is in another language'), 'Gemini no longer lets JD language override profile output');

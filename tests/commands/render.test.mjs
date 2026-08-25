@@ -173,7 +173,7 @@ test('render image: a missing image could not be converted — 3', async () => {
 
 test('render dashboard: no dashboard source is a could-not-run — 3', async () => {
   const dir = sandbox();
-  writeFileSync(join(dir, 'build-dashboard.mjs'), '// stand-in\n');
+  writeFileSync(join(dir, 'src/scripts/build-dashboard.mjs'), '// stand-in\n');
   const exec = fakeExec();
   const res = await commands.dashboard.run([], { rootDir: dir, cwd: dir, exec });
   assert.equal(res.code, EXIT.UNVERIFIED);
@@ -415,7 +415,7 @@ test('the adapters neither print nor exit', () => {
 });
 
 test('the render module imports no delegate at load time', async () => {
-  // img-to-pdf.mjs pulls in Playwright. A static import would make
+  // src/scripts/img-to-pdf.mjs pulls in Playwright. A static import would make
   // `career-ops render dashboard --help` fail on a checkout with no browser
   // installed, which is the whole point of loading it inside run().
   const src = readFileSync(join(ROOT, 'src/commands/render.js'), 'utf-8');

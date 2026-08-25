@@ -6,7 +6,7 @@
  * a sibling `plugins/` layer for integrations that need a KEY or talk to an
  * EXTERNAL service. The zero-key providers/ dir is untouched and stays pure.
  *
- * Design invariants (every one is asserted by test-all.mjs section 49):
+ * Design invariants (every one is asserted by tests/run-all.mjs section 49):
  *  - ZERO module-level side effects. Importing this file reads no config, loads
  *    no dotenv, and mutates no process.env. scan.mjs imports `mergeProviderPlugins`
  *    on every run, and that import must be free — so a plain `node scan.mjs` with
@@ -20,7 +20,7 @@
  *    is code review (bundled plugins, same gate as providers/) + user trust
  *    (plugins.local/). See plugins/README.md "Trust model".
  *
- * Pure + side-effect-free so scan.mjs, plugins.mjs, doctor.mjs and test-all.mjs
+ * Pure + side-effect-free so scan.mjs, src/scripts/plugins.mjs, doctor.mjs and tests/run-all.mjs
  * all reuse it with no prod-vs-test drift.
  */
 
@@ -193,7 +193,7 @@ export function validateManifest(m, dir, dirName) {
   if (!isSafePluginPath(dir, entryAbs)) { warnSkip(label, `entry "${entry}" escapes the plugin directory`); return null; }
 
   // Optional companion skill (Open-Agent-Skill-Standard SKILL.md). Traversal-
-  // guarded like entry. Surfaced on-demand via `plugins.mjs skill <id>`; never
+  // guarded like entry. Surfaced on-demand via `src/scripts/plugins.mjs skill <id>`; never
   // auto-injected into AGENTS.md/modes (the data-vs-brain firewall).
   let skill = null;
   if (m.skill !== undefined) {
@@ -257,7 +257,7 @@ export function discoverPlugins(roots, overrideIds = new Set()) {
     // exists so a developer can work on a plugin from its own checkout, and
     // linking it in is the natural way to do that. Dirent.isDirectory() is false
     // for a symlink, so those were silently skipped -- no warning, the plugin
-    // simply never appeared in `plugins.mjs list`. statSync resolves the link;
+    // simply never appeared in `src/scripts/plugins.mjs list`. statSync resolves the link;
     // a broken one throws and is treated as not-a-directory rather than crashing
     // discovery for every other plugin.
     const isDirLike = (e) => {
@@ -584,10 +584,10 @@ export function lockGate(manifest, root) {
     case 'legit-update': repin(); return { load: true };        // version bumped → honest update, re-pin quietly
     case 'drift-nobump':
       if (source === 'bundled') { repin(); return { load: true }; } // reviewed-by-construction (branch-protected checkout) → re-pin
-      warnSkip(manifest.id, `files changed since you trusted it without a version bump — possible tampering (${d.changedFiles.slice(0, 5).join(', ')}). Review, then \`node plugins.mjs trust ${manifest.id}\``);
+      warnSkip(manifest.id, `files changed since you trusted it without a version bump — possible tampering (${d.changedFiles.slice(0, 5).join(', ')}). Review, then \`node src/scripts/plugins.mjs trust ${manifest.id}\``);
       return { load: false };
     case 'surface-widened':
-      warnSkip(manifest.id, `capability surface expanded since you consented (${[...d.addedHosts, ...d.addedEnv].join(', ')}${manifest.allowsLocalhost ? ', localhost' : ''}) — re-consent: \`node plugins.mjs enable ${manifest.id}\``);
+      warnSkip(manifest.id, `capability surface expanded since you consented (${[...d.addedHosts, ...d.addedEnv].join(', ')}${manifest.allowsLocalhost ? ', localhost' : ''}) — re-consent: \`node src/scripts/plugins.mjs enable ${manifest.id}\``);
       return { load: false };
     default: return { load: true };
   }
@@ -607,7 +607,7 @@ export async function loadPlugins(kind, { root, dryRun = false }) {
   return out;
 }
 
-/** Lazily load dotenv exactly once (mirrors gemini-eval.mjs). Idempotent. */
+/** Lazily load dotenv exactly once (mirrors src/scripts/gemini-eval.mjs). Idempotent. */
 let dotenvLoaded = false;
 export async function loadDotenvOnce() {
   if (dotenvLoaded) return;
@@ -719,7 +719,7 @@ export async function mergeProviderPlugins(providersMap, { root }) {
         continue;
       }
       if (!lockGate(manifest, root).load) {
-        providersMap.set(manifest.id, inactiveProviderStub(manifest.id, 'integrity/consent check failed — see ⚠️ above; run `node plugins.mjs trust ' + manifest.id + '` or `enable ' + manifest.id + '`'));
+        providersMap.set(manifest.id, inactiveProviderStub(manifest.id, 'integrity/consent check failed — see ⚠️ above; run `node src/scripts/plugins.mjs trust ' + manifest.id + '` or `enable ' + manifest.id + '`'));
         continue;
       }
       const hook = await importHook(manifest, 'provider');

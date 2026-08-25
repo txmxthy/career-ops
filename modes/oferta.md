@@ -8,7 +8,7 @@ When the candidate pastes a job (text or URL), ALWAYS deliver the 7 blocks (A-F 
 
 When the candidate pastes a **URL** (not JD text), confirm the posting is still live before doing any evaluation. A dead link must never reach Block A — a 404/expired page wastes a full A-G evaluation, report, and PDF on phantom content.
 
-1. Get the page content: if you arrived here from `auto-pipeline` (its Step 0.5 already navigated and cleared the link), reuse that snapshot — do not navigate again. On a direct URL entry, navigate with Playwright (`browser_navigate` + `browser_snapshot`) and read the title, URL, and visible content. **Opt-in:** if `scan.extractor: cli` is set in `config/profile.yml`, run `node browser-extract.mjs <url>` (default `--mode jd`) instead and use its compact `{ "url", "title", "text" }` (the distilled JD main text rather than the full page a11y tree — fewer tokens for the model, board-dependent), **falling back silently** to `browser_navigate` + `browser_snapshot` if it errors or is missing.
+1. Get the page content: if you arrived here from `auto-pipeline` (its Step 0.5 already navigated and cleared the link), reuse that snapshot — do not navigate again. On a direct URL entry, navigate with Playwright (`browser_navigate` + `browser_snapshot`) and read the title, URL, and visible content. **Opt-in:** if `scan.extractor: cli` is set in `config/profile.yml`, run `node src/scripts/browser-extract.mjs <url>` (default `--mode jd`) instead and use its compact `{ "url", "title", "text" }` (the distilled JD main text rather than the full page a11y tree — fewer tokens for the model, board-dependent), **falling back silently** to `browser_navigate` + `browser_snapshot` if it errors or is missing.
 2. Classify the posting:
    - **active posting evidence:** title/role + a real job description or an application/apply path
    - **closed posting evidence:** expired/closed/"no longer accepting applications", missing JD with only nav/footer, hard redirect to a generic careers/search page, or 404/410
@@ -321,7 +321,7 @@ This signal does not change the High Confidence / Proceed with Caution / Suspici
 
 Possible causes include the job board auto-guessing or mis-scraping the location field, or a recruiter selecting the wrong region tag when cross-posting the same requisition to multiple markets. This can result in a candidate applying based on the platform-displayed location (thinking it's local), when the role is actually in a different country entirely — and not finding out until much later in the process.
 
-This signal only triggers when **both** a third-party platform's displayed location (e.g. LinkedIn, Indeed) **and** the employer's own job page's stated location are available to compare, **and** both sources can be confirmed to refer to the same requisition/job ID (e.g. a matching req number or job ID visible on both sides) — not merely the same title or company, which can still represent two genuinely different requisitions. Evidence may come from what the user pasted/screenshotted, or — only when running the browser-backed `auto-pipeline` (not `openai-eval.mjs`, which passes JD text only into Block G and has no Playwright/browser access) — from `auto-pipeline`'s Playwright snapshot if it captures both. If only one source is available, or the two sources cannot be confirmed to share a requisition/job ID, skip this signal entirely.
+This signal only triggers when **both** a third-party platform's displayed location (e.g. LinkedIn, Indeed) **and** the employer's own job page's stated location are available to compare, **and** both sources can be confirmed to refer to the same requisition/job ID (e.g. a matching req number or job ID visible on both sides) — not merely the same title or company, which can still represent two genuinely different requisitions. Evidence may come from what the user pasted/screenshotted, or — only when running the browser-backed `auto-pipeline` (not `src/scripts/openai-eval.mjs`, which passes JD text only into Block G and has no Playwright/browser access) — from `auto-pipeline`'s Playwright snapshot if it captures both. If only one source is available, or the two sources cannot be confirmed to share a requisition/job ID, skip this signal entirely.
 
 When both are available, compare the two stated locations. Flag only if they name **different countries** — not just different cities within the same country, which is a much weaker/more ambiguous signal (e.g. genuine multi-office companies with several valid postings).
 
@@ -331,7 +331,7 @@ If triggered, append a short, non-alarmist note to the report:
 
 This signal does not change the High Confidence / Proceed with Caution / Suspicious tier below — it is orthogonal to ghost-job detection and is reported separately.
 
-**Scope note:** This signal is prompt-instruction-only for now — the agent manually compares the two sources when both are present in what the user provided. It does not modify `check-liveness.mjs` or `liveness-core.mjs` to automatically fetch and compare both pages; that is out of scope for this pass and left as a future decision.
+**Scope note:** This signal is prompt-instruction-only for now — the agent manually compares the two sources when both are present in what the user provided. It does not modify `src/scripts/check-liveness.mjs` or `src/lib/liveness-core.mjs` to automatically fetch and compare both pages; that is out of scope for this pass and left as a future decision.
 
 **10. Agency Licensing Check** (from JD text + `templates/agency-licensing.yml`; jurisdiction from `config/profile.yml` → `location` — same derivation as the employment-classification signal):
 
@@ -437,7 +437,7 @@ If (b) fires (and only (b), i.e. no disclosure language present), append a short
 
 **Hard rule (mandatory):** this signal never fetches or scrapes anything — no WebFetch, no WebSearch, no Playwright against `official_source.url`; career-ops stays zero-fetch here by design, same as the agency-licensing signal. It reads the JD text the mode already has and the candidate's own jurisdiction from `config/profile.yml`.
 
-This signal does not change the High Confidence / Proceed with Caution / Suspicious tier below — it is orthogonal to ghost-job detection and reported separately. **Out of scope for this signal (deliberately deferred, #2892):** cross-referencing whether the candidate actually ended up on an AI-led interview via `invite-match.mjs`'s `isAIInterviewerPlatform` detection (#2676), and disclosure *capture* feeding the ATS-channel analytics layer (#1404/#1405) — both need their own design pass per the umbrella's own scoping note.
+This signal does not change the High Confidence / Proceed with Caution / Suspicious tier below — it is orthogonal to ghost-job detection and reported separately. **Out of scope for this signal (deliberately deferred, #2892):** cross-referencing whether the candidate actually ended up on an AI-led interview via `src/scripts/invite-match.mjs`'s `isAIInterviewerPlatform` detection (#2676), and disclosure *capture* feeding the ATS-channel analytics layer (#1404/#1405) — both need their own design pass per the umbrella's own scoping note.
 
 ### Output format:
 
@@ -452,7 +452,7 @@ This signal does not change the High Confidence / Proceed with Caution / Suspici
 
 ### Prior-contact FYI (non-scoring)
 
-Check the `responsiveness` axis of the `node company-history.mjs --company <company>` card, passing the company name as its own single, quoted argument — never splice it into a longer shell string, since company names can legitimately contain quotes, `$`, backticks, or `;`. Branch on `responsiveness.label` and append ONE informational line to the report. The `facts` array can hold several applications to the same company, so fill placeholders deterministically **per category**: for each placeholder use the most recent application matching THAT placeholder's own condition — fill a responded placeholder from the most recent responded fact, a silent placeholder from the most recent silent fact — rather than forcing one fact to serve both groups. When more than one application matches a category, append a separate count for that category (e.g. ", and {K} earlier applications with the same pattern") so no history is omitted or misrepresented:
+Check the `responsiveness` axis of the `node src/scripts/company-history.mjs --company <company>` card, passing the company name as its own single, quoted argument — never splice it into a longer shell string, since company names can legitimately contain quotes, `$`, backticks, or `;`. Branch on `responsiveness.label` and append ONE informational line to the report. The `facts` array can hold several applications to the same company, so fill placeholders deterministically **per category**: for each placeholder use the most recent application matching THAT placeholder's own condition — fill a responded placeholder from the most recent responded fact, a silent placeholder from the most recent silent fact — rather than forcing one fact to serve both groups. When more than one application matches a category, append a separate count for that category (e.g. ", and {K} earlier applications with the same pattern") so no history is omitted or misrepresented:
 
 - `silent-on-you` (fill from the most recent silent fact; if more than one silent application exists, append the count of the others):
 > Note: you applied to {company} on {date}; no response in {N}d after {M} follow-ups. Not a legitimacy signal — factor into how much effort to invest.
@@ -628,7 +628,7 @@ Save full evaluation in `reports/{###}-{company-slug}-{YYYY-MM-DD}.md`.
 (list of 15-20 keywords from the JD for ATS optimization)
 ```
 
-**Machine Summary (required):** every report carries a `## Machine Summary` YAML fence directly after the header — same schema, exact field names, and rules as the "Machine Summary" block in `batch/batch-prompt.md` (do not duplicate the schema here; that file is the source of truth). It includes `advertised_comp`: the JD's own salary figure **verbatim** (e.g. `"80-90k EUR"`), or `null` when the JD states nothing — never estimated, never replaced with researched market data. This key seeds the advertised salary observation read by `node salary-gap.mjs`. It also includes `risk_summary`: the Risk Summary block mirrored as a map (schema and enum values in `batch/batch-prompt.md`).
+**Machine Summary (required):** every report carries a `## Machine Summary` YAML fence directly after the header — same schema, exact field names, and rules as the "Machine Summary" block in `batch/batch-prompt.md` (do not duplicate the schema here; that file is the source of truth). It includes `advertised_comp`: the JD's own salary figure **verbatim** (e.g. `"80-90k EUR"`), or `null` when the JD states nothing — never estimated, never replaced with researched market data. This key seeds the advertised salary observation read by `node src/scripts/salary-gap.mjs`. It also includes `risk_summary`: the Risk Summary block mirrored as a map (schema and enum values in `batch/batch-prompt.md`).
 
 ### 2. Record in tracker
 
@@ -664,4 +664,4 @@ If — and only if — the user **explicitly stated a role-specific desired numb
 {tracker#}\t{YYYY-MM-DD}\tdesired\t{amount}\t{currency}\tuser\t{short context note}
 ```
 
-Never infer a desired number from the JD, the score, or past conversations. The profile default (`config/profile.yml` → `compensation.target_range`) needs no line — `salary-gap.mjs` reads it as the fallback. The advertised figure also needs no line: the report's `advertised_comp` **is** the advertised observation.
+Never infer a desired number from the JD, the score, or past conversations. The profile default (`config/profile.yml` → `compensation.target_range`) needs no line — `src/scripts/salary-gap.mjs` reads it as the fallback. The advertised figure also needs no line: the report's `advertised_comp` **is** the advertised observation.

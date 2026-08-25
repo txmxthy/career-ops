@@ -45,7 +45,7 @@ export default function Analytics() {
   // counters whose zero-state shows a coaching nudge, so a candidate who has
   // already advanced past a stage must not read 0 for it (an offer-holder was
   // told "Interviews follow replies — keep follow-ups warm"). Mirrors
-  // everInterview/everOffer in stats.mjs's computeFunnel().
+  // everInterview/everOffer in src/scripts/stats.mjs's computeFunnel().
   const { interviews, offers } = cumulativeTiles(applications.map((a) => canonStatus(a.status)));
 
   return (

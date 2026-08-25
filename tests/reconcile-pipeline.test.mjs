@@ -1,4 +1,4 @@
-// Characterisation test for reconcile-pipeline.mjs, written before the file was
+// Characterisation test for src/scripts/reconcile-pipeline.mjs, written before the file was
 // rewired onto src/core (ADR 0005's "capture current behaviour first" rule).
 // The script had no coverage at all, and it anchors every path to its OWN
 // directory — REPORTS_DIR is join(CAREER_OPS, 'reports') with no override — so
@@ -25,12 +25,12 @@ const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 /** A temp checkout holding a real copy of the script and links to its imports. */
 function makeRoot() {
   const root = mkdtempSync(join(tmpdir(), 'reconcile-'));
-  copyFileSync(join(REPO, 'reconcile-pipeline.mjs'), join(root, 'reconcile-pipeline.mjs'));
+  copyFileSync(join(REPO, 'src/scripts/reconcile-pipeline.mjs'), join(root, 'src/scripts/reconcile-pipeline.mjs'));
   // Node resolves a symlink to its realpath before resolving that file's own
   // imports, so linking the directory is enough — src/core/store.js still finds
-  // ../../pipeline-lock.mjs in the real checkout.
+  // ../../src/lib/pipeline-lock.mjs in the real checkout.
   symlinkSync(join(REPO, 'src'), join(root, 'src'), 'dir');
-  symlinkSync(join(REPO, 'tracker-links.mjs'), join(root, 'tracker-links.mjs'));
+  symlinkSync(join(REPO, 'src/scripts/tracker-links.mjs'), join(root, 'src/scripts/tracker-links.mjs'));
   for (const d of ['batch', 'data', 'reports']) mkdirSync(join(root, d), { recursive: true });
   return root;
 }
@@ -38,7 +38,7 @@ function makeRoot() {
 // Both streams are returned together: the warn for an entry left behind goes to
 // stderr even on an exit-0 run, so a stdout-only harness cannot see it.
 function run(root, args = []) {
-  const r = spawnSync(process.execPath, ['reconcile-pipeline.mjs', ...args], {
+  const r = spawnSync(process.execPath, ['src/scripts/reconcile-pipeline.mjs', ...args], {
     cwd: root, encoding: 'utf-8',
   });
   return { code: r.status ?? 1, out: `${r.stdout || ''}${r.stderr || ''}` };

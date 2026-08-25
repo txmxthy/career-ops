@@ -44,15 +44,15 @@ mkdirSync(join(sandbox, 'data'), { recursive: true });
 writeFileSync(join(sandbox, 'data', 'pdf-index.tsv'), '', 'utf-8');
 
 copyFileSync(join(ROOT, 'generate-pdf.mjs'), script);
-copyFileSync(join(ROOT, 'theme-style.mjs'), join(sandbox, 'theme-style.mjs'));
+copyFileSync(join(ROOT, 'src/lib/theme-style.mjs'), join(sandbox, 'src/lib/theme-style.mjs'));
 copyFileSync(join(ROOT, 'tracker-utils.mjs'), join(sandbox, 'tracker-utils.mjs'));
 copyFileSync(join(ROOT, 'tracker-parse.mjs'), join(sandbox, 'tracker-parse.mjs'));
 copyFileSync(join(ROOT, 'tracker-aliases.json'), join(sandbox, 'tracker-aliases.json'));
-copyFileSync(join(ROOT, 'pipeline-lock.mjs'), join(sandbox, 'pipeline-lock.mjs'));
+copyFileSync(join(ROOT, 'src/lib/pipeline-lock.mjs'), join(sandbox, 'src/lib/pipeline-lock.mjs'));
 // Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
 copyCoreModules(sandbox);
 
-// theme-style.mjs and tracker-utils.mjs both `import * as yaml from 'js-yaml'`,
+// src/lib/theme-style.mjs and tracker-utils.mjs both `import * as yaml from 'js-yaml'`,
 // which resolves by walking up into the repo's node_modules -- from the
 // sandbox's REALPATH, so a checkout with a symlinked output/ never reaches it
 // and every spawned generate-pdf dies before parsing argv (#3165). Link the

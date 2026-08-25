@@ -1,7 +1,7 @@
 /**
  * updater-rollback-behavior.test.mjs — BEHAVIORAL rollback tests (#2015 follow-up).
  *
- * The rest of updater-migration-tests.mjs verifies the updater by source-pattern
+ * The rest of tests/updater-migration.test.mjs verifies the updater by source-pattern
  * assertions (the file's convention, because apply()/revertPaths are ROOT-bound
  * with heavy side effects). This file drives the real `removeAdditionsNotInHead`
  * export against a throwaway git repo via the git-runner seam, so it verifies the
@@ -162,12 +162,12 @@ console.log('\n🧪 Testing updater rollback behavior (#2015)...');
   g('add', '-A');
   g('commit', '-qm', 'base');
 
-  writeFileSync(join(dir, 'browser-extract.mjs'), 'added by update');
-  g('add', 'browser-extract.mjs');
+  writeFileSync(join(dir, 'src/scripts/browser-extract.mjs'), 'added by update');
+  g('add', 'src/scripts/browser-extract.mjs');
 
-  removeAdditionsNotInHead('browser-extract.mjs', new Set(), ctx);
+  removeAdditionsNotInHead('src/scripts/browser-extract.mjs', new Set(), ctx);
 
-  if (!existsSync(join(dir, 'browser-extract.mjs'))) {
+  if (!existsSync(join(dir, 'src/scripts/browser-extract.mjs'))) {
     pass('rollback removes an added file for a file pathspec');
   } else {
     fail('rollback left an added file for a file pathspec');

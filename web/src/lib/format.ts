@@ -1,6 +1,6 @@
 // Pure, node-free helpers shared by server and client components (no fs/path
 // imports here — career-ops.ts holds the filesystem reads). Aligned with the
-// core: normalize-statuses.mjs (aliases) + the Go TUI dashboard (score/status
+// core: src/scripts/normalize-statuses.mjs (aliases) + the Go TUI dashboard (score/status
 // colours = the current state-of-the-art).
 
 // Alias → canonical stage. Lives in status-alias.mjs so a `node --test` unit

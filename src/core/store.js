@@ -18,7 +18,7 @@
  *     into "empty tracker" (D4.2). Silent-default readers become explicit;
  *     surfacing latent bugs is the point.
  *
- * Locking is DELEGATED, not reimplemented. pipeline-lock.mjs is canonical for
+ * Locking is DELEGATED, not reimplemented. src/lib/pipeline-lock.mjs is canonical for
  * the wait policy, the recovery verdict and the owner read; tracker-utils.mjs
  * owns the tracker acquire loop and the Go-mirrored lock-key derivation
  * (dashboard/internal/data/tracker_lock.go:99), which ADR 0004 lists under "not
@@ -39,7 +39,7 @@ import { randomUUID } from 'crypto';
 
 import {
   withPipelineLock, readLockOwner, sameLockDirectory, lockDirFor,
-} from '../../pipeline-lock.mjs';
+} from '../lib/pipeline-lock.mjs';
 import {
   acquireTrackerLock, trackerLockDirFor, renameSyncWithRetry,
 } from '../../tracker-utils.mjs';
@@ -154,9 +154,9 @@ export function resolvePdfIndexPath(trackerPath, env = process.env) {
  *
  * Three fixes over the eight implementations it replaces: `CAREER_OPS_PIPELINE`
  * is honoured everywhere rather than in scan.mjs alone (D2.2); the base is the
- * workspace root rather than `process.cwd()`, so `plugins.mjs` can no longer
+ * workspace root rather than `process.cwd()`, so `src/scripts/plugins.mjs` can no longer
  * dedup against one inbox and append to another (D2.1, D1.3); and the
- * root-layout fallback that only `reconcile-pipeline.mjs:73` had is applied for
+ * root-layout fallback that only `src/scripts/reconcile-pipeline.mjs:73` had is applied for
  * every reader (D2.4).
  *
  * @param {string} rootDir - The career-ops repository root.
@@ -303,7 +303,7 @@ export function ensureDir(dir) {
  * mid-write truncates the inbox (D3.2).
  *
  * `backup` is a suffix rather than a flag because the one writer that keeps a
- * backup today names it `.pre-reconcile.bak` (reconcile-pipeline.mjs:297) — and
+ * backup today names it `.pre-reconcile.bak` (src/scripts/reconcile-pipeline.mjs:297) — and
  * it is the UNLOCKED writer, which is how the safest-by-backup writer came to
  * be the least safe by locking (D3.3).
  *
@@ -338,8 +338,8 @@ function copyIfPresent(from, to) {
  * modes/pipeline.md.
  *
  * Three existed (D2.3): this one, scan-ats-full.mjs:1014's Spanish-headed
- * `## Pendientes` with no Processed section, and openrouter-runner.mjs:512's
- * `## Pending` with no Processed section. `rank-pipeline.mjs:369` recognises
+ * `## Pendientes` with no Processed section, and src/scripts/openrouter-runner.mjs:512's
+ * `## Pending` with no Processed section. `src/scripts/rank-pipeline.mjs:369` recognises
  * only `## Pending`, so an inbox first created by scan-ats-full ranked nothing,
  * silently. Reading still accepts the legacy Spanish headings; only creation is
  * unified.
@@ -442,10 +442,10 @@ export async function withTrackerTransaction(trackerPath, fn, options = {}) {
  * Hold the lock on a pipeline-family file (`data/pipeline.md`,
  * `data/scan-history.tsv`, the agent inbox) for the duration of `fn`.
  *
- * pipeline-lock.mjs verbatim: its lock is a directory beside the file, and its
+ * src/lib/pipeline-lock.mjs verbatim: its lock is a directory beside the file, and its
  * wait policy is the one the other three lock modules import their verdict
- * from. The three unlocked whole-file rewriters (batch-evaluate-gemini.mjs:353,
- * reconcile-pipeline.mjs:298, openrouter-runner.mjs:505) are the ones that
+ * from. The three unlocked whole-file rewriters (src/scripts/batch-evaluate-gemini.mjs:353,
+ * src/scripts/reconcile-pipeline.mjs:298, src/scripts/openrouter-runner.mjs:505) are the ones that
  * need to start calling this — the lock protects nobody while one side never
  * asks for it (D3.1).
  *
@@ -463,7 +463,7 @@ export async function withFileLock(path, fn, options = {}) {
  * failure? The distinction decides exit 4 vs exit 2.
  *
  * Three shapes exist and none of the modules knows about the others:
- * pipeline-lock.mjs:48 throws `LockTimeoutError`, tracker-utils.mjs:459 throws
+ * src/lib/pipeline-lock.mjs:48 throws `LockTimeoutError`, tracker-utils.mjs:459 throws
  * an Error tagged `code: 'LOCK_TIMEOUT'`, and followup-seed.mjs:435 throws
  * `SeedError('LOCK_TIMEOUT')`. One predicate rather than three call-site checks.
  *

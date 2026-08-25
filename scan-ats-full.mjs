@@ -578,13 +578,13 @@ export async function parallelEach(items, limit, fn, onItemDone = null, shouldSt
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
 }
 
-// ── Liveness verification (reuses liveness-browser.mjs) ────────────
+// ── Liveness verification (reuses src/lib/liveness-browser.mjs) ────────────
 
 async function filterLive(offers) {
   let chromium, checkUrlLiveness, newLivenessPage;
   try {
     ({ chromium } = await import('playwright'));
-    ({ checkUrlLiveness, newLivenessPage } = await import('./liveness-browser.mjs'));
+    ({ checkUrlLiveness, newLivenessPage } = await import('./src/lib/liveness-browser.mjs'));
   } catch (err) {
     throw new Error(
       `--liveness requires Playwright with Chromium (run "npx playwright install chromium"): ${err.message}`,

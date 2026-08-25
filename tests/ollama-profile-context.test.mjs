@@ -21,15 +21,15 @@ const copyIntoFixture = (relativePath) => {
 };
 
 for (const relativePath of [
-  'ollama-eval.mjs',
-  'profile-language.mjs',
+  'src/scripts/ollama-eval.mjs',
+  'src/lib/profile-language.mjs',
   'reserve-report-num.mjs',
   'tracker-aliases.json',
   'tracker-parse.mjs',
   'tracker-utils.mjs',
   // tracker-utils imports the shared lock-contention helpers (#2777 fix):
   // a fixture that carries tracker-utils has to carry its import too.
-  'pipeline-lock.mjs',
+  'src/lib/pipeline-lock.mjs',
   'lib/context-budget.mjs',
   'utils/token-tracker.mjs',
 ]) {
@@ -101,7 +101,7 @@ try {
   const result = await new Promise((resolve) => {
     execFile(
       NODE,
-      [join(fixtureRoot, 'ollama-eval.mjs'), '--url', `http://127.0.0.1:${port}`, '--no-save', 'On-site role.'],
+      [join(fixtureRoot, 'src/scripts/ollama-eval.mjs'), '--url', `http://127.0.0.1:${port}`, '--no-save', 'On-site role.'],
       { timeout: 30000 },
       (error, stdout, stderr) => resolve({ error, stdout, stderr }),
     );

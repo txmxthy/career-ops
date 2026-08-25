@@ -10,7 +10,7 @@
 # among the other terminal states (they still supersede any non-terminal,
 # earlier-stage state). States without a `terminal` key are treated as
 # non-terminal and ordered by their position in this list. Consumed by
-# tracker-sync-check.mjs's compareLifecycle() (issue #1504) so a new state
+# src/scripts/tracker-sync-check.mjs's compareLifecycle() (issue #1504) so a new state
 # added here can't silently fall through as "unrecognized."
 
 states:

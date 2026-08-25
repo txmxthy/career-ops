@@ -226,7 +226,7 @@ const ARGV_FOR = {
 };
 
 test('a missing tracker is exit 3 with ok:false, never a clean empty result', () => {
-  // dedup-tracker.mjs:268 and normalize-statuses.mjs:113 both print "Nothing
+  // src/scripts/dedup-tracker.mjs:268 and src/scripts/normalize-statuses.mjs:113 both print "Nothing
   // to dedup/normalize" and exit 0 here. That is the ADR 0006 anti-pattern:
   // a mis-pointed CAREER_OPS_TRACKER is indistinguishable from a clean run.
   // The sandbox also contains no scripts at all, so a case that reached the
@@ -361,12 +361,12 @@ test('flags are forwarded in both spellings and never dropped', () => {
 });
 
 test('sync-check turns a mismatch into exit 1 and counts it', () => {
-  // tracker-sync-check.mjs exits 0 whether or not it found anything, so the
+  // src/scripts/tracker-sync-check.mjs exits 0 whether or not it found anything, so the
   // finding is invisible to a caller reading the status.
   const report = { mismatches: [{ company: 'Acme' }], summary: { total: 1, tier1: 1, tier2: 0 } };
   const box = sandbox({
     tracker: true,
-    scripts: { 'tracker-sync-check.mjs': stub(`${JSON.stringify(report)}\n`, 0) },
+    scripts: { 'src/scripts/tracker-sync-check.mjs': stub(`${JSON.stringify(report)}\n`, 0) },
   });
   const res = commands['sync-check'].run(['--json'], ctxFor(box));
   assert.equal(res.code, EXIT.OK);
@@ -377,7 +377,7 @@ test('sync-check turns a mismatch into exit 1 and counts it', () => {
 // ── 6. the one command that is already argv-free ────────────────────
 
 test('normalize-link is computed in-process, relative to the real tracker', () => {
-  // tracker-links.mjs exports one pure function, so there is nothing to spawn.
+  // src/scripts/tracker-links.mjs exports one pure function, so there is nothing to spawn.
   // data/applications.md means reports/ is one level up from the tracker.
   const box = sandbox({ tracker: true });
   const res = commands['normalize-link'].run(['[042](reports/042-acme-2026-08-24.md)'], ctxFor(box));

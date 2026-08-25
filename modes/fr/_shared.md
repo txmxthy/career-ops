@@ -182,7 +182,7 @@ Dans les offres et negociations francophones, certains termes n'existent pas sur
 
 0. **Lettre de motivation :** Si le formulaire le permet, TOUJOURS en inclure une. PDF dans le meme design visuel que le CV. Citations de l'offre mappees sur les proof points. 1 page max.
 1. Lire `cv.md` et `article-digest.md` (si existant) avant d'evaluer une offre
-1b. **Premiere evaluation de chaque session :** Lancer `node cv-sync-check.mjs` via Bash. En cas d'alertes, prevenir le candidat
+1b. **Premiere evaluation de chaque session :** Lancer `node src/scripts/cv-sync-check.mjs` via Bash. En cas d'alertes, prevenir le candidat
 2. Detecter l'archetype du role et adapter le framing
 3. Citer des lignes exactes du CV lors du matching
 4. Utiliser WebSearch pour les donnees de remuneration et d'entreprise

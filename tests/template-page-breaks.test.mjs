@@ -25,7 +25,7 @@
 import { readFileSync } from 'fs';
 import { relative } from 'path';
 import { pass, fail, ROOT } from './helpers.mjs';
-import { listTemplates } from '../cv-templates.mjs';
+import { listTemplates } from '../src/lib/cv-templates.mjs';
 
 console.log('\nCV template page-break control — no orphaned project tech line');
 

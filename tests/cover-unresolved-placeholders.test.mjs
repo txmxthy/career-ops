@@ -1,8 +1,8 @@
 // tests/cover-unresolved-placeholders.test.mjs — buildHtml must not ship a
 // literal {{TOKEN}} into a rendered cover letter.
 //
-// build-cv-html.mjs throws on unresolved placeholders and build-cv-latex.mjs
-// exits 1; generate-cover-letter.mjs left them untouched, so a custom
+// src/scripts/build-cv-html.mjs throws on unresolved placeholders and src/scripts/build-cv-latex.mjs
+// exits 1; src/scripts/generate-cover-letter.mjs left them untouched, so a custom
 // cover-letter template (KINDS.cover) carrying a typo'd or unsupported token
 // rendered that token verbatim into the PDF. Silent, and only visible to
 // whoever reads the letter afterwards — which may be the employer.
@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildHtml } from '../generate-cover-letter.mjs';
+import { buildHtml } from '../src/scripts/generate-cover-letter.mjs';
 
 const writeTemplate = (body) => {
   const dir = mkdtempSync(join(tmpdir(), 'cover-placeholder-'));

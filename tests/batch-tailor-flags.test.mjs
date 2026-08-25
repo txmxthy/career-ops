@@ -1,7 +1,7 @@
-// tests/batch-tailor-flags.test.mjs — batch-tailor.mjs's CLI contract and the
+// tests/batch-tailor-flags.test.mjs — src/scripts/batch-tailor.mjs's CLI contract and the
 // paths it hands to the worker.
 //
-// batch-tailor.mjs spawns one agent run per matching job, so a mis-parsed
+// src/scripts/batch-tailor.mjs spawns one agent run per matching job, so a mis-parsed
 // threshold is not a cosmetic problem: it decides how many paid runs happen and
 // on which roles. It predates lib/cli-flags.mjs and hand-rolled its own
 // parsing, which left three silent failures:
@@ -26,7 +26,7 @@ import { tmpdir } from 'os';
 console.log('\nbatch-tailor.mjs — flag parsing and worker paths');
 
 const NODE = process.execPath;
-const SCRIPT = join(ROOT, 'batch-tailor.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/batch-tailor.mjs');
 
 function makeStateFile() {
   const dir = mkdtempSync(join(tmpdir(), 'co-batch-tailor-'));
@@ -165,7 +165,7 @@ try {
   // The state file resolved through __dirname while `modes/pdf.md` was passed
   // bare, so running the script from anywhere else handed the worker a path
   // that does not exist — and modes/pdf.md is where the CV fact gate
-  // (verify-cv-facts.mjs, step 19) is instructed. Asserted at source level, the
+  // (src/scripts/verify-cv-facts.mjs, step 19) is instructed. Asserted at source level, the
   // same shape as test-all's provider-pacing guard, because observing the
   // spawn argument would mean actually launching a worker.
   {
@@ -174,7 +174,7 @@ try {
     if (!bareRelative) {
       pass('the pdf mode file is not passed as a bare cwd-relative path');
     } else {
-      fail('batch-tailor.mjs still passes a bare "modes/pdf.md" — breaks from any other cwd');
+      fail('src/scripts/batch-tailor.mjs still passes a bare "modes/pdf.md" — breaks from any other cwd');
     }
   }
 } finally {

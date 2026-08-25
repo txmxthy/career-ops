@@ -21,7 +21,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-// Resolved from this file, not the cwd: test-all.mjs runs these suites from the
+// Resolved from this file, not the cwd: tests/run-all.mjs runs these suites from the
 // repo root, where `cwd/..` points outside the checkout and every core case
 // would skip as "not resolvable" while reporting green.
 const CORE =

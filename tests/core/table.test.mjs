@@ -36,7 +36,7 @@ test('parseRow drops the outer pipes and trims every cell', () => {
   assert.deepEqual(parseRow('|  7 |Acme  | Senior Engineer |'), ['7', 'Acme', 'Senior Engineer']);
 });
 
-// Input A / D1: plugins.mjs:65 slice(1,-1) drops `great note`. Every hardened
+// Input A / D1: src/scripts/plugins.mjs:65 slice(1,-1) drops `great note`. Every hardened
 // reader (tracker-parse.mjs:199, tracker-utils rebuildRow, web trackerCells)
 // keeps it; the shared splitter keeps it too.
 test('parseRow keeps the final cell of a row written without a trailing pipe', () => {
@@ -44,7 +44,7 @@ test('parseRow keeps the final cell of a row written without a trailing pipe', (
   assert.deepEqual(parseRow('| 7 | Acme | great note |'), ['7', 'Acme', 'great note']);
 });
 
-// Input F / D3: upskill.mjs:298 and analyze-patterns.mjs:751 .filter(Boolean)
+// Input F / D3: src/scripts/upskill.mjs:298 and src/scripts/analyze-patterns.mjs:751 .filter(Boolean)
 // here, which shifts every column after a blank one. Positional slots survive.
 test('parseRow preserves empty cells as positional slots', () => {
   assert.deepEqual(parseRow('| Gap |  | mitigation |'), ['Gap', '', 'mitigation']);
@@ -62,7 +62,7 @@ test('parseRow rejects anything that is not a table row', () => {
 });
 
 // NOT in the audit: tracker-parse.mjs:190 requires line.startsWith('|') while
-// tracker.mjs:178, web trackerCells, scan.mjs:1962 and process-quality.mjs:97
+// tracker.mjs:178, web trackerCells, scan.mjs:1962 and src/scripts/process-quality.mjs:97
 // all trim first. The shared splitter takes the tolerant majority behaviour, so
 // an indented table row now parses where parseTrackerRow skipped it.
 test('parseRow tolerates surrounding whitespace and a CRLF line ending', () => {
@@ -71,7 +71,7 @@ test('parseRow tolerates surrounding whitespace and a CRLF line ending', () => {
 });
 
 // Input B / D6: no reader in the repo unescapes `\|` today, so a cell written
-// by company-funded.mjs:829 splits in two and shifts every later column. The
+// by src/scripts/company-funded.mjs:829 splits in two and shifts every later column. The
 // shared splitter treats `\|` as GFM does — a literal pipe inside the cell.
 test('parseRow treats an escaped pipe as cell content, not a delimiter', () => {
   assert.deepEqual(parseRow('| a \\| b | c |'), ['a | b', 'c']);
@@ -162,7 +162,7 @@ test('detectColumns returns null when a required field is missing', () => {
   assert.equal(detectColumns(lines, TRACKER), null);
 });
 
-// plugins.mjs:61 / process-quality.mjs:118: no alias table, the first table row
+// src/scripts/plugins.mjs:61 / src/scripts/process-quality.mjs:118: no alias table, the first table row
 // is the header and every cell keys itself.
 test('detectColumns without aliases keys the first table row by its own labels', () => {
   const lines = ['| Stage | Company | Next step |', '|---|---|---|', '| Onsite | Acme | 2026-02-01 |'];
@@ -210,7 +210,7 @@ test('parseTable reports each row 1-based with its verbatim source line', () => 
 });
 
 // D2 (ADR 0004 canonical: tracker-parse.mjs:200's full-width guard).
-// verify-pipeline.mjs:103 and merge-tracker.mjs:567 use `parts.length <= MAX_IDX`,
+// src/scripts/verify-pipeline.mjs:103 and merge-tracker.mjs:567 use `parts.length <= MAX_IDX`,
 // which accepts a row missing an interior cell and reads it one column shifted.
 test('parseTable drops a ragged row instead of reading it column-shifted', () => {
   const md = [
@@ -238,7 +238,7 @@ test('parseTable keeps the last column of a row written without a trailing pipe'
   assert.equal(rows[0].values.notes, 'hand edited');
 });
 
-// process-quality.mjs:126 rejects on `cells.length !== colCount`; the canonical
+// src/scripts/process-quality.mjs:126 rejects on `cells.length !== colCount`; the canonical
 // reader (tracker-parse.mjs:200, web tracker-table.mjs:135) accepts wider rows
 // and ignores the surplus. Wider rows are kept, and the surplus stays in cells.
 test('parseTable accepts a row wider than the header and keeps the surplus in cells', () => {
@@ -266,7 +266,7 @@ test('parseTable maps a generic table by its own header labels', () => {
   assert.deepEqual(rows[0].values, { stage: 'Onsite', company: 'Acme', 'next step': '' });
 });
 
-// process-quality.mjs:100-106: only the FIRST contiguous pipe block is the
+// src/scripts/process-quality.mjs:100-106: only the FIRST contiguous pipe block is the
 // table; tracker readers instead scan every pipe line in the file.
 test('parseTable scans every table line by default and one block with contiguous', () => {
   const md = [
@@ -354,7 +354,7 @@ test('serialiseRow neutralizes pipes and newlines in a value by default', () => 
   assert.equal(serialiseRow([null, undefined, 7]), '|  |  | 7 |');
 });
 
-// D6: the other live contract (company-funded.mjs:829 writes `\|`). Opt-in, and
+// D6: the other live contract (src/scripts/company-funded.mjs:829 writes `\|`). Opt-in, and
 // it round-trips through parseRow, which the substitution deliberately does not.
 test('serialiseRow can escape pipes instead, and that round-trips', () => {
   assert.equal(serialiseRow(['a | b', 'c'], { escapePipes: true }), '| a \\| b | c |');

@@ -1,15 +1,15 @@
-// tests/find-cli-flags.test.mjs — find.mjs's CLI contract, pinned BEFORE its
+// tests/find-cli-flags.test.mjs — src/scripts/find.mjs's CLI contract, pinned BEFORE its
 // hand-rolled parseArgs was moved onto src/core/flags.js.
 //
-// find.mjs carried one of the ten private `parseArgs` implementations
+// src/scripts/find.mjs carried one of the ten private `parseArgs` implementations
 // docs/audit/duplicate-functionality.md counts (Part II, CAPABILITY 2). Its
-// exported lookup functions were covered by test-all.mjs; its argv layer was
+// exported lookup functions were covered by tests/run-all.mjs; its argv layer was
 // not, so nothing pinned the two things a user actually hits — which flags are
 // accepted, and what a rejected one costs. This file pins them.
 //
-// Exit codes are find.mjs's existing ones, NOT ADR 0006's. Frozen scripts keep
+// Exit codes are src/scripts/find.mjs's existing ones, NOT ADR 0006's. Frozen scripts keep
 // the codes their consumers pin and the CLI facade translates (ADR 0006, last
-// paragraph); find.mjs is not frozen, but a rewiring batch is the wrong commit
+// paragraph); src/scripts/find.mjs is not frozen, but a rewiring batch is the wrong commit
 // to change a code in, so 1 stays 1 here and moves with the facade.
 //
 // Two cases are marked CHANGED. Both are places where the shared parser's
@@ -23,7 +23,7 @@ import { tmpdir } from 'os';
 
 console.log('\nfind.mjs — argv contract (characterisation)');
 
-const SCRIPT = join(ROOT, 'find.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/find.mjs');
 // An empty workspace, so the "no tracker" path is reached deterministically
 // wherever this runs: a contributor with a real data/applications.md must get
 // the same verdict as CI.
@@ -51,10 +51,10 @@ const bogus = find('--bogus');
 check('--bogus exits 1', bogus.status === 1);
 check('--bogus names the flag on stderr', bogus.stderr.includes('--bogus'));
 check('--bogus lists the valid flags', bogus.stderr.includes('Valid flags: --json, --help, -h'));
-check('--bogus repeats the usage block on stderr', bogus.stderr.includes('node find.mjs'));
+check('--bogus repeats the usage block on stderr', bogus.stderr.includes('node src/scripts/find.mjs'));
 check('--bogus writes nothing to stdout', bogus.stdout === '');
 
-// Ordering: --help wins over a bad flag. find.mjs checked --help FIRST, which
+// Ordering: --help wins over a bad flag. src/scripts/find.mjs checked --help FIRST, which
 // is the opposite of lib/cli-flags.mjs's validateFlags, and the ordering is
 // preserved here rather than silently harmonised — that is a CLI-contract
 // decision for the facade commit, not for a rewiring batch.
@@ -63,7 +63,7 @@ check('--help --bogus exits 0 (--help is checked first)', helpBogus.status === 0
 check('--help --bogus prints usage on stdout', helpBogus.stdout.startsWith('Usage:'));
 
 // No query at all: usage on STDOUT (not stderr) at exit 1. The one-copy rule
-// find.mjs:158-159 states — the same USAGE the flag paths print.
+// src/scripts/find.mjs:158-159 states — the same USAGE the flag paths print.
 const bare = find();
 check('no query exits 1', bare.status === 1);
 check('no query prints usage on stdout', bare.stdout.startsWith('Usage:'));

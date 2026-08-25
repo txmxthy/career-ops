@@ -14,7 +14,7 @@
 6. **Profile** в `config/profile.yml` + `modes/_profile.md` — прочитай narrative, archetypes и цели
 7. **Story bank** в `interview-prep/story-bank.md` — существующие истории STAR+R
 8. **Question bank** в `interview-prep/question-bank.md` — существующие пробелы (если файл есть)
-9. **Prior stated compensation** — если известен номер трекера, выполни `node salary-gap.mjs --stated-for <tracker#>` (без токенов). Любое предыдущее наблюдение `stated` — это сумма, которую кандидат уже озвучил ранее, на конкретного интервьюера, в конкретном раунде; подставь его в Step 4, чтобы кандидат оставался последовательным и не renegotiating случайно.
+9. **Prior stated compensation** — если известен номер трекера, выполни `node src/scripts/salary-gap.mjs --stated-for <tracker#>` (без токенов). Любое предыдущее наблюдение `stated` — это сумма, которую кандидат уже озвучил ранее, на конкретного интервьюера, в конкретном раунде; подставь его в Step 4, чтобы кандидат оставался последовательным и не renegotiating случайно.
 
 ---
 

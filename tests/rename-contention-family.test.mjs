@@ -15,10 +15,10 @@
 // family (#2777, #2984) before the derived-list test in
 // tests/lock-rm-contention.test.mjs pinned it shut.
 //
-// merge-tracker.mjs and plugin-install.mjs are deliberately NOT in this list:
+// merge-tracker.mjs and src/scripts/plugin-install.mjs are deliberately NOT in this list:
 // merge-tracker.mjs's renameSync moves a freshly processed TSV into merged/,
 // a destination that does not pre-exist (mkdirSync'd immediately above, one
-// file per run); plugin-install.mjs's renameSync is already wrapped in a
+// file per run); src/scripts/plugin-install.mjs's renameSync is already wrapped in a
 // tolerant catch with a documented in-place fallback. Neither is the
 // write-tmp-then-rename-over-a-live-file shape this test guards.
 
@@ -35,8 +35,8 @@ const ok = (cond, msg) => (cond ? pass(msg) : fail(msg));
 const MIGRATED_FILES = [
   'followup-seed.mjs',
   'scan-ats-full.mjs',
-  'discover-ats.mjs',
-  'paste-reply.mjs',
+  'src/scripts/discover-ats.mjs',
+  'src/scripts/paste-reply.mjs',
   'update-system.mjs',
 ];
 
@@ -44,7 +44,7 @@ for (const file of MIGRATED_FILES) {
   const src = readFileSync(join(ROOT, file), 'utf-8');
 
   // renameSync must never be INVOKED directly in these files. It may appear
-  // in an import list (paste-reply.mjs never imports it by name at all — it
+  // in an import list (src/scripts/paste-reply.mjs never imports it by name at all — it
   // called fs.renameSync) but never as a call; renameSyncWithRetry is the
   // only permitted seam.
   const directCalls = [

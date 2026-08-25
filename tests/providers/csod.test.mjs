@@ -1,4 +1,4 @@
-// tests/providers/csod.test.mjs — moved verbatim from test-all.mjs (#1549).
+// tests/providers/csod.test.mjs — moved verbatim from tests/run-all.mjs (#1549).
 import { pass, fail, ROOT } from '../helpers.mjs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';

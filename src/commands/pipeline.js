@@ -1,7 +1,7 @@
 /**
  * pipeline.js — command adapters for the `pipeline` noun (ADR 0003).
  *
- * Two scripts are assigned to this noun: verify-pipeline.mjs and
+ * Two scripts are assigned to this noun: src/scripts/verify-pipeline.mjs and
  * agent-inbox.mjs. Neither exports anything — both do their work at module
  * scope and call process.exit — so until ADR 0005 step 5 moves them into
  * `src/` and their bodies become importable, the only way to reach their logic
@@ -15,22 +15,22 @@
  * exit codes conflict the adapter translates, and there are three conflicts
  * worth naming because each is the "nothing found" defect the ADR bans:
  *
- *   1. verify-pipeline.mjs exits 0 with "No applications.md found. This is
+ *   1. src/scripts/verify-pipeline.mjs exits 0 with "No applications.md found. This is
  *      normal for a fresh setup." — a health check that never ran, reported as
  *      a clean pipeline. Here that is EXIT.UNVERIFIED.
- *   2. verify-pipeline.mjs's fourteen checks are prose. A crash, a truncated
+ *   2. src/scripts/verify-pipeline.mjs's fourteen checks are prose. A crash, a truncated
  *      run or a changed glyph vocabulary all read as "no errors found" to a
  *      caller that only looks at the exit status. Here the parsed ❌/⚠️ counts
  *      are cross-checked against the script's own summary line and against its
  *      exit status; a disagreement is EXIT.UNVERIFIED, never a green.
- *   3. agent-inbox.mjs's `resolve` says "no pending item #1 (0 pending)" and
+ *   3. src/scripts/agent-inbox.mjs's `resolve` says "no pending item #1 (0 pending)" and
  *      exits 1 whether the queue is empty or the queue FILE does not exist.
  *      The first is a real negative finding (1); the second could not run (3).
  *
  * Naming (ADR 0003 calls the classifier a starting point, not a finished API):
  *   - `pipeline verify-pipeline` → `pipeline verify`. The noun was stuttering.
  *   - `pipeline agent-inbox` → `pipeline inbox-add` / `inbox-list` /
- *     `inbox-resolve`. agent-inbox.mjs is a sub-CLI with three actions and
+ *     `inbox-resolve`. src/scripts/agent-inbox.mjs is a sub-CLI with three actions and
  *     three different result shapes; one verb would hide all three behind a
  *     single --help, which is the prose-parsing failure ADR 0006 exists to
  *     remove. Split, the top-level enumeration names each one.
@@ -183,7 +183,7 @@ const VERIFY_SPEC = {
   flags: {},
 };
 
-/** verify-pipeline.mjs's line vocabulary. Anchored: an inline glyph inside a
+/** src/scripts/verify-pipeline.mjs's line vocabulary. Anchored: an inline glyph inside a
  *  company name must not read as a second finding. */
 // The variation selector after ⚠ is optional in the pattern: the delegate emits
 // U+26A0 U+FE0F, and a pattern that hard-codes the pair silently matches nothing
@@ -202,9 +202,9 @@ async function runVerify(argv = [], rawCtx = {}) {
 
   const ctx = context(rawCtx);
   const json = parsed.json;
-  const script = findDelegate('verify-pipeline.mjs', ctx);
+  const script = findDelegate('src/scripts/verify-pipeline.mjs', ctx);
   if (!script) {
-    return unverified(spec.command, `verify-pipeline.mjs not found under ${ctx.root} — the integrity checks did not run`, { json });
+    return unverified(spec.command, `src/scripts/verify-pipeline.mjs not found under ${ctx.root} — the integrity checks did not run`, { json });
   }
 
   const res = runDelegate(script, [], ctx);
@@ -250,7 +250,7 @@ async function runVerify(argv = [], rawCtx = {}) {
   if (contractBreaks.length > 0) {
     return unverified(
       spec.command,
-      `verify-pipeline.mjs output could not be read (${contractBreaks.join('; ')})${res.stderr.trim() ? `: ${res.stderr.trim()}` : ''}`,
+      `src/scripts/verify-pipeline.mjs output could not be read (${contractBreaks.join('; ')})${res.stderr.trim() ? `: ${res.stderr.trim()}` : ''}`,
       { data: { entries: header ? Number(header[1]) : null, passed }, json },
     );
   }
@@ -270,9 +270,9 @@ async function runVerify(argv = [], rawCtx = {}) {
 // ── the agent inbox ──────────────────────────────────────────────────
 
 /**
- * Where agent-inbox.mjs will look for the queue.
+ * Where src/scripts/agent-inbox.mjs will look for the queue.
  *
- * Duplicated from agent-inbox.mjs:37 rather than derived, on purpose and
+ * Duplicated from src/scripts/agent-inbox.mjs:37 rather than derived, on purpose and
  * unhappily: it is cwd-relative there, and resolving it through
  * src/core/store.js's data-root helpers would point somewhere else. Parity with
  * the delegate is what makes the exit-3 check below true. This constant is the
@@ -338,9 +338,9 @@ function prepareInbox(spec, argv, rawCtx) {
   if (parsed.help) return { done: help(spec, parsed.json) };
 
   const ctx = context(rawCtx);
-  const script = findDelegate('agent-inbox.mjs', ctx);
+  const script = findDelegate('src/scripts/agent-inbox.mjs', ctx);
   if (!script) {
-    return { done: unverified(spec.command, `agent-inbox.mjs not found under ${ctx.root} — the queue could not be reached`, { json: parsed.json }) };
+    return { done: unverified(spec.command, `src/scripts/agent-inbox.mjs not found under ${ctx.root} — the queue could not be reached`, { json: parsed.json }) };
   }
   return { parsed, ctx, script, json: parsed.json };
 }
@@ -362,12 +362,12 @@ async function runInboxAdd(argv = [], rawCtx = {}) {
     if (/needs a request/.test(stderr)) {
       return usage(spec.command, [{ code: 'missing-positional', message: stderr || 'add needs a request' }], spec, json);
     }
-    return unverified(spec.command, `the request was not queued: ${stderr || `agent-inbox.mjs exited ${res.status}`}`, { json });
+    return unverified(spec.command, `the request was not queued: ${stderr || `src/scripts/agent-inbox.mjs exited ${res.status}`}`, { json });
   }
 
   const queued = /^Queued: (.*)$/m.exec(res.stdout);
   if (!queued) {
-    return unverified(spec.command, `agent-inbox.mjs exited 0 without confirming the append${stderr ? `: ${stderr}` : ''} — the request may not be queued`, { json });
+    return unverified(spec.command, `src/scripts/agent-inbox.mjs exited 0 without confirming the append${stderr ? `: ${stderr}` : ''} — the request may not be queued`, { json });
   }
   return ok(spec.command, {
     data: { queued: queued[1] },
@@ -387,7 +387,7 @@ async function runInboxList(argv = [], rawCtx = {}) {
   const res = runDelegate(script, all ? ['list', '--all'] : ['list'], ctx);
   if (!res.ok) return unverified(spec.command, res.reason, { json });
   if (res.status !== 0) {
-    return unverified(spec.command, `agent-inbox.mjs exited ${res.status} listing the queue${res.stderr.trim() ? `: ${res.stderr.trim()}` : ''}`, { json });
+    return unverified(spec.command, `src/scripts/agent-inbox.mjs exited ${res.status} listing the queue${res.stderr.trim() ? `: ${res.stderr.trim()}` : ''}`, { json });
   }
 
   const items = [];
@@ -438,12 +438,12 @@ async function runInboxResolve(argv = [], rawCtx = {}) {
       // failed. That is a finding, not an unverified check.
       return bad(spec.command, [{ code: 'no-such-item', message: stderr }], { json, exitCode: EXIT.FAILED });
     }
-    return unverified(spec.command, `the item was not resolved: ${stderr || `agent-inbox.mjs exited ${res.status}`}`, { json });
+    return unverified(spec.command, `the item was not resolved: ${stderr || `src/scripts/agent-inbox.mjs exited ${res.status}`}`, { json });
   }
 
   const resolved = /^Resolved #(\d+): (.*)$/m.exec(res.stdout);
   if (!resolved) {
-    return unverified(spec.command, `agent-inbox.mjs exited 0 without confirming the resolve${stderr ? `: ${stderr}` : ''} — the item may still be pending`, { json });
+    return unverified(spec.command, `src/scripts/agent-inbox.mjs exited 0 without confirming the resolve${stderr ? `: ${stderr}` : ''} — the item may still be pending`, { json });
   }
   return ok(spec.command, {
     data: { resolved: Number(resolved[1]), text: resolved[2], result: result ?? null },

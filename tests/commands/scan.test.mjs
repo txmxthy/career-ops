@@ -38,7 +38,7 @@ process.on('exit', () => {
 /**
  * Write a stand-in delegate that runs `body` with `args` already in scope.
  *
- * Stand-ins set `process.exitCode` rather than calling exit: test-all.mjs
+ * Stand-ins set `process.exitCode` rather than calling exit: tests/run-all.mjs
  * greps discovered suites for that call and refuses to import a file
  * containing it, even inside a string.
  */
@@ -151,7 +151,7 @@ test('verify-portals reports exit 3 for a missing portals file and never spawns 
 
 test('validate-portals reports exit 3 for a missing portals file', () => {
   const root = sandbox();
-  fakeDelegate(root, 'validate-portals.mjs', '');
+  fakeDelegate(root, 'src/scripts/validate-portals.mjs', '');
   const res = commands['validate-portals'].run(['--json'], { root });
   assert.equal(res.exitCode, EXIT.UNVERIFIED);
   assert.match(res.envelope.errors[0].message, /no portals file at/);
@@ -159,7 +159,7 @@ test('validate-portals reports exit 3 for a missing portals file', () => {
 
 test('liveness reports exit 3 for a --file that is not there', () => {
   const root = sandbox();
-  fakeDelegate(root, 'check-liveness.mjs', '');
+  fakeDelegate(root, 'src/scripts/check-liveness.mjs', '');
   const res = commands.liveness.run(['--json', '--file=nope.txt'], { root });
   assert.equal(res.exitCode, EXIT.UNVERIFIED);
   assert.match(res.envelope.errors[0].message, /URL list not found/);
@@ -167,7 +167,7 @@ test('liveness reports exit 3 for a --file that is not there', () => {
 
 test('discover reports exit 3 for an --in file that is not there', () => {
   const root = sandbox();
-  fakeDelegate(root, 'discover-ats.mjs', '');
+  fakeDelegate(root, 'src/scripts/discover-ats.mjs', '');
   const res = commands.discover.run(['--json', '--in=missing.yml'], { root });
   assert.equal(res.exitCode, EXIT.UNVERIFIED);
   assert.match(res.envelope.errors[0].message, /input file not found/);
@@ -177,7 +177,7 @@ test('a machine-readable verb that exits 0 without JSON is could-not-verify', ()
   // The exact "reported success having produced nothing" shape ADR 0006 exists
   // to remove: a clean exit is not evidence the check ran.
   const root = sandbox();
-  fakeDelegate(root, 'browser-extract.mjs', `console.log('all good');`);
+  fakeDelegate(root, 'src/scripts/browser-extract.mjs', `console.log('all good');`);
   const res = commands.extract.run(['--json', 'https://example.com/jobs/1'], { root });
   assert.equal(res.exitCode, EXIT.UNVERIFIED);
   assert.equal(res.envelope.ok, false);
@@ -220,8 +220,8 @@ test('the delegate under src/ wins over the root filename', () => {
   // need editing when it happens.
   const root = sandbox();
   mkdirSync(path.join(root, 'src'));
-  fakeDelegate(root, 'scan-hn.mjs', `console.log('root'); process.exitCode = 1;`);
-  fakeDelegate(path.join(root, 'src'), 'scan-hn.mjs', `console.log('moved');`);
+  fakeDelegate(root, 'src/scripts/scan-hn.mjs', `console.log('root'); process.exitCode = 1;`);
+  fakeDelegate(path.join(root, 'src'), 'src/scripts/scan-hn.mjs', `console.log('moved');`);
   const res = commands.hn.run(['--json'], { root });
   assert.equal(res.exitCode, EXIT.OK);
   assert.equal(res.envelope.data.output.trim(), 'moved');
@@ -261,14 +261,14 @@ test('--throttle-ms is the CLI spelling of the delegate\'s --throttle=<ms>', () 
 test('liveness keeps --file space-separated, because the delegate reads it positionally', () => {
   const root = sandbox();
   writeFileSync(path.join(root, 'urls.txt'), 'https://example.com/j\n', 'utf-8');
-  fakeDelegate(root, 'check-liveness.mjs', `console.log(JSON.stringify(args));`);
+  fakeDelegate(root, 'src/scripts/check-liveness.mjs', `console.log(JSON.stringify(args));`);
   const res = commands.liveness.run(['--json', '--no-fallback', '--file', 'urls.txt'], { root });
   assert.deepEqual(JSON.parse(res.envelope.data.output), ['--file', 'urls.txt', '--no-fallback']);
 });
 
 test('liveness rejects --file together with URL arguments', () => {
   const root = sandbox();
-  fakeDelegate(root, 'check-liveness.mjs', '');
+  fakeDelegate(root, 'src/scripts/check-liveness.mjs', '');
   const res = commands.liveness.run(['--file=urls.txt', 'https://example.com/j'], { root });
   assert.equal(res.exitCode, EXIT.USAGE);
   assert.equal(res.envelope.errors[0].code, 'invalid-arguments');
@@ -276,7 +276,7 @@ test('liveness rejects --file together with URL arguments', () => {
 
 test('positional company names are forwarded to discover', () => {
   const root = sandbox();
-  fakeDelegate(root, 'discover-ats.mjs', `console.log(JSON.stringify({ argv: args }));`);
+  fakeDelegate(root, 'src/scripts/discover-ats.mjs', `console.log(JSON.stringify({ argv: args }));`);
   const res = commands.discover.run(['--json', '--vendors=gh,ashby', 'Stripe', 'Ramp'], { root });
   assert.equal(res.exitCode, EXIT.OK);
   assert.deepEqual(res.envelope.data.result.argv, ['--vendors=gh,ashby', 'Stripe', 'Ramp']);
@@ -284,7 +284,7 @@ test('positional company names are forwarded to discover', () => {
 
 test('discover with --summary falls back to prose, since the delegate stops emitting JSON', () => {
   const root = sandbox();
-  fakeDelegate(root, 'discover-ats.mjs', `console.log('| Stripe | greenhouse |');`);
+  fakeDelegate(root, 'src/scripts/discover-ats.mjs', `console.log('| Stripe | greenhouse |');`);
   const res = commands.discover.run(['--json', '--summary', 'Stripe'], { root });
   assert.equal(res.exitCode, EXIT.OK);
   assert.match(res.envelope.data.output, /Stripe/);

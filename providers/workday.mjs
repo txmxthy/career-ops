@@ -76,7 +76,7 @@ function sleep(ms, ctx) {
  * never stops pagination (the `dated.length === 0` guard), but a page that
  * mixes stale dated postings with undated ones does — and the undated ones on
  * later pages are then never fetched, even though scan.mjs's date filters
- * would have accepted them. Exported for test-all.mjs, which pins that
+ * would have accepted them. Exported for tests/run-all.mjs, which pins that
  * behaviour so it can't drift without the docs drifting too.
  */
 export function pageIsPastWindow(pageJobs, sinceMs) {
@@ -292,7 +292,7 @@ export default {
     // that starts setting sinceMs cannot re-couple the two concerns.
     //
     // Absence means "tracked": scan-ats-full.mjs is the only caller that
-    // synthesizes entries AND can reach the cap (discover-ats.mjs and
+    // synthesizes entries AND can reach the cap (src/scripts/discover-ats.mjs and
     // verify-portals.mjs both probe with ctx.maxPages: 1, which never sets
     // stopReason to 'cap'), so it is the one place that opts out.
     const syntheticEntries = ctx?.syntheticEntries === true;

@@ -21,7 +21,7 @@
 // Manifests are DISCOVERED, not listed. A hardcoded pair holds only until the
 // next workspace is added, and the failure is silent: the new manifest simply is
 // not checked. `git ls-files` is the set that ships, needs no skip-list, and
-// cannot wander into untracked scratch (a killed test-all.mjs run leaves a
+// cannot wander into untracked scratch (a killed tests/run-all.mjs run leaves a
 // `.tmp-script-test-*` copy of the whole repo behind).
 //
 // KNOWN LIMIT — this checks the declared range, not what a lockfile resolved to.

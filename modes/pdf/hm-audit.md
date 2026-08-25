@@ -8,7 +8,7 @@ An opt-in pass inside `modes/pdf.md`, run at Step 20 — between the fact gate a
 
 Put a tailored CV in front of an adversarial, research-grounded reviewer before it becomes a PDF.
 
-The fact gate at `pdf` Step 19 (`verify-cv-facts.mjs`) is **mechanical**: it diffs generated output against `cv.md` and `article-digest.md` to catch invented metrics. It cannot judge whether a truthful bullet is the *right* bullet — buried lede, wrong altitude, wrong vocabulary, or answering a requirement the JD never raised. This pass answers a different question: *"Would the person who screens this actually advance it?"*
+The fact gate at `pdf` Step 19 (`src/scripts/verify-cv-facts.mjs`) is **mechanical**: it diffs generated output against `cv.md` and `article-digest.md` to catch invented metrics. It cannot judge whether a truthful bullet is the *right* bullet — buried lede, wrong altitude, wrong vocabulary, or answering a requirement the JD never raised. This pass answers a different question: *"Would the person who screens this actually advance it?"*
 
 Two properties are load-bearing, and neither works without the other:
 
@@ -32,14 +32,14 @@ Requires a tailored CV produced by `modes/pdf.md`. Normally that CV was just bui
    3. A path the user supplies explicitly.
 
    Only if none of those resolve, fall back to the newest `output/cv-*-{company}.html` — and say so, because a company with two open roles produces several files whose names carry the candidate and company but not the role. Auditing the wrong CV silently is worse than asking. When reading HTML, take the `<li>` items, which the generator emits only for experience and project bullets.
-5. **Factual floor** — run `node jd-skill-gap.mjs jds/{slug}.md --summary` for the zero-LLM classification of every JD requirement into `existing` / `supportedByResume` / `gap`.
+5. **Factual floor** — run `node src/scripts/jd-skill-gap.mjs jds/{slug}.md --summary` for the zero-LLM classification of every JD requirement into `existing` / `supportedByResume` / `gap`.
 
    If it prints a `🚨 LOW CONFIDENCE` diagnosis (`no-requirements-section`, `no-skill-candidates`, or `empty-jd`), the check did not run and an empty `gap` list is **not** "no gaps." Treat the classification as unavailable and brief the reviewer per Step 3 — never hand over empty buckets, which read as fit confirmation the check never established.
 6. **Scope of truth** — `cv.md`, `article-digest.md`, `config/profile.yml`, `modes/_profile.md`. These bound what the reviewer may recommend.
 
 ## Step 1 — Gather
 
-Resolve the role to a report. Locate the tailored CV artifact per Input 4. Run `jd-skill-gap.mjs`. Load the scope-of-truth files.
+Resolve the role to a report. Locate the tailored CV artifact per Input 4. Run `src/scripts/jd-skill-gap.mjs`. Load the scope-of-truth files.
 
 If the tailored CV is missing, stop here:
 
@@ -83,7 +83,7 @@ Dispatch a single subagent per the convention in `.agents/skills/career-ops/SKIL
 
 The brief contains:
 
-- The JD, and the `jd-skill-gap.mjs` output. Two failure cases, and they are not the same — resolve which one applies before dispatching.
+- The JD, and the `src/scripts/jd-skill-gap.mjs` output. Two failure cases, and they are not the same — resolve which one applies before dispatching.
 
   **If the classification came back `LOW CONFIDENCE`**, the JD itself is still reachable; only the automated pass over it failed. Supply the JD in full, state the reason code (`no-requirements-section`, `no-skill-candidates`, or `empty-jd`), and mark the skill-gap classification **unavailable** rather than passing empty buckets through as a clean result. Instruct the reviewer: *"The automated requirement check did not run on this JD, so treat its buckets as absent, not as empty. Read the posting yourself and judge coverage from it directly."*
 
@@ -144,7 +144,7 @@ Placement follows the convention of the cover letter draft appended by `modes/of
 
 ## Scope / Non-Goals
 
-- **Not a fact checker.** `verify-cv-facts.mjs` owns that and runs first, at `pdf` Step 19.
+- **Not a fact checker.** `src/scripts/verify-cv-facts.mjs` owns that and runs first, at `pdf` Step 19.
 - **Not a rewriter.** This pass recommends; the user decides; `pdf` regenerates from Step 17.
 - **Not on by default.** `pdf.md` Step 20 runs it only for `--hm-audit`, or when `modes/_custom.md` turns it on for every CV. A `pdf` run that does not ask for it never prompts.
 - **Not a routable mode.** No entry in the router table or the argument-hint, and no mode name of its own — it is reached through `pdf --hm-audit`, the way `heuristics/recruiter-side.md` is reached through the modes that load it. The `AGENTS.md` and `modes/README.md` rows point at `pdf`, so the pass is discoverable without being addressable.

@@ -18,7 +18,7 @@ npm run serve:dashboard    # go run . --path .. (launch against the repo root)
 npm run build:dashboard    # build the standalone binary
 ```
 
-`build-dashboard.mjs` exists because `go build -o career-dashboard .` writes
+`src/scripts/build-dashboard.mjs` exists because `go build -o career-dashboard .` writes
 an extension-less binary on Windows; the wrapper picks the platform-correct
 output name (`career-dashboard.exe` on Windows, `career-dashboard` elsewhere).
 
@@ -50,4 +50,4 @@ side; it only reads the tracker files.
 ## Tests
 
 Go tests live next to their packages (`*_test.go`). The Node suite builds
-the dashboard as part of `node test-all.mjs` (skipped with `--quick`).
+the dashboard as part of `node tests/run-all.mjs` (skipped with `--quick`).

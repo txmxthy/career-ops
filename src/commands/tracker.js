@@ -19,7 +19,7 @@
  * `script`/`argvFor` pair is replaced by a direct call and nothing else in this
  * file moves.
  *
- * `normalize-link` is already argv-free (tracker-links.mjs exports one pure
+ * `normalize-link` is already argv-free (src/scripts/tracker-links.mjs exports one pure
  * function), so it is called in-process. It is the shape all fifteen end up in.
  *
  * ## What every command returns
@@ -57,7 +57,7 @@ import {
 // Pure and argv-free already, so it is imported rather than spawned. The four
 // module-scope-argv scripts below cannot be imported at all — importing one
 // runs it.
-import { normalizeReportLink } from '../../tracker-links.mjs';
+import { normalizeReportLink } from '../scripts/tracker-links.mjs';
 
 /** Repo root: src/commands/ -> src/ -> root. The scripts still live there. */
 const REPO_ROOT = resolve(join(dirname(fileURLToPath(import.meta.url)), '..', '..'));
@@ -70,7 +70,7 @@ const NOUN = 'tracker';
 
 // ── Preflight: the inputs a command cannot run without ───────────────
 //
-// dedup-tracker.mjs:268 and normalize-statuses.mjs:113 both print "Nothing to
+// src/scripts/dedup-tracker.mjs:268 and src/scripts/normalize-statuses.mjs:113 both print "Nothing to
 // dedup/normalize" and exit 0 when the tracker is absent — the exact pattern
 // ADR 0006 bans, because a mis-pointed CAREER_OPS_TRACKER is indistinguishable
 // from a clean tracker. Checking the input up front turns both into exit 3.
@@ -282,7 +282,7 @@ const specs = {
   // it belongs under `cv`.
   'add-entry': {
     command: `${NOUN} add-entry`,
-    script: 'add-entry.mjs',
+    script: 'src/scripts/add-entry.mjs',
     description: 'Add one CV or article-digest entry from a JSON payload, skipping duplicates.',
     usage: 'career-ops tracker add-entry <payload.json> [--dry-run]\n       career-ops tracker add-entry --stdin [--dry-run]',
     flags: {
@@ -303,7 +303,7 @@ const specs = {
   // jds/, which is scan/apply territory rather than the tracker's.
   'archive-posting': {
     command: `${NOUN} archive-posting`,
-    script: 'archive-posting.mjs',
+    script: 'src/scripts/archive-posting.mjs',
     description: 'Archive a job posting to jds/, one URL or every pending pipeline entry.',
     usage: 'career-ops tracker archive-posting <url> [--company <c>] [--role <r>] [--report <n>]\n       career-ops tracker archive-posting --pipeline [--dry-run]',
     flags: {
@@ -336,7 +336,7 @@ const specs = {
   // stutters the noun.
   dedup: {
     command: `${NOUN} dedup`,
-    script: 'dedup-tracker.mjs',
+    script: 'src/scripts/dedup-tracker.mjs',
     description: 'Collapse duplicate tracker rows, keeping the most advanced status.',
     usage: 'career-ops tracker dedup [--dry-run]',
     flags: { ...DRY_RUN },
@@ -368,7 +368,7 @@ const specs = {
   // ADR 0003 row: normalize-statuses.mjs.
   'normalize-statuses': {
     command: `${NOUN} normalize-statuses`,
-    script: 'normalize-statuses.mjs',
+    script: 'src/scripts/normalize-statuses.mjs',
     description: 'Rewrite tracker status cells to the canonical labels in templates/states.yml.',
     usage: 'career-ops tracker normalize-statuses [--dry-run]',
     flags: { ...DRY_RUN },
@@ -380,7 +380,7 @@ const specs = {
   // says tracker, and `reconcile` is the verb.
   reconcile: {
     command: `${NOUN} reconcile`,
-    script: 'reconcile-pipeline.mjs',
+    script: 'src/scripts/reconcile-pipeline.mjs',
     description: 'Move batch-processed offers from the pipeline inbox\'s Pendientes into Procesadas.',
     usage: 'career-ops tracker reconcile [--dry-run] [--state <path>] [--pipeline <path>]',
     flags: {
@@ -486,7 +486,7 @@ const specs = {
   // ADR 0003 row: tracker-sync-check.mjs.
   'sync-check': {
     command: `${NOUN} sync-check`,
-    script: 'tracker-sync-check.mjs',
+    script: 'src/scripts/tracker-sync-check.mjs',
     description: 'Compare the tracker against active-interviews.md and report the mismatches.',
     usage: 'career-ops tracker sync-check [--summary] [--apps-file <path>] [--interviews-file <path>]',
     flags: {
@@ -504,7 +504,7 @@ const specs = {
       ...bool(p, '--summary'), ...bool(p, '--self-test'),
       ...val(p, '--apps-file'), ...val(p, '--interviews-file'),
     ],
-    // tracker-sync-check.mjs exits 0 whether or not it found mismatches, so
+    // src/scripts/tracker-sync-check.mjs exits 0 whether or not it found mismatches, so
     // the finding is invisible to a caller reading the status. ADR 0006
     // reserves 1 for exactly this: the check ran and found something.
     exitMap: (status) => (status === 0 ? EXIT.OK : EXIT.FAILED),

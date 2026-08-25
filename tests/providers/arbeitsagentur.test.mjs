@@ -1,4 +1,4 @@
-// tests/providers/arbeitsagentur.test.mjs — moved verbatim from test-all.mjs (#1440).
+// tests/providers/arbeitsagentur.test.mjs — moved verbatim from tests/run-all.mjs (#1440).
 // Fixtures follow the v6 search shape (#2494): the response list is
 // `ergebnisliste`, and a posting carries `referenznummer` /
 // `stellenangebotsTitel` / `firma` / `stellenlokationen[]`.

@@ -10,20 +10,20 @@
 // plugin config into a silent empty config.
 //
 // The repo was converted to `import * as yaml` wholesale, but a conversion only
-// holds until the next file. rejection-latency.mjs landed with the default form
+// holds until the next file. src/scripts/rejection-latency.mjs landed with the default form
 // while that conversion sat in review — which is exactly why the rule needs a
 // guard rather than a one-time sweep.
 //
 // Scoped to TRACKED source, enumerated with `git ls-files`. A recursive walk with
 // a skip-list cannot work here: it also reads whatever untracked scratch the tree
-// happens to be carrying — a killed test-all.mjs run leaves a `.tmp-script-test-*`
+// happens to be carrying — a killed tests/run-all.mjs run leaves a `.tmp-script-test-*`
 // copy of the whole repo behind, and every pre-conversion file in it reports as an
 // offender. Those paths are gitignored and ship to nobody, so the rule does not
 // apply to them. `git ls-files` is exactly the set that ships; it needs no
 // skip-list to maintain, never descends a symlinked directory, and cannot wander
 // outside the repo.
 //
-// A string LITERAL containing the pattern (test-all.mjs uses one as an
+// A string LITERAL containing the pattern (tests/run-all.mjs uses one as an
 // import-parser fixture) is not an import and must not match.
 
 import { pass, fail, ROOT } from './helpers.mjs';
@@ -58,7 +58,7 @@ function sourceFiles() {
 // import (`{ load, dump }`) are the legal forms and must NOT match.
 //
 // Anchored at a statement start (allowing indentation) so the fixture STRING in
-// test-all.mjs — `"import yaml from 'js-yaml';"`, quoted mid-line — does not match.
+// tests/run-all.mjs — `"import yaml from 'js-yaml';"`, quoted mid-line — does not match.
 // Token separator: whitespace, or a block comment, or both. `import /* c */ yaml
 // from 'js-yaml'` is a legal default import, and a plain `\s+` would step over it
 // and report the file clean — the one failure direction that is silent.
@@ -73,14 +73,14 @@ const STATIC_DEFAULT = new RegExp(
 
 // KNOWN LIMIT — this is a text scan, not a parse. A line inside a template
 // literal or a block comment that happens to *look* like a default import is
-// reported as an offender (test-all.mjs's quoted single-line fixture is already
+// reported as an offender (tests/run-all.mjs's quoted single-line fixture is already
 // handled; a multi-line one would not be). That direction is loud and
 // self-correcting: CI goes red, a human reads the path, and the fixture gets an
 // exemption. The dangerous direction is the silent one — a real import the sweep
 // walks past — and that is what SEP above and the fail-closed branches below
 // exist to prevent. Making this syntax-aware would mean parsing 138 .ts/.tsx
 // files, so a TypeScript parser as a root dependency for one guard; every other
-// source scan in test-all.mjs is text-based too. Not worth it unless a real
+// source scan in tests/run-all.mjs is text-based too. Not worth it unless a real
 // fixture actually trips it.
 const DYNAMIC_DEFAULT = /import\(\s*['"]js-yaml['"]\s*\)\s*\)?\s*\.default/;
 

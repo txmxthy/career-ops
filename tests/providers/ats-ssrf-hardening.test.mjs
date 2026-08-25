@@ -1,4 +1,4 @@
-// tests/providers/ats-ssrf-hardening.test.mjs — moved verbatim from test-all.mjs (#1440).
+// tests/providers/ats-ssrf-hardening.test.mjs — moved verbatim from tests/run-all.mjs (#1440).
 // _http.mjs defaults to redirect:'follow', so a server-side redirect from any
 // of these ATS APIs to an internal address is an SSRF vector. Every other GET
 // provider passes redirect:'error'; these two were missing it.

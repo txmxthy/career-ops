@@ -4,7 +4,7 @@
 // run() reports failure by returning null. execFileSync attaches the child's
 // stdout, stderr, exit status, and signal to the error it throws, and the catch
 // block discarded all of it. Every caller could therefore only report the fact
-// of a crash, which is what `❌ <name> crashed` in test-all.mjs is: one line, no
+// of a crash, which is what `❌ <name> crashed` in tests/run-all.mjs is: one line, no
 // stack, no assertion text, no exit code.
 //
 // That is not merely unhelpful, it is the difference between reading a CI
@@ -68,7 +68,7 @@ const OK_CHILD = 'console.log("OK");';
   else fail(`a successful run must clear the record, got ${JSON.stringify(lastRunFailure())}`);
 }
 
-// Guard the format helper too: it is what test-all.mjs interpolates, so an
+// Guard the format helper too: it is what tests/run-all.mjs interpolates, so an
 // empty string on success is what keeps a passing line unchanged.
 {
   const { formatRunFailure } = await import('./helpers.mjs');

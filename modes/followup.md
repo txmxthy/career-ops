@@ -39,14 +39,14 @@ Parse the JSON output. It contains:
 If no actionable entries, tell the user:
 > "No active applications to follow up on. Apply to some roles first with `/career-ops` and come back when they're aging."
 
-**Calibration cross-reference:** `node funnel-velocity.mjs --summary` reports which in-flight applications sit beyond the typical first-response window (its `waiting` block) — those rows are natural follow-up candidates; feed them into this cadence view rather than treating the wait itself as a verdict (silence past the window is common, not a rejection). When the user reports a status change here ("they replied", "rejected"), route it through `node set-status.mjs <report#> <state>` and pass `--on YYYY-MM-DD` when they name the real event day.
+**Calibration cross-reference:** `node src/scripts/funnel-velocity.mjs --summary` reports which in-flight applications sit beyond the typical first-response window (its `waiting` block) — those rows are natural follow-up candidates; feed them into this cadence view rather than treating the wait itself as a verdict (silence past the window is common, not a rejection). When the user reports a status change here ("they replied", "rejected"), route it through `node set-status.mjs <report#> <state>` and pass `--on YYYY-MM-DD` when they name the real event day.
 
 ## Step 1b — Employer Response-Latency Check
 
 Execute:
 
 ```bash
-node rejection-latency.mjs
+node src/scripts/rejection-latency.mjs
 ```
 
 Parse the JSON output. It cross-references `data/active-interviews.md` interview dates with tracker rows still in `Interview` state (matched per application: company + role) and flags applications whose post-interview silence exceeds the **courtesy** threshold (30-day default, configurable via `rejection_latency.courtesy_days` or `--courtesy-days`). If `flags` is empty, skip this step silently.
@@ -148,7 +148,7 @@ Do NOT generate another follow-up. Instead suggest:
 
 ### Company history context (optional)
 
-Before drafting, check the company's card. Skip this lookup entirely when the tracker's company field is `?` (the unknown-employer marker — there is no meaningful card to fetch). Otherwise run `node company-history.mjs --company <company>`, passing the company name as its own single, quoted argument — never splice it into a longer shell string, since company names can legitimately contain quotes, `$`, backticks, or `;`. If `responsiveness.label` is `silent-on-you`, set expectations rather than discouraging the follow-up: many processes are genuinely just slow, so mention this plainly and suggest capping further time investment in this company if it stays silent after this attempt. The decision to send — and how many more times — stays the user's; never skip or downgrade a follow-up because of this label. Follow-up compliance is never punished.
+Before drafting, check the company's card. Skip this lookup entirely when the tracker's company field is `?` (the unknown-employer marker — there is no meaningful card to fetch). Otherwise run `node src/scripts/company-history.mjs --company <company>`, passing the company name as its own single, quoted argument — never splice it into a longer shell string, since company names can legitimately contain quotes, `$`, backticks, or `;`. If `responsiveness.label` is `silent-on-you`, set expectations rather than discouraging the follow-up: many processes are genuinely just slow, so mention this plainly and suggest capping further time investment in this company if it stays silent after this attempt. The decision to send — and how many more times — stays the user's; never skip or downgrade a follow-up because of this label. Follow-up compliance is never punished.
 
 ## Step 4 — Present Drafts
 

@@ -8,9 +8,9 @@
 //                            silenced until a date resurfaces a day early
 //   followup-cadence.mjs     the follow-up due decision
 //   check-table-freshness    `expired`, which exits 1 — a CI gate
-//   funnel-velocity.mjs      the "waiting" figure
-//   company-history.mjs      the `now` all age math runs against
-//   assessment-log.mjs       the date written into a user's assessments.tsv row
+//   src/scripts/funnel-velocity.mjs      the "waiting" figure
+//   src/scripts/company-history.mjs      the `now` all age math runs against
+//   src/scripts/assessment-log.mjs       the date written into a user's assessments.tsv row
 //
 // PINNED INSTANT, not the wall clock. The window where the UTC day and the
 // local day disagree only exists for part of the UTC day, so a test that reads
@@ -131,7 +131,7 @@ test('company-history today() is the local calendar day at UTC midnight', () => 
   // The UTC-midnight ANCHOR is deliberate and must survive; only WHICH day
   // moves. #2765 drew the same line, so both halves are asserted.
   const out = inFrozenTz('America/New_York',
-    `const {today} = await import('${spec('company-history.mjs')}');` +
+    `const {today} = await import('${spec('src/scripts/company-history.mjs')}');` +
     `process.stdout.write(today().toISOString());`);
   assert.equal(out.slice(0, 10), NY_DAY, `today() returned the UTC day (${out.slice(0, 10)}), not the local one`);
   assert.equal(out.slice(10), 'T00:00:00.000Z', 'the UTC-midnight anchor was lost');
@@ -140,7 +140,7 @@ test('company-history today() is the local calendar day at UTC midnight', () => 
 test('check-table-freshness --today still overrides, and reports the date it used', () => {
   // The flag is the deterministic escape hatch; the local-day default must not
   // have broken it, or every CI pin in the repo silently drifts.
-  const r = spawnSync(process.execPath, [join(ROOT, 'check-table-freshness.mjs'), '--today', '2026-08-18'], {
+  const r = spawnSync(process.execPath, [join(ROOT, 'src/scripts/check-table-freshness.mjs'), '--today', '2026-08-18'], {
     cwd: ROOT, encoding: 'utf-8', timeout: 30_000,
   });
   assert.equal(r.error, undefined);

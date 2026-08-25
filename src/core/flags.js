@@ -26,7 +26,7 @@
  *     negative finding).
  *   - A value flag left without an operand is always an error, never opt-in.
  *   - An empty value (`--company ""`, `--company=`) is a usage error, which is
- *     company-history.mjs:163-170's rule generalised (audit A7).
+ *     src/scripts/company-history.mjs:163-170's rule generalised (audit A7).
  *   - A repeated non-repeatable value flag is reported rather than silently
  *     resolved first-wins.
  */
@@ -82,7 +82,7 @@ export function flagValue(args, flag) {
 /**
  * Every value supplied for a repeatable flag, in argv order, in either form.
  *
- * Only verify-cv-facts.mjs:422 accumulates repeats today (`--source`); every
+ * Only src/scripts/verify-cv-facts.mjs:422 accumulates repeats today (`--source`); every
  * other reader keeps the first and discards the rest without saying so.
  *
  * @param {string[]} args - argv slice.
@@ -165,7 +165,7 @@ function normaliseSpec(spec = {}) {
  * Order of checks matters. Flag errors are collected BEFORE `--help` is
  * honoured, so `--help --bogus` reports `--bogus` instead of exiting 0 having
  * never looked at it (the ordering CodeRabbit caught on #2745/#2746, inverted
- * in company-history.mjs:123, discover-ats.mjs:908 and assessment-log.mjs:290).
+ * in src/scripts/company-history.mjs:123, src/scripts/discover-ats.mjs:908 and src/scripts/assessment-log.mjs:290).
  * Positional arity is checked AFTER, so a bare `<cmd> --help` prints help
  * rather than complaining about the argument it was never given.
  *
@@ -245,7 +245,7 @@ export function parseFlags(argv, spec = {}) {
     let raw = inline;
     if (raw === undefined) {
       const next = argv[i + 1];
-      // ADR 0004 #6. archive-posting.mjs:120 records the live version of this
+      // ADR 0004 #6. src/scripts/archive-posting.mjs:120 records the live version of this
       // bug (#3087): `--company --pipeline` set the company to "--pipeline"
       // and left pipeline mode off, silently, at exit 0.
       if (typeof next !== 'string' || isFlagToken(next)) {

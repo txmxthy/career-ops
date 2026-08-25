@@ -19,7 +19,7 @@
  *     ambiguous with a candidate list instead of silently editing whichever
  *     row was found first
  *   - otherwise → company match (normalized, same key as merge-tracker dedup);
- *     multiple hits are narrowed with --role (fuzzy, role-matcher.mjs), and
+ *     multiple hits are narrowed with --role (fuzzy, src/lib/role-matcher.mjs), and
  *     anything still ambiguous fails with a numbered candidate list.
  *
  * Why --row/--report exist:
@@ -71,14 +71,14 @@
  * because it always has a real prior status and always writes its own source.
  * Any other producer does have to, so they are stated here:
  *   - An unknown from- or to-state is the sentinel "-", never an empty cell.
- *     funnel-velocity.mjs reads the two columns differently: a from of "-"
+ *     src/scripts/funnel-velocity.mjs reads the two columns differently: a from of "-"
  *     parses to null, meaning no prior state, while a to of "-" is preserved
  *     as the literal "-", meaning an unknown target. Any other value goes
  *     through resolveCanonicalState, so an empty cell is rejected as
  *     `unknown from-state ""` or `unknown to-state ""` for its own column,
  *     and the row is dropped.
  *   - The source column is a closed set, and VALID_SOURCES in
- *     funnel-velocity.mjs is the authority on its members. Deliberately not
+ *     src/scripts/funnel-velocity.mjs is the authority on its members. Deliberately not
  *     enumerated here: a copy of that list in prose is wrong the first time a
  *     writer is added, and it would be wrong in three files at once.
  *     A value outside the set parses but is excluded from day-math. The row
@@ -93,7 +93,7 @@ import { readFileSync, existsSync, appendFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { extractTrackerReportNumbers, resolveColumns, parseTrackerRow, normalizeTextKey } from './tracker-parse.mjs';
-import { roleFuzzyMatch } from './role-matcher.mjs';
+import { roleFuzzyMatch } from './src/lib/role-matcher.mjs';
 import { localToday } from './lib/local-today.mjs';
 import {
   rebuildRow, resolveTrackerPath, writeFileAtomic, loadCanonicalStates, resolveCanonicalState,
@@ -142,7 +142,7 @@ const VALUE_FLAGS = { '--note': 'note', '--role': 'role', '--on': 'on', '--row':
 // distinguishable from a CLI run's.
 //
 // The allow-list is narrow on purpose. The value is written to a file
-// funnel-velocity.mjs parses positionally and gates on its own source
+// src/scripts/funnel-velocity.mjs parses positionally and gates on its own source
 // allow-list, so an unrecognized label would be persisted here and then
 // silently dropped there. Rejecting it at the boundary keeps the two ends from
 // disagreeing about what a valid source is.
@@ -534,7 +534,7 @@ if (changed && !flags.dryRun) {
   }
 }
 
-// ── status-log append (transition ledger, read by funnel-velocity.mjs) ──
+// ── status-log append (transition ledger, read by src/scripts/funnel-velocity.mjs) ──
 // Observation trail only: the tracker stays the source of truth for STATE,
 // the ledger records WHEN transitions happened. A failed append is a warning,
 // never a failure — the status write above already succeeded. Sibling of the

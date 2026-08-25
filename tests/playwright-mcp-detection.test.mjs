@@ -17,7 +17,7 @@ const DOCTOR = join(ROOT, 'doctor.mjs');
 // under the user's config dir rather than the project root (#2752). Every
 // scenario therefore pins CLAUDE_CONFIG_DIR at an EMPTY dir by default, so a
 // developer's real machine can never decide the result - the same isolation
-// reasoning as the GIT_CONFIG_* pinning in test-all.mjs section 12c (#2569).
+// reasoning as the GIT_CONFIG_* pinning in tests/run-all.mjs section 12c (#2569).
 // Scenarios that exercise the plugin path pass their own CLAUDE_CONFIG_DIR.
 const EMPTY_CONFIG_DIR = mkdtempSync(join(tmpdir(), 'co-mcp-emptycfg-'));
 

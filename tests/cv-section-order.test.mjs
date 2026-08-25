@@ -114,7 +114,7 @@ function captureWarnings(fn) {
 
 try {
   const { cvSectionOrderFrom, readCvSectionOrder } =
-    await import(pathToFileURL(join(ROOT, 'theme-style.mjs')).href);
+    await import(pathToFileURL(join(ROOT, 'src/lib/theme-style.mjs')).href);
   const { reorderCvSections, CV_SECTION_KEYS, validateCvSectionOrder } =
     await import(pathToFileURL(join(ROOT, 'generate-pdf.mjs')).href);
 
@@ -740,15 +740,15 @@ try {
   try {
     const script = join(sandbox, 'generate-pdf.mjs');
     for (const f of [
-      'generate-pdf.mjs', 'theme-style.mjs', 'tracker-utils.mjs',
-      'tracker-parse.mjs', 'tracker-aliases.json', 'pipeline-lock.mjs',
+      'generate-pdf.mjs', 'src/lib/theme-style.mjs', 'tracker-utils.mjs',
+      'tracker-parse.mjs', 'tracker-aliases.json', 'src/lib/pipeline-lock.mjs',
     ]) {
       copyFileSync(join(ROOT, f), join(sandbox, f));
     }
     // Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
     copyCoreModules(sandbox);
 
-    // theme-style.mjs and tracker-utils.mjs both `import * as yaml from
+    // src/lib/theme-style.mjs and tracker-utils.mjs both `import * as yaml from
     // 'js-yaml'`, resolved by walking up into the repo's node_modules -- from
     // the sandbox's REALPATH, so a checkout with a symlinked output/ never
     // reaches it and the spawned generate-pdf dies before parsing argv (#3165).
@@ -871,15 +871,15 @@ export const chromium = {
   try {
     const script = join(sandbox, 'generate-pdf.mjs');
     for (const f of [
-      'generate-pdf.mjs', 'theme-style.mjs', 'tracker-utils.mjs',
-      'tracker-parse.mjs', 'tracker-aliases.json', 'pipeline-lock.mjs',
+      'generate-pdf.mjs', 'src/lib/theme-style.mjs', 'tracker-utils.mjs',
+      'tracker-parse.mjs', 'tracker-aliases.json', 'src/lib/pipeline-lock.mjs',
     ]) {
       copyFileSync(join(ROOT, f), join(sandbox, f));
     }
     // Root scripts import ./src/core/*; a hand-listed sandbox has to carry them.
     copyCoreModules(sandbox);
 
-    // theme-style.mjs and tracker-utils.mjs both `import * as yaml from
+    // src/lib/theme-style.mjs and tracker-utils.mjs both `import * as yaml from
     // 'js-yaml'`, resolved by walking up into the repo's node_modules -- from
     // the sandbox's REALPATH, so a checkout with a symlinked output/ never
     // reaches it and the spawned generate-pdf dies before parsing argv (#3165).

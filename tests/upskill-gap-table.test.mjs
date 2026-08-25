@@ -1,4 +1,4 @@
-// tests/upskill-gap-table.test.mjs — characterisation of upskill.mjs's Gap
+// tests/upskill-gap-table.test.mjs — characterisation of src/scripts/upskill.mjs's Gap
 // table reader across the move onto src/core/table.js (ADR 0005).
 //
 // parseReportGaps used `row.split('|').map(trim).filter(Boolean)`, one of the
@@ -16,7 +16,7 @@
 // The haystack keeps its old invariant either way: it never contains an empty
 // description, so a blank gap contributes nothing rather than a blank line.
 import { pass, fail } from './helpers.mjs';
-import { parseReportGaps } from '../upskill.mjs';
+import { parseReportGaps } from '../src/scripts/upskill.mjs';
 
 console.log('\nupskill.mjs — Gap table row grammar (characterisation)');
 

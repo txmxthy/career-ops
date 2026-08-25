@@ -4,7 +4,7 @@
 // test's own child process may have written (regression case), leaving any
 // concurrent legitimate row intact, and deletes the file only if the marker
 // row was the sole content (allowing for a leading header) and the file did
-// not exist before the run. Its read-modify-write shares portal-health-lock.mjs's
+// not exist before the run. Its read-modify-write shares src/lib/portal-health-lock.mjs's
 // cross-process lock with appendPortalHealth() (scan.mjs), so the two can
 // never interleave.
 import { pass, fail } from './helpers.mjs';
@@ -12,7 +12,7 @@ import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from 'fs
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { applyScriptDirGuard } from './portal-health-guard.mjs';
-import { acquirePortalHealthLock, LockTimeoutError } from '../portal-health-lock.mjs';
+import { acquirePortalHealthLock, LockTimeoutError } from '../src/lib/portal-health-lock.mjs';
 
 console.log('\napplyScriptDirGuard() — safe cleanup of a possibly-regressed script-dir write');
 
@@ -69,7 +69,7 @@ try {
   }
 
   // 5. The guard's read-modify-write must share the SAME lock appendPortalHealth()
-  //    takes (portal-health-lock.mjs, keyed by the file path) — proven here by
+  //    takes (src/lib/portal-health-lock.mjs, keyed by the file path) — proven here by
   //    holding that exact lock manually and confirming the guard genuinely
   //    blocks on it (times out) rather than racing straight through to a
   //    read/write. The env overrides keep this assertion in the milliseconds

@@ -58,8 +58,8 @@ function splitCells(line) {
  * The leading empty part (before the opening pipe) is always dropped; the
  * trailing one only when the row actually ends with a pipe. An unconditional
  * `slice(1, -1)` ate the last cell of hand-edited rows written without a
- * trailing pipe (#2369, still live in plugins.mjs:65), and empty cells are kept
- * as positional slots rather than filtered away (upskill.mjs:298's
+ * trailing pipe (#2369, still live in src/scripts/plugins.mjs:65), and empty cells are kept
+ * as positional slots rather than filtered away (src/scripts/upskill.mjs:298's
  * `.filter(Boolean)` shifts every column after a blank one).
  *
  * @param {string} line - One line of markdown.
@@ -141,7 +141,7 @@ function tableLines(input, contiguous) {
  * genuinely named "Company" is never read as table furniture
  * (tracker-parse.mjs:90-93). Without one, every cell keys itself (lowercased,
  * whitespace-collapsed) and the first table row is the header — the contract
- * plugins.mjs:61 and process-quality.mjs:118 already use.
+ * src/scripts/plugins.mjs:61 and src/scripts/process-quality.mjs:118 already use.
  *
  * @param {string|string[]} input - Markdown text, or its lines.
  * @param {object} [options]
@@ -162,7 +162,7 @@ export function detectColumns(input, options = {}) {
  * Rows narrower than the mapped width are skipped rather than read: a row
  * missing an INTERIOR cell shifts every later column one left while still
  * covering the highest mapped index, so `parts.length <= MAX_IDX`
- * (verify-pipeline.mjs:103, merge-tracker.mjs:567) silently mis-reads it.
+ * (src/scripts/verify-pipeline.mjs:103, merge-tracker.mjs:567) silently mis-reads it.
  * Skipped rows are returned rather than dropped — an unparseable row and an
  * absent one are different states (ADR 0006).
  *
@@ -224,7 +224,7 @@ export function parseTable(input, options = {}) {
  * The default rewrites a pipe as ` / ` rather than escaping it, because the
  * repo's other readers of these files — the Go TUI in dashboard/ — split on raw
  * pipes and would see a `\|` as a column break (tracker-utils.mjs:84-88).
- * `escapePipes` is the other live contract (company-funded.mjs:829) and is the
+ * `escapePipes` is the other live contract (src/scripts/company-funded.mjs:829) and is the
  * only one that round-trips through parseRow.
  */
 function sanitiseCell(value, escapePipes) {

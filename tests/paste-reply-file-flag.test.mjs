@@ -1,9 +1,9 @@
-// tests/paste-reply-file-flag.test.mjs — paste-reply.mjs's --file flag, pinned
+// tests/paste-reply-file-flag.test.mjs — src/scripts/paste-reply.mjs's --file flag, pinned
 // as part of moving its argv layer onto src/core/flags.js.
 //
-// paste-reply-tests.mjs covers what --file DOES once it is found. It always
+// tests/paste-reply.test.mjs covers what --file DOES once it is found. It always
 // passes the flag as two tokens, so nothing covered how the flag is FOUND —
-// and paste-reply.mjs found it with a bare `args.indexOf('--file')`, which
+// and src/scripts/paste-reply.mjs found it with a bare `args.indexOf('--file')`, which
 // cannot see `--file=path`. That is defect #2401's exact shape: the equals form
 // fell through to INTERACTIVE mode, so the script sat waiting on stdin for an
 // email the caller had already handed it, and under a closed stdin reported
@@ -21,7 +21,7 @@ import { tmpdir } from 'os';
 
 console.log('\npaste-reply.mjs — --file flag forms (characterisation)');
 
-const SCRIPT = join(ROOT, 'paste-reply.mjs');
+const SCRIPT = join(ROOT, 'src/scripts/paste-reply.mjs');
 const check = (label, cond) => (cond ? pass(label) : fail(label));
 
 // One sandbox per invocation, so each assertion reads its own candidates file
@@ -42,7 +42,7 @@ function runWith(argvBuilder) {
 
 const readCandidates = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, 'utf-8')) : null);
 
-// PRESERVED: the two-token form is what paste-reply-tests.mjs already exercises.
+// PRESERVED: the two-token form is what tests/paste-reply.test.mjs already exercises.
 const spaced = runWith((m) => ['--file', m]);
 check('--file <path> exits 0', spaced.status === 0);
 const spacedOut = readCandidates(spaced.out);
@@ -75,7 +75,7 @@ const missing = runWith(() => ['--file', join(tmpdir(), 'no-such-paste-reply-inp
 check('a missing --file path exits 1', missing.status === 1);
 check('a missing --file path names the file', /file not found/.test(missing.stderr));
 
-// PRESERVED: --help wins over everything, on stdout, at exit 0. paste-reply.mjs
+// PRESERVED: --help wins over everything, on stdout, at exit 0. src/scripts/paste-reply.mjs
 // answers --help before it looks at --file; the shared parser reports flag
 // errors first by default, and that ordering difference must not leak in.
 const help = runWith((m) => ['--file', m, '--help']);

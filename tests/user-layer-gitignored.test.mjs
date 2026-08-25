@@ -134,7 +134,7 @@ for (const path of timestampedBackupProbes) {
 }
 
 // Not user-layer data, but the same mechanism: this one is about what a
-// reflexive `git add .` can swallow. test-all.mjs builds its script-runner
+// reflexive `git add .` can swallow. tests/run-all.mjs builds its script-runner
 // sandbox with mkdtempSync under the repo ROOT, and a suite interrupted
 // mid-run (a flake, a Ctrl-C) leaves that copy behind: ~650MB and ~1000
 // stageable files. The copied .gitignore does travel with it and does keep the

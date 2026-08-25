@@ -9,7 +9,7 @@
 //                          every git invocation.
 //   GIT_CONFIG             redirects the `git config` command — reads AND
 //                          writes. The write half is the one that bites: the
-//                          fixtures in test-all.mjs configure themselves by
+//                          fixtures in tests/run-all.mjs configure themselves by
 //                          calling `git config`, so under an ambient value that
 //                          write leaves the fixture, the setting silently never
 //                          applies, and the suite edits a file it does not own.

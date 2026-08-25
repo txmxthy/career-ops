@@ -16,13 +16,13 @@ are `modes/*.md` files we control and rewrite in the same commit.
 ## What the audit changed about the premise
 
 Upstream is **already running this consolidation by hand, one symbol at a time, and it has
-stalled mid-migration.** `portal-health-lock.mjs:35-37`, `tracker-utils.mjs:22-24` and
+stalled mid-migration.** `src/lib/portal-health-lock.mjs:35-37`, `tracker-utils.mjs:22-24` and
 `followup-seed.mjs:68-70` all import `lockRecoveryVerdict`, `RECOVER_STALE` and
-`OWNERLESS_GRACE_MS` from `pipeline-lock.mjs`. But `readLockOwner` was left behind in all
+`OWNERLESS_GRACE_MS` from `src/lib/pipeline-lock.mjs`. But `readLockOwner` was left behind in all
 three (`:75`, `:244`, `:291`) — still returning bare `null` where the canonical copy
-(`pipeline-lock.mjs:76`) returns `{inspected, owner}`. It could not have been imported:
-`pipeline-lock.mjs` exports 14 symbols and that is not one of them. `sameLockDirectory` is
-duplicated in two files despite the canonical one being exported at `pipeline-lock.mjs:105`.
+(`src/lib/pipeline-lock.mjs:76`) returns `{inspected, owner}`. It could not have been imported:
+`src/lib/pipeline-lock.mjs` exports 14 symbols and that is not one of them. `sameLockDirectory` is
+duplicated in two files despite the canonical one being exported at `src/lib/pipeline-lock.mjs:105`.
 
 This is the argument for the work, and it is stronger than "there are 27 parsers":
 **hand-migration does not converge.** The leftovers are the proof.
@@ -107,7 +107,7 @@ Also outstanding:
   resurrection check. Blocking: nothing may move before it exists, or the next
   `npm run update` restores every moved file alongside its replacement.
 - **ADR 0004's URL path-casing decision** — resolved as *preserve path case*, not implemented.
-  `scan.mjs:1068` and `discover-ats.mjs:403` still lowercase.
+  `scan.mjs:1068` and `src/scripts/discover-ats.mjs:403` still lowercase.
   `tests/discover-ats-url-dedup-casing.test.mjs` pins the current behaviour and fails loudly
   when it is flipped; `web/tests/lib/url-key.test.mjs` must move with it.
 - **The duplicate-symbol lint** ADR 0005 calls "the mechanism that makes it stay finished" —

@@ -22,7 +22,7 @@ See "Untrusted External Content" in `AGENTS.md` / `CLAUDE.md` / `CODEX.md` for t
 | _profile.md | `modes/_profile.md` | ALWAYS (user archetypes, narrative, negotiation) |
 | writing-samples/ | `writing-samples/` | When generating candidate-facing text — check `_profile.md` for cached `## Writing Style` first; only scan files if absent |
 | voice-dna.md | `voice-dna.md` (project root, if exists) | When generating candidate-facing text. Anti-AI-slop guardrail + voice. See Voice DNA precedence below. |
-| interview-prep | `interview-prep/story-bank.md`, `interview-prep/{company}-{role}.md` | When generating ATS form answers / interview content — the user's own STAR stories + prep notes. Narrative/phrasing trust; quantified claims are NOT automatically cv.md-equivalent — see AGENTS.md Source-of-Truth Boundary tiering (#2947) and `story-provenance-check.mjs`. Consumed by `apply`/`match-star` + interview modes |
+| interview-prep | `interview-prep/story-bank.md`, `interview-prep/{company}-{role}.md` | When generating ATS form answers / interview content — the user's own STAR stories + prep notes. Narrative/phrasing trust; quantified claims are NOT automatically cv.md-equivalent — see AGENTS.md Source-of-Truth Boundary tiering (#2947) and `src/scripts/story-provenance-check.mjs`. Consumed by `apply`/`match-star` + interview modes |
 | _custom.md | `modes/_custom.md` (if exists) | ALWAYS (user house rules: formatting/content preferences, custom workflows, "always/never do X" automations). Procedural rules only — never a content source for claims |
 
 **RULE: NEVER hardcode metrics from proof points.** Read them from cv.md + article-digest.md at evaluation time.
@@ -179,7 +179,7 @@ After detecting archetype, read `modes/_profile.md` for the user's specific fram
 
 0. **Cover letter:** If the form allows it, ALWAYS include one. Same visual design as CV. JD quotes mapped to proof points. 1 page max.
 1. Read cv.md, _profile.md, and article-digest.md (if exists) before evaluating
-1b. **First evaluation of each session:** Run `node cv-sync-check.mjs`. If warnings, notify user.
+1b. **First evaluation of each session:** Run `node src/scripts/cv-sync-check.mjs`. If warnings, notify user.
 2. Detect the role archetype and adapt framing per _profile.md
 3. Cite exact lines from CV when matching
 4. Use WebSearch for comp and company data

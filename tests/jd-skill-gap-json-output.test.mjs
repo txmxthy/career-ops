@@ -1,7 +1,7 @@
 // tests/jd-skill-gap-json-output.test.mjs — the JSON branch of jd-skill-gap's
 // CLI.
 //
-// jd-skill-gap.mjs --self-test covers the pure functions, but the CLI's output
+// src/scripts/jd-skill-gap.mjs --self-test covers the pure functions, but the CLI's output
 // branches live inside the `process.argv[1] === import.meta.url` guard, so no
 // in-file assertion can reach them. That gap is why the missing `lowConfidence`
 // key survived: diagnoseExtraction() was called only inside the --summary
@@ -35,7 +35,7 @@ try {
   );
 
   const runJson = (fixture) => {
-    const out = run(NODE, [join(ROOT, 'jd-skill-gap.mjs'), fixture], { cwd: dir });
+    const out = run(NODE, [join(ROOT, 'src/scripts/jd-skill-gap.mjs'), fixture], { cwd: dir });
     if (out === null) return null;
     try {
       return JSON.parse(out);

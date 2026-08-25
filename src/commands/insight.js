@@ -18,13 +18,13 @@
  * reads the IMPORTER's argv at module scope and can exit the process before
  * this file gets control. Both were measured, not assumed:
  *
- *   - rejection-latency.mjs:110 runs `validateFlags(process.argv.slice(2), …)`
+ *   - src/scripts/rejection-latency.mjs:110 runs `validateFlags(process.argv.slice(2), …)`
  *     at module scope. Importing it under `career-ops insight rejection-latency
  *     --json` kills the CLI with "unrecognized flag(s): --json" at exit 1,
  *     because --json is not in ITS flag list.
- *   - analyze-patterns.mjs has no main guard at all: importing it runs the
+ *   - src/scripts/analyze-patterns.mjs has no main guard at all: importing it runs the
  *     whole analysis and prints to stdout.
- *   - salary-gap.mjs's `collectSources` and upskill.mjs's `analyze` are not
+ *   - src/scripts/salary-gap.mjs's `collectSources` and src/scripts/upskill.mjs's `analyze` are not
  *     exported, and reimplementing them here would be exactly the business
  *     logic an adapter must not hold.
  *
@@ -36,9 +36,9 @@
  *
  * ADR 0006's rule that an empty result and an unperformed check must never
  * share a representation. Seven of these fifteen violate it today at the root:
- * `analyze-patterns.mjs` exits 1 with "No applications found in tracker.",
- * `upskill.mjs` returns `{error: …}` at exit 0, `funnel-velocity.mjs` prints
- * `calibration: null` at exit 0 with no tracker, `company-funded.mjs` reports
+ * `src/scripts/analyze-patterns.mjs` exits 1 with "No applications found in tracker.",
+ * `src/scripts/upskill.mjs` returns `{error: …}` at exit 0, `src/scripts/funnel-velocity.mjs` prints
+ * `calibration: null` at exit 0 with no tracker, `src/scripts/company-funded.mjs` reports
  * `companies: []` at exit 0 when every feed was blocked. Each becomes exit 3
  * with a stated reason here. The root scripts keep their exit codes for the
  * consumers that pin them; ADR 0006 is explicit that the CLI does not inherit
@@ -197,8 +197,8 @@ const tryParse = (text) => { try { return JSON.parse(text); } catch { return und
  * The spawn adapter's result mapping, in one place so all four agree.
  *
  * `{ "error": "…" }` on stdout is the shape three of these four scripts use to
- * say "I had nothing to work from" — `analyze-patterns.mjs` at exit 1,
- * `upskill.mjs` at exit 0. Both are a check that did not run, so both become 3.
+ * say "I had nothing to work from" — `src/scripts/analyze-patterns.mjs` at exit 1,
+ * `src/scripts/upskill.mjs` at exit 0. Both are a check that did not run, so both become 3.
  * A non-zero exit with no such payload is a crash or a usage rejection, which
  * is also not a finding: 2 if the child said so, otherwise 3.
  */
@@ -339,11 +339,11 @@ commands.patterns = spawned({
     '--min-vendor-n': { type: 'number', describe: 'Minimum per-vendor sample for a channel-yield claim (default 8)' },
   },
   // Zero floors make every sample "sufficient", which silently defeats the
-  // guard the claims rest on. analyze-patterns.mjs substitutes its default
+  // guard the claims rest on. src/scripts/analyze-patterns.mjs substitutes its default
   // instead of saying so.
   validate: all(inRange('--min-threshold', 1, 1000), inRange('--min-vendor-n', 1, 1000)),
 }, {
-  script: 'analyze-patterns.mjs',
+  script: 'src/scripts/analyze-patterns.mjs',
   preflight: (c) => (fileExists(c.p.tracker) ? null : `no tracker at ${c.p.tracker}`),
   childArgs: (c) => [
     ...(c.values['--min-threshold'] !== undefined ? ['--min-threshold', String(c.values['--min-threshold'])] : []),
@@ -363,7 +363,7 @@ commands.tier = command({
   description: 'Seniority tier for a job title: intern, entry, mid or senior.',
   positionals: { name: 'title', min: 1, max: 1 },
 }, async (c) => {
-  const { classifyTier } = await load(c.rootDir, 'classify-tier.mjs');
+  const { classifyTier } = await load(c.rootDir, 'src/scripts/classify-tier.mjs');
   const title = c.positionals[0];
   return succeed(c.name, { title, tier: classifyTier(title) });
 });
@@ -385,7 +385,7 @@ commands.funded = command({
       : [{ code: 'invalid-value', flag: '--sort', message: '--sort expects date or score' }]),
   ),
 }, async (c) => {
-  const { discoverFundedCompanies } = await load(c.rootDir, 'company-funded.mjs');
+  const { discoverFundedCompanies } = await load(c.rootDir, 'src/scripts/company-funded.mjs');
   const sources = c.values['--sources'];
   const result = await discoverFundedCompanies({
     limit: c.values['--limit'],
@@ -419,7 +419,7 @@ commands.history = command({
   },
   validate: inRange('--silence-window', 1, 3650),
 }, async (c) => {
-  const m = await load(c.rootDir, 'company-history.mjs');
+  const m = await load(c.rootDir, 'src/scripts/company-history.mjs');
   const tracker = m.loadTrackerRows(c.rootDir);
   if (!tracker.loaded) return unverified(c.name, `no tracker at ${c.p.tracker}`);
 
@@ -480,7 +480,7 @@ commands.reposts = command({
     '--window': { type: 'number', describe: 'Lookback window in days (default 90)' },
     '--min-span': { type: 'number', describe: 'Smallest day span that still counts as a repost (default 1)' },
   },
-  // detect-reposts.mjs:126 falls back to its default for anything that is not a
+  // src/scripts/detect-reposts.mjs:126 falls back to its default for anything that is not a
   // non-negative integer, so a typo'd window reports a 90-day result. A
   // negative --min-span disables the very guard it exists to set.
   validate: all(inRange('--window', 1, 36500), inRange('--min-span', 1, 3650)),
@@ -488,7 +488,7 @@ commands.reposts = command({
   const scan = readFile(c.p.scanHistory);
   if (!scan.exists) return unverified(c.name, `no scan history at ${c.p.scanHistory}`);
 
-  const m = await load(c.rootDir, 'detect-reposts.mjs');
+  const m = await load(c.rootDir, 'src/scripts/detect-reposts.mjs');
   const rows = m.parseScanHistory(scan.content);
   const aggregators = m.loadAggregatorCompanies(c.p.portals);
   const clusters = m.detectReposts(rows, c.values['--window'], c.values['--min-span'], aggregators);
@@ -515,7 +515,7 @@ commands['funnel-velocity'] = command({
   if (!tracker.exists || !tracker.content.trim()) {
     return unverified(c.name, `no tracker at ${c.p.tracker} — there is nothing to calibrate against`);
   }
-  const m = await load(c.rootDir, 'funnel-velocity.mjs');
+  const m = await load(c.rootDir, 'src/scripts/funnel-velocity.mjs');
   const { loadCanonicalStates } = await load(c.rootDir, 'tracker-utils.mjs');
   const { localToday } = await load(c.rootDir, 'lib/local-today.mjs');
 
@@ -538,7 +538,7 @@ commands['funnel-velocity'] = command({
 /**
  * `insight jd-lookup` — ADR 0003 calls it `jd-capture`. Renamed because the old
  * name lies: this command captures nothing, it finds a capture that
- * `archive-posting.mjs` already made. `insight jd-capture 64` reads as a
+ * `src/scripts/archive-posting.mjs` already made. `insight jd-capture 64` reads as a
  * request to archive report 64's posting, which is a different, writing command.
  */
 commands['jd-lookup'] = command({
@@ -560,7 +560,7 @@ commands['jd-lookup'] = command({
   const jdsDir = c.values['--dir'] || c.p.jds;
   if (!dirExists(jdsDir)) return unverified(c.name, `no captures directory at ${jdsDir}`);
 
-  const { findCaptureForReport } = await load(c.rootDir, 'jd-capture.mjs');
+  const { findCaptureForReport } = await load(c.rootDir, 'src/scripts/jd-capture.mjs');
   const found = findCaptureForReport(jdsDir, report, { companySlug: c.values['--company'] });
   if (!found) {
     const scoped = c.values['--company'] ? ` for company "${c.values['--company']}"` : '';
@@ -580,7 +580,7 @@ commands['jd-similarity'] = command({
     const r = readFile(path);
     if (!r.exists) return unverified(c.name, `cannot read ${path}`);
   }
-  const { recommendCvReuse } = await load(c.rootDir, 'jd-similarity.mjs');
+  const { recommendCvReuse } = await load(c.rootDir, 'src/scripts/jd-similarity.mjs');
   const result = recommendCvReuse(readFile(newPath).content, readFile(prevPath).content);
   return succeed(c.name, { newJd: newPath, previous: prevPath, ...result });
 });
@@ -595,7 +595,7 @@ commands['jd-skill-gap'] = command({
   },
 }, async (c) => {
   const jdPath = c.positionals[0];
-  // jd-skill-gap.mjs:35 resolves cv.md against process.cwd(), so running it
+  // src/scripts/jd-skill-gap.mjs:35 resolves cv.md against process.cwd(), so running it
   // from anywhere but the checkout reads a different file or none. Resolved
   // against the injected root here instead.
   const cvPath = c.values['--cv'] || c.p.cv;
@@ -604,7 +604,7 @@ commands['jd-skill-gap'] = command({
   const cv = readFile(cvPath);
   if (!cv.exists) return unverified(c.name, `no CV at ${cvPath} — it is a user-layer file, create it first`);
 
-  const m = await load(c.rootDir, 'jd-skill-gap.mjs');
+  const m = await load(c.rootDir, 'src/scripts/jd-skill-gap.mjs');
   const jdSkills = m.extractJdSkills(jd.content);
   const diagnosis = m.diagnoseExtraction(jd.content, jdSkills);
   // The root script prints the three buckets anyway and exits 0 with a
@@ -632,7 +632,7 @@ commands['process-quality'] = command({
   const file = readFile(path);
   if (!file.exists) return unverified(c.name, `no active-interviews file at ${path}`);
 
-  const m = await load(c.rootDir, 'process-quality.mjs');
+  const m = await load(c.rootDir, 'src/scripts/process-quality.mjs');
   const rows = m.parseActiveInterviews(file.content);
   const minThreshold = c.values['--min-threshold'] ?? 1;
   const signals = m.aggregateProcessQuality(rows, minThreshold);
@@ -653,7 +653,7 @@ commands['rejection-latency'] = spawned({
   },
   validate: all(inRange('--courtesy-days', 1, 3650), isoDate('--today')),
 }, {
-  script: 'rejection-latency.mjs',
+  script: 'src/scripts/rejection-latency.mjs',
   preflight: (c) => {
     const interviews = c.values['--file'] || c.p.activeInterviews;
     if (!fileExists(interviews)) return `no active-interviews file at ${interviews}`;
@@ -676,7 +676,7 @@ commands['salary-gap'] = spawned({
     '--stated-for': { type: 'string', describe: 'Only the stated observations for one tracker number' },
   },
 }, {
-  script: 'salary-gap.mjs',
+  script: 'src/scripts/salary-gap.mjs',
   // Either source alone produces a real answer; neither means there is nothing
   // to fold, which the script reports as an empty result at exit 0.
   preflight: (c) => (fileExists(c.p.salaryObservations) || dirExists(c.p.reports)
@@ -703,7 +703,7 @@ commands.stats = command({
   if (!Object.values(files).some(fileExists)) {
     return unverified(c.name, `none of the data files exist under ${dataRoot} — there is nothing to count`);
   }
-  const { computeAllStats } = await load(c.rootDir, 'stats.mjs');
+  const { computeAllStats } = await load(c.rootDir, 'src/scripts/stats.mjs');
   const stats = computeAllStats(files);
   const sources = stats.metadata?.sources || {};
   const absent = Object.entries(sources).filter(([, present]) => !present).map(([k]) => k);
@@ -719,7 +719,7 @@ commands.upskill = spawned({
   },
   validate: inRange('--min-reports', 1, 1000),
 }, {
-  script: 'upskill.mjs',
+  script: 'src/scripts/upskill.mjs',
   // Only aggregate mode reads the tracker; targeted mode reads the URL or path
   // it was given, and the script's own guards cover that.
   preflight: (c) => (c.values['--url-text'] || fileExists(c.p.tracker)
@@ -747,7 +747,7 @@ commands['weekly-digest'] = command({
   const to = c.values['--to'];
   // computeWeeklyDigest throws on one bound without the other, and on from>to.
   // Both are things the caller typed, so both are usage errors, not exit 3.
-  const { computeWeeklyDigest } = await load(c.rootDir, 'weekly-digest.mjs');
+  const { computeWeeklyDigest } = await load(c.rootDir, 'src/scripts/weekly-digest.mjs');
   let result;
   try {
     result = computeWeeklyDigest({ from, to, sessionsDir });

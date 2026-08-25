@@ -16,12 +16,12 @@
  * These are adapters and nothing else: they map parsed flags to a call, and a
  * result to the ADR 0006 envelope. Where the logic still lives in a frozen root
  * script whose entrypoint reads `process.argv` and exits — generate-pdf.mjs,
- * mark-pdf-ready.mjs, build-dashboard.mjs — the adapter DELEGATES to that
+ * mark-pdf-ready.mjs, src/scripts/build-dashboard.mjs — the adapter DELEGATES to that
  * script rather than re-implementing it. That is ADR 0006's "exactly one code
  * path per capability and two ways to invoke it", held even while the code path
  * is still a root script. Those three become direct imports when ADR 0005 step 5
  * moves the logic into src/; only the body of `delegate()` changes.
- * img-to-pdf.mjs already exports an argv-free `convertImageToPdf`, so `render
+ * src/scripts/img-to-pdf.mjs already exports an argv-free `convertImageToPdf`, so `render
  * image` calls it in process — the shape the other three are heading for.
  *
  * The delegates predate ADR 0006 and use their own exit codes, so translating
@@ -325,7 +325,7 @@ const IMAGE_SPEC = {
 /**
  * @param {string[]} argv - Argument vector for this command.
  * @param {{cwd?: string, convert?: Function}} [ctx] - `convert` defaults to
- *   img-to-pdf.mjs's `convertImageToPdf`; it is imported lazily so that
+ *   src/scripts/img-to-pdf.mjs's `convertImageToPdf`; it is imported lazily so that
  *   `--help` works on a checkout with no Playwright installed.
  * @returns {Promise<{code: number, json: boolean, envelope: object, text: string}>}
  */
@@ -352,9 +352,9 @@ async function runImage(argv, ctx = {}) {
   let convertImageToPdf = convert;
   if (!convertImageToPdf) {
     try {
-      ({ convertImageToPdf } = await import('../../img-to-pdf.mjs'));
+      ({ convertImageToPdf } = await import('../scripts/img-to-pdf.mjs'));
     } catch (err) {
-      return unverified(IMAGE_SPEC, parsed, `img-to-pdf.mjs could not be loaded: ${err?.message ?? err}`);
+      return unverified(IMAGE_SPEC, parsed, `src/scripts/img-to-pdf.mjs could not be loaded: ${err?.message ?? err}`);
     }
   }
 
@@ -379,7 +379,7 @@ async function runImage(argv, ctx = {}) {
 const DASHBOARD_SPEC = {
   command: 'render dashboard',
   usage: 'career-ops render dashboard',
-  description: 'Build the Go TUI dashboard binary for this platform (delegates to build-dashboard.mjs).\n'
+  description: 'Build the Go TUI dashboard binary for this platform (delegates to src/scripts/build-dashboard.mjs).\n'
     + 'JSON data: { binary, log }.',
   flags: {},
 };
@@ -394,8 +394,8 @@ async function runDashboard(argv, ctx = {}) {
   const { parsed, done } = preamble(argv, DASHBOARD_SPEC);
   if (done) return done;
 
-  const script = delegatePath(rootDir, 'build-dashboard.mjs');
-  if (script.missing) return unverified(DASHBOARD_SPEC, parsed, `build-dashboard.mjs not found at ${script.path}`);
+  const script = delegatePath(rootDir, 'src/scripts/build-dashboard.mjs');
+  if (script.missing) return unverified(DASHBOARD_SPEC, parsed, `src/scripts/build-dashboard.mjs not found at ${script.path}`);
   const source = resolve(rootDir, 'dashboard');
   if (!existsSync(source)) return unverified(DASHBOARD_SPEC, parsed, `no dashboard source at ${source} — nothing to build`);
 
@@ -413,9 +413,9 @@ async function runDashboard(argv, ctx = {}) {
   }
   if (res.status === null) {
     return unverified(DASHBOARD_SPEC, parsed,
-      `could not start build-dashboard.mjs (${res.error?.code ?? res.error?.message ?? 'unknown reason'})`, { data });
+      `could not start src/scripts/build-dashboard.mjs (${res.error?.code ?? res.error?.message ?? 'unknown reason'})`, { data });
   }
-  // build-dashboard.mjs prints this exact line and exits 1 when `go` is absent.
+  // src/scripts/build-dashboard.mjs prints this exact line and exits 1 when `go` is absent.
   // A missing toolchain is an environment error (4), not a failed build (1).
   if (/Go toolchain not found/.test(`${res.stderr}\n${res.stdout}`)) {
     return refuse(DASHBOARD_SPEC, parsed, EXIT.CONFIG,
@@ -423,7 +423,7 @@ async function runDashboard(argv, ctx = {}) {
       { data });
   }
   return refuse(DASHBOARD_SPEC, parsed, EXIT.FAILED,
-    delegateErrors(res, `build-dashboard.mjs exited ${res.status} without a message`), { data });
+    delegateErrors(res, `src/scripts/build-dashboard.mjs exited ${res.status} without a message`), { data });
 }
 
 // ── render mark-ready (ADR 0003: render mark-pdf-ready) ─────────────

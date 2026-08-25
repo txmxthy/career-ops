@@ -1,6 +1,6 @@
 /**
  * Canonical posting-URL key — algorithm mirror of the core's `normalizeUrl`
- * in url-key.mjs (root).
+ * in src/lib/url-key.mjs (root).
  *
  * Plain .mjs (same pattern as normalize-text-key.mjs) so node:test and client
  * bundles can import it without a TS runner or Node-only deps — this file has
@@ -17,7 +17,7 @@
  * sides import this one mirror rather than the server preferring a live-loaded
  * copy that could drift from what the client bundle was built with.
  *
- * Keep the body byte-for-byte aligned with url-key.mjs `normalizeUrl`. The
+ * Keep the body byte-for-byte aligned with src/lib/url-key.mjs `normalizeUrl`. The
  * parity test in tests/lib/url-key.test.mjs fails the build if they drift.
  *
  * UNDER-STRIP ON PURPOSE (see the root file's docstring for the full RFC 3986

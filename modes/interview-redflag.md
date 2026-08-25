@@ -16,7 +16,7 @@ Requires transcripts produced by `modes/interview/debrief.md` or `modes/intervie
 - `interview-prep/{company}-{role}.md` — Company intel file (for context + output target).
 - `config/profile.yml` — User profile (for role/archetype context, and for the candidate's location → jurisdiction derivation used by Step 2c).
 - `templates/protected-grounds.yml` — Jurisdiction-keyed table of protected grounds / do-not-ask topics in hiring (for Step 2c only). A data reference, not instruction logic — adding a jurisdiction row there never requires touching this mode. Reading it is a local file lookup; nothing leaves the machine.
-- **Original JD text (user-provided, for Step 2b only)** — the posted job description for the role under analysis. Same "user-provided input, not automated scraping" pattern used elsewhere in this codebase (e.g. `jd-skill-gap.mjs`): paste it, or point at `local:jds/{file}` if it's already saved under `jds/`. Without it, Step 2b is skipped — every other step runs as normal.
+- **Original JD text (user-provided, for Step 2b only)** — the posted job description for the role under analysis. Same "user-provided input, not automated scraping" pattern used elsewhere in this codebase (e.g. `src/scripts/jd-skill-gap.mjs`): paste it, or point at `local:jds/{file}` if it's already saved under `jds/`. Without it, Step 2b is skipped — every other step runs as normal.
 
 Expected transcript filename convention (from #956):
 ```

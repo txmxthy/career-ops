@@ -40,7 +40,7 @@ const port = server.address().port;
 const done = new Promise((resolve) => {
   execFile(
     NODE,
-    [join(ROOT, 'ollama-eval.mjs'), '--url', `http://127.0.0.1:${port}`, '--no-save', 'Some job description text.'],
+    [join(ROOT, 'src/scripts/ollama-eval.mjs'), '--url', `http://127.0.0.1:${port}`, '--no-save', 'Some job description text.'],
     { timeout: 30000 },
     (err, stdout, stderr) => resolve({ err, stdout, stderr }),
   );

@@ -13,7 +13,7 @@
 // is the expensive part: not the byte, but that an absence of evidence and
 // evidence of absence become indistinguishable.
 //
-// Found in dedup-tracker.mjs (2026-08-07): `const BLIND_KEY = '<NUL>blind-via:'`
+// Found in src/scripts/dedup-tracker.mjs (2026-08-07): `const BLIND_KEY = '<NUL>blind-via:'`
 // used a raw NUL as an uncollidable key prefix. Written as the `\u0000` escape
 // it is the identical string at runtime (verified: the escape form `===` the
 // raw form, length 11, codePointAt(0) === 0) and the file stays greppable.

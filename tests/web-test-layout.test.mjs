@@ -10,12 +10,12 @@
 // package.json conflict would have dropped them with CI green.
 //
 // This guard lives in the ROOT suite, not web/tests/, deliberately:
-//   1. .github/workflows/test.yml runs test-all.mjs on every PR with no paths
+//   1. .github/workflows/test.yml runs tests/run-all.mjs on every PR with no paths
 //      filter and is a required check. web-ci.yml is informative by design —
 //      "a red here never blocks a core merge" — so it cannot be the enforcer.
 //   2. A guard inside web/tests/ would be discovered by the very glob it
 //      validates: if the glob breaks, the guard silently stops running too.
-// Same reach-into-web/ pattern as test-all.mjs's 55.3c/55.3d freezes (#2369).
+// Same reach-into-web/ pattern as tests/run-all.mjs's 55.3c/55.3d freezes (#2369).
 //
 // ONE responsibility: web/'s suites must be reachable by what `npm test`
 // actually runs. Every assertion below is a facet of that — including the
@@ -46,7 +46,7 @@ const GLOB_FLOOR = [22, 0, 0];
  * Each case gets its own try/catch so a throw in one cannot collapse the rest
  * into a single unexplained failure (PIT — every case stands alone, in any
  * order). A guard that cannot inspect the tree must be loud, never a silent
- * pass — the same stance as test-all.mjs's SYSTEM_PATHS coverage probe.
+ * pass — the same stance as tests/run-all.mjs's SYSTEM_PATHS coverage probe.
  *
  * @param {string} label - What this scenario checks, used in the error path.
  * @param {() => void} body - The When/Then; calls pass() or fail() itself.
@@ -150,7 +150,7 @@ if (!existsSync(WEB_PKG)) {
   // never execute.
   const TEST_FILE = /(?:\.test\.(?:mjs|js|ts|tsx)|^test-.*\.(?:mjs|js|ts|tsx))$/;
   // node_modules matters for speed, not just noise: a populated
-  // web/node_modules is ~400 MB (see test-all.mjs's copy-exclusion note).
+  // web/node_modules is ~400 MB (see tests/run-all.mjs's copy-exclusion note).
   const SKIP_DIRS = new Set(['node_modules', '.next', '.git', 'out', 'dist', 'coverage']);
 
   const found = walkFiles(WEB, TEST_FILE, SKIP_DIRS)

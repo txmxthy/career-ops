@@ -1,4 +1,4 @@
-// tests/portal-health-lock.test.mjs — portal-health-lock.mjs must provide real
+// tests/portal-health-lock.test.mjs — src/lib/portal-health-lock.mjs must provide real
 // mutual exclusion for data/portal-health.tsv, including under the crash +
 // contention window that stale-lock reclamation opens.
 //
@@ -13,7 +13,7 @@ import { pass, fail } from './helpers.mjs';
 import { mkdtempSync, rmSync, existsSync, mkdirSync, writeFileSync, readFileSync, utimesSync } from 'fs';
 import { join, dirname } from 'path';
 import { tmpdir } from 'os';
-import { acquirePortalHealthLock, LockTimeoutError } from '../portal-health-lock.mjs';
+import { acquirePortalHealthLock, LockTimeoutError } from '../src/lib/portal-health-lock.mjs';
 
 console.log('\nportal-health-lock.mjs — ownership-verified locking');
 

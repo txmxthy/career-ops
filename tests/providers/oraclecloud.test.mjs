@@ -1,5 +1,5 @@
 // tests/providers/oraclecloud.test.mjs — contract test for the Oracle Recruiting
-// Cloud (ORC) provider. Auto-discovered by test-all.mjs under tests/**.
+// Cloud (ORC) provider. Auto-discovered by tests/run-all.mjs under tests/**.
 import { pass, fail, ROOT } from '../helpers.mjs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';

@@ -11,7 +11,7 @@
 //   2. A path that would escape output/ is rejected — not silently rewritten.
 import { resolve, join, relative, isAbsolute } from 'path';
 import { pass, fail, ROOT } from './helpers.mjs';
-import { safeOutputPath } from '../generate-cover-letter.mjs';
+import { safeOutputPath } from '../src/scripts/generate-cover-letter.mjs';
 
 console.log('\nCover letter --out preserves output/ subdirectories (#2940)');
 

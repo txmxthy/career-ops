@@ -46,7 +46,7 @@ try {
     formatApplicationAnswersSection,
     parseApplicationAnswersSection,
     upsertApplicationAnswersSection,
-  } = await import(pathToFileURL(join(ROOT, 'application-answers.mjs')).href);
+  } = await import(pathToFileURL(join(ROOT, 'src/scripts/application-answers.mjs')).href);
 
   // ── 1. corpus ────────────────────────────────────────────────────────────
   // Deliberately includes every lossy path: array selections, a missing file

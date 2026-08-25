@@ -2,7 +2,7 @@
  * tracker-utils.mjs — shared helpers for rewriting `data/applications.md` rows.
  *
  * The tracker is a markdown table that several scripts mutate in place
- * (`dedup-tracker.mjs`, `normalize-statuses.mjs`, `merge-tracker.mjs`,
+ * (`src/scripts/dedup-tracker.mjs`, `src/scripts/normalize-statuses.mjs`, `merge-tracker.mjs`,
  * `set-status.mjs`). Keeping the row-rewrite, path-resolution, locking, and
  * atomic-write logic here means a fix lands once instead of drifting between
  * copies — and every writer excludes every other writer through the same lock.
@@ -13,7 +13,7 @@ import { join, dirname, basename, resolve, relative, isAbsolute, sep } from 'pat
 import { createHash, randomUUID } from 'crypto';
 import { tmpdir } from 'os';
 import * as yaml from 'js-yaml';
-// One definition for both locks: this module and pipeline-lock.mjs implement
+// One definition for both locks: this module and src/lib/pipeline-lock.mjs implement
 // the same directory-lock protocol on purpose, and #2777 showed how the two
 // copies drift — pipeline-lock learned that Windows answers mkdir/rm with
 // EPERM/EACCES/EBUSY under contention while this file still treated anything
@@ -21,7 +21,7 @@ import * as yaml from 'js-yaml';
 import {
   isMkdirContention, isRmContention, rmLockArtifactSync, createLockWaitPolicy,
   lockRecoveryVerdict, RECOVER_STALE,
-} from './pipeline-lock.mjs';
+} from './src/lib/pipeline-lock.mjs';
 import { normalizeTextKey } from './tracker-parse.mjs';
 
 /**
@@ -32,7 +32,7 @@ import { normalizeTextKey } from './tracker-parse.mjs';
  * now, so a local copy would be a constant this file no longer enforces — free
  * to drift from the one that actually decides.
  */
-export { OWNERLESS_GRACE_MS } from './pipeline-lock.mjs';
+export { OWNERLESS_GRACE_MS } from './src/lib/pipeline-lock.mjs';
 
 /**
  * Rebuild a markdown table row from the cells produced by `line.split('|')`.
@@ -142,7 +142,7 @@ export function resolveWorkspaceRoot(trackerPath) {
  * One definition for every reader, because the manifest path was previously
  * rebuilt from a literal in each script — and each picked its own base
  * directory, so `merge-tracker.mjs` derived it from the tracker while
- * `sync-pdf-flags.mjs` and `find.mjs` used their own install directory. Scripts
+ * `src/scripts/sync-pdf-flags.mjs` and `src/scripts/find.mjs` used their own install directory. Scripts
  * that resolve the tracker from `CAREER_OPS_TRACKER` then read one workspace's
  * manifest against another's tracker (#2471).
  *
@@ -525,7 +525,7 @@ export const RENAME_RETRY_DELAYS_MS = [1, 2, 5, 10, 25, 50, 100];
 /**
  * Is this error Windows saying "the destination is busy right now"?
  *
- * Exported for the same reason `pipeline-lock.mjs` exports `isMkdirContention`
+ * Exported for the same reason `src/lib/pipeline-lock.mjs` exports `isMkdirContention`
  * and `isRmContention`: one definition, testable, and no second copy to drift.
  *
  * @param {unknown} err - Error thrown by a rename attempt.

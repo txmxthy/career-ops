@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { extractWithAI } from '../scan-hn.mjs';
+import { extractWithAI } from '../src/scripts/scan-hn.mjs';
 
 test('Hacker News AI Extraction Logic', async (t) => {
   const mockModel = {

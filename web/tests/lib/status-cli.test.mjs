@@ -63,7 +63,7 @@ test("a crash that printed no JSON never puts stderr in the response body", () =
   // same content and needs the same treatment; falling back to stderr.trim() here
   // discloses the server's filesystem layout to the caller.
   //
-  // The fixture path is assembled rather than written out because test-all.mjs
+  // The fixture path is assembled rather than written out because tests/run-all.mjs
   // greps tracked sources for an absolute-path literal and would flag this file.
   // The string still IS an absolute path at run time, which is what the assertion
   // needs; only the source form differs.

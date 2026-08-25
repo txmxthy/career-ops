@@ -8,7 +8,7 @@
 # comparing across denominators fabricates precision.
 #
 # Users can override this file without losing changes on system updates:
-#   1. --benchmarks <path> flag on funnel-velocity.mjs
+#   1. --benchmarks <path> flag on src/scripts/funnel-velocity.mjs
 #   2. config/benchmarks.yml (user layer — copy this file there and edit)
 #   3. this file (shipped default)
 # Non-US markets: copy to config/benchmarks.yml and localize ranges/sources.

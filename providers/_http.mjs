@@ -2,7 +2,7 @@
 // Files prefixed with _ are never loaded as providers by scan.mjs.
 
 import './_dns-cache.mjs'; // memoize dns.lookup process-wide (see that file)
-import { DEFAULT_USER_AGENT, BROWSER_LIKE_USER_AGENT } from '../user-agent.mjs';
+import { DEFAULT_USER_AGENT, BROWSER_LIKE_USER_AGENT } from '../src/lib/user-agent.mjs';
 import { providerFetchContext } from './_ip-guard.mjs';
 
 export { BROWSER_LIKE_USER_AGENT };

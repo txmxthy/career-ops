@@ -13,7 +13,7 @@
  *      the same lock stale can have the second one's rmSync delete the first
  *      one's freshly created lock, after which both believe they hold it.
  *   3. Fresh-install robustness — the lock must not throw ENOENT when the
- *      parent data/ directory does not exist yet (plugins.mjs's cmdRun calls
+ *      parent data/ directory does not exist yet (src/scripts/plugins.mjs's cmdRun calls
  *      appendToPipeline with no directory pre-creation).
  */
 
@@ -25,7 +25,7 @@ import { join, dirname } from 'node:path';
 import {
   acquirePipelineLock, LockTimeoutError, OWNERLESS_GRACE_MS,
   lockRecoveryVerdict, RECOVER_STALE, RECOVER_VANISHED, RECOVER_LIVE,
-} from '../pipeline-lock.mjs';
+} from '../src/lib/pipeline-lock.mjs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -124,7 +124,7 @@ test('acquirePipelineLock: configurable timing — the contention timeout is not
 test('acquirePipelineLock: creates a missing parent data/ directory instead of throwing ENOENT (fresh install)', async () => {
   const root = mkdtempSync(join(tmpdir(), 'career-ops-pipeline-lock-fresh-'));
   try {
-    // No data/ directory at all — the plugins.mjs cmdRun path.
+    // No data/ directory at all — the src/scripts/plugins.mjs cmdRun path.
     const p = join(root, 'data', 'pipeline.md');
     assert.equal(existsSync(dirname(p)), false);
     const lock = await acquirePipelineLock(p, { timeoutMs: 300, retryMs: 20 });
@@ -412,7 +412,7 @@ test('acquirePipelineLock: a lock that keeps changing hands does not time out a 
     const startedAt = Date.now();
     // The old absolute deadline killed this caller at 150ms with
     // LockTimeoutError even though the lock was healthy and briskly shared —
-    // which for agent-inbox.mjs meant its request was silently dropped. The
+    // which for src/scripts/agent-inbox.mjs meant its request was silently dropped. The
     // timeout is for a WEDGED holder, not for losing the retry lottery.
     const lock = await acquirePipelineLock(p, { timeoutMs: 150, retryMs: 15 });
     const elapsed = Date.now() - startedAt;

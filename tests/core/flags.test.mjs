@@ -112,7 +112,7 @@ test('a repeated flag reads its first occurrence', () => {
 // ── flagValues — repeats ────────────────────────────────────────────
 
 test('flagValues returns every occurrence in argv order, both forms', () => {
-  // verify-cv-facts.mjs:422 accumulates repeated --source into an array; every
+  // src/scripts/verify-cv-facts.mjs:422 accumulates repeated --source into an array; every
   // other reader silently drops all but the first.
   assert.deepEqual(
     flagValues(['--source', 'a.md', '--source=b.md', '--source', 'c.md'], '--source'),
@@ -229,7 +229,7 @@ test('-h requests help too', () => {
 });
 
 test('--help plus an unrecognized flag still errors (A1)', () => {
-  // company-history.mjs:123, discover-ats.mjs:908 and assessment-log.mjs:290
+  // src/scripts/company-history.mjs:123, src/scripts/discover-ats.mjs:908 and src/scripts/assessment-log.mjs:290
   // check --help FIRST, so `--help --bogus` exits 0 having never looked at
   // --bogus. lib/cli-flags.mjs:145 checks it last, deliberately; that ordering
   // is canonical here.
@@ -262,7 +262,7 @@ test('--json defaults to false', () => {
 // ── parseFlags — values ─────────────────────────────────────────────
 
 test('a value flag left before another flag reports a missing value (ADR 0004 #6)', () => {
-  // archive-posting.mjs:120 documents the live version of this bug (#3087):
+  // src/scripts/archive-posting.mjs:120 documents the live version of this bug (#3087):
   // `--company --pipeline` set the company to "--pipeline" and left pipeline
   // mode off, silently, at exit 0.
   const r = parseFlags(['--file', '--dry-run'], SPEC);
@@ -280,7 +280,7 @@ test('a value flag at the end of argv reports a missing value', () => {
 });
 
 test('an empty value is rejected in both forms (A7)', () => {
-  // company-history.mjs:163-170 rejects `--company ""` and `--company=`;
+  // src/scripts/company-history.mjs:163-170 rejects `--company ""` and `--company=`;
   // lib/cli-flags.mjs's requireOperand does not. The rejection wins: an empty
   // value filters to something that cannot exist, which reads as "no results".
   const spaced = parseFlags(['--file', ''], SPEC);
@@ -311,7 +311,7 @@ test('the equals form of a value flag accepts a negative number', () => {
 });
 
 test('zero is a value, not a falsy fallback (A3)', () => {
-  // check-liveness.mjs:40 is `Number(...) || 5000`, so `--throttle=0` yields
+  // src/scripts/check-liveness.mjs:40 is `Number(...) || 5000`, so `--throttle=0` yields
   // 5000 — the user asked for no throttle and got the default.
   const r = parseFlags(['--since=0'], SPEC);
   assert.equal(r.ok, true);
@@ -351,7 +351,7 @@ test('clustered short flags are not supported and fail loudly', () => {
 
 test('a stray dash-prefixed token is an unrecognized flag', () => {
   // lib/cli-flags.mjs:110 treats any `-`-prefixed token as a flag candidate;
-  // assessment-log.mjs:308 and company-history.mjs:139 agree. No divergence.
+  // src/scripts/assessment-log.mjs:308 and src/scripts/company-history.mjs:139 agree. No divergence.
   assert.deepEqual(codes(parseFlags(['-5'], SPEC)), ['unknown-flag']);
   assert.deepEqual(codes(parseFlags(['-'], SPEC)), ['unknown-flag']);
 });
@@ -359,8 +359,8 @@ test('a stray dash-prefixed token is an unrecognized flag', () => {
 // ── parseFlags — positionals ────────────────────────────────────────
 
 test('a flag operand is excluded from the positionals by position (A6)', () => {
-  // jd-skill-gap.mjs:374 is `args.find(a => !a.startsWith('--'))`, so
-  // `--top 5 jd.txt` picks 5 as the JD path. match-star.mjs:36-38 excludes
+  // src/scripts/jd-skill-gap.mjs:374 is `args.find(a => !a.startsWith('--'))`, so
+  // `--top 5 jd.txt` picks 5 as the JD path. src/lib/match-star.mjs:36-38 excludes
   // operands by index, which is the behaviour kept here.
   const spec = { command: 'insight jd-skill-gap', flags: { '--top': { type: 'number' } }, positionals: { name: 'jd', min: 1, max: 1 } };
   const r = parseFlags(['--top', '5', 'jd.txt'], spec);
@@ -370,7 +370,7 @@ test('a flag operand is excluded from the positionals by position (A6)', () => {
 });
 
 test('a command that declares no positionals rejects one', () => {
-  // verify-cv-facts.mjs:437 already reports "unexpected extra positional
+  // src/scripts/verify-cv-facts.mjs:437 already reports "unexpected extra positional
   // argument"; every ad-hoc parser silently ignores it.
   const r = parseFlags(['stray'], { command: 'x', flags: {} });
   assert.equal(r.ok, false);
@@ -392,7 +392,7 @@ test('too many positionals is a usage error', () => {
 });
 
 test('--help wins over a positional-arity error', () => {
-  // verify-cv-facts.mjs:433 returns {help:true} before it can complain about a
+  // src/scripts/verify-cv-facts.mjs:433 returns {help:true} before it can complain about a
   // missing target. A bare `<cmd> --help` must print help, not a usage error.
   const spec = { command: 'x', flags: {}, positionals: { name: 'appNum', min: 1, max: 1 } };
   const r = parseFlags(['--help'], spec);

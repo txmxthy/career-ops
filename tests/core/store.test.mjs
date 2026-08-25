@@ -153,9 +153,9 @@ test('resolveTrackerPath finds the tracker under workspace/data when that layout
   assert.equal(resolveTrackerPath(root, {}), target);
 });
 
-// D1.1: eight scripts (followup-cadence.mjs:24, analyze-patterns.mjs:23,
-// upskill.mjs:33, invite-match.mjs:44, tracker-sync-check.mjs:66, stats.mjs:30,
-// plugins.mjs:34, scan.mjs:83) ignored the env var entirely. There is now one
+// D1.1: eight scripts (followup-cadence.mjs:24, src/scripts/analyze-patterns.mjs:23,
+// src/scripts/upskill.mjs:33, src/scripts/invite-match.mjs:44, src/scripts/tracker-sync-check.mjs:66, src/scripts/stats.mjs:30,
+// src/scripts/plugins.mjs:34, scan.mjs:83) ignored the env var entirely. There is now one
 // resolver, so "ignores it" is not reachable — env is an injected parameter,
 // never read from a module-level constant.
 test('resolveTrackerPath reads the injected env, not process.env', () => {
@@ -208,7 +208,7 @@ test('resolvePipelinePath honours CAREER_OPS_PIPELINE', () => {
 
 // D1.3 / D2.1, DELIBERATE CHANGE: scan.mjs:82 and scan-ats-full.mjs:60 default
 // to the bare relative string 'data/pipeline.md', so `cd /tmp && node
-// /repo/scan.mjs` appends to /tmp/data/pipeline.md while plugins.mjs:35 dedups
+// /repo/scan.mjs` appends to /tmp/data/pipeline.md while src/scripts/plugins.mjs:35 dedups
 // against /repo/data/pipeline.md. The CWD base is the loser: this resolver is
 // anchored to the workspace root and never to process.cwd().
 test('resolvePipelinePath is anchored to the workspace root, not the cwd', () => {
@@ -218,9 +218,9 @@ test('resolvePipelinePath is anchored to the workspace root, not the cwd', () =>
   assert.notEqual(resolvePipelinePath(root, {}), join(process.cwd(), 'data/pipeline.md'));
 });
 
-// D2.4: reconcile-pipeline.mjs:73-75 was the only reader with this fallback, so
+// D2.4: src/scripts/reconcile-pipeline.mjs:73-75 was the only reader with this fallback, so
 // on a root-layout install it worked on the real inbox while scan.mjs,
-// rank-pipeline.mjs and plugins.mjs all targeted a nonexistent data/pipeline.md.
+// src/scripts/rank-pipeline.mjs and src/scripts/plugins.mjs all targeted a nonexistent data/pipeline.md.
 test('resolvePipelinePath falls back to the root-layout pipeline.md', () => {
   const root = tmpRoot();
   const target = write(join(root, 'pipeline.md'), '');
@@ -264,10 +264,10 @@ test('readFile reports an absent file as {exists:false, content:""}', () => {
 });
 
 // ADR 0004 #7 / D4.2, DELIBERATE CHANGE: followup-cadence.mjs:885,
-// funnel-velocity.mjs:702 and rejection-latency.mjs:347 returned '' for BOTH an
+// src/scripts/funnel-velocity.mjs:702 and src/scripts/rejection-latency.mjs:347 returned '' for BOTH an
 // absent tracker and an empty one, so a mis-pointed CAREER_OPS_TRACKER reported
 // "0 applications" instead of an error. `exists` keeps the two apart — the
-// distinction company-history.mjs:272 carried as {rows, loaded}.
+// distinction src/scripts/company-history.mjs:272 carried as {rows, loaded}.
 test('readFile distinguishes a present-but-empty file from an absent one', () => {
   const root = tmpRoot();
   const path = write(join(root, 'empty.md'), '');
@@ -314,7 +314,7 @@ test('readText returns "" for an absent file and the content otherwise', () => {
 });
 
 // The mutating-CLI half of D4.1: set-status.mjs:264 exits 2 on a missing
-// tracker, verify-pipeline.mjs:76 exits 0 and find.mjs:166 exits 1. One
+// tracker, src/scripts/verify-pipeline.mjs:76 exits 0 and src/scripts/find.mjs:166 exits 1. One
 // condition, three verdicts. requireText raises one error the CLI layer maps.
 test('requireText throws an ENOENT-coded error naming the path', () => {
   const root = tmpRoot();
@@ -362,7 +362,7 @@ test('writeFileAtomic replaces an existing file', () => {
   assert.equal(readFileSync(path, 'utf-8'), 'new');
 });
 
-// D3.3: reconcile-pipeline.mjs:297 is the only writer in the cluster that keeps
+// D3.3: src/scripts/reconcile-pipeline.mjs:297 is the only writer in the cluster that keeps
 // a .bak, and it is the UNLOCKED one. The backup is a parameter here so a
 // locked writer can have it too.
 test('writeFileAtomic with a backup suffix keeps the previous content', () => {
@@ -401,7 +401,7 @@ test('ensureDir creates the directory tree and is idempotent', () => {
 
 // D2.3: three skeletons existed for one file — scan.mjs:1857 (Pending +
 // Processed), scan-ats-full.mjs:1014 ('## Pendientes', no Processed) and
-// openrouter-runner.mjs:512 ('## Pending', no Processed). rank-pipeline.mjs:369
+// src/scripts/openrouter-runner.mjs:512 ('## Pending', no Processed). src/scripts/rank-pipeline.mjs:369
 // recognises only '## Pending', so an inbox created by scan-ats-full ranked
 // nothing, silently. scan.mjs's skeleton is the winner.
 test('ensurePipeline creates the one skeleton, with both sections', () => {
@@ -517,7 +517,7 @@ test('withTrackerTransaction refuses use after the lock is released', async () =
   assert.throws(() => escaped.replace('x'), /closed/);
 });
 
-// The pipeline family locks a directory beside the file (pipeline-lock.mjs:56),
+// The pipeline family locks a directory beside the file (src/lib/pipeline-lock.mjs:56),
 // not a hashed temp dir. Unchanged: it is the canonical module.
 test('withFileLock holds <path>.lock for the duration and removes it after', async () => {
   const root = tmpRoot();
@@ -541,8 +541,8 @@ test('withFileLock excludes a second holder', async () => {
 
 // ── readLockOwner (ADR 0004 #1) ─────────────────────────────────────
 
-// ADR 0004 #1, DELIBERATE CHANGE: pipeline-lock.mjs:76 is the winner and the
-// three copies (portal-health-lock.mjs:75, tracker-utils.mjs:244,
+// ADR 0004 #1, DELIBERATE CHANGE: src/lib/pipeline-lock.mjs:76 is the winner and the
+// three copies (src/lib/portal-health-lock.mjs:75, tracker-utils.mjs:244,
 // followup-seed.mjs:291) answered a bare null. They could not have imported it
 // — pipeline-lock exported 14 symbols and this was not one. It is now exported,
 // and store.js re-exports it so there is one reachable definition.
@@ -580,7 +580,7 @@ test('readLockOwner reports an unreadable stamp as NOT inspected', { skip: !CAN_
   }
 });
 
-// ADR 0004 #2: one definition, from pipeline-lock.mjs:105.
+// ADR 0004 #2: one definition, from src/lib/pipeline-lock.mjs:105.
 test('sameLockDirectory compares device, inode and birthtime', () => {
   const a = { dev: 1, ino: 7, birthtimeMs: 100 };
   assert.equal(sameLockDirectory(a, { dev: 1, ino: 7, birthtimeMs: 100 }), true);

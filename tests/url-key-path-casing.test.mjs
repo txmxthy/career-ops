@@ -7,14 +7,14 @@
 //   scan.mjs:1039-1041   "path casing is not meaningfully distinct for any
 //                         provider these scanners target" — and lowercases the
 //                         path at :1067.
-//   url-key.mjs:6-36     calls exactly that the over-normalization that
+//   src/lib/url-key.mjs:6-36     calls exactly that the over-normalization that
 //                         collapsed two different Greenhouse postings into one
 //                         key, and preserves path case.
 //
 // ADR 0004 resolves it: PRESERVE PATH CASE. The failure modes are asymmetric.
 // Lowercasing risks MERGING two distinct postings — silent, unrecoverable data
 // loss. Preserving risks a DUPLICATE ROW for one posting — visible, and the
-// user can fix it. url-key.mjs:55 is the winner; scan.mjs's lowercasing is the
+// user can fix it. src/lib/url-key.mjs:55 is the winner; scan.mjs's lowercasing is the
 // loser and is scheduled for removal when the two normalizers consolidate.
 //
 // This file is the characterisation test that consolidation will be refactored
@@ -34,7 +34,7 @@
 // moves all of them at once and a test that covered only the casing question
 // would let the others change unremarked.
 import { pass, fail } from './helpers.mjs';
-import { normalizeUrl } from '../url-key.mjs';
+import { normalizeUrl } from '../src/lib/url-key.mjs';
 import { normalizeUrlForDedup } from '../scan.mjs';
 
 console.log('\nURL key — ADR 0004 path-casing decision (characterisation)');
@@ -45,10 +45,10 @@ const eq = (label, actual, expected) => {
 };
 const isTrue = (label, cond) => (cond ? pass(label) : fail(label));
 
-// ── 1. The winner: url-key.mjs preserves path case ──────────────────
+// ── 1. The winner: src/lib/url-key.mjs preserves path case ──────────────────
 
 // Two Greenhouse postings that differ only in path casing. This is the incident
-// url-key.mjs:23-28 documents: a case-folding key merged them, and the merge is
+// src/lib/url-key.mjs:23-28 documents: a case-folding key merged them, and the merge is
 // not recoverable from the tracker afterwards.
 const CASED = 'https://boards.greenhouse.io/Acme/Jobs/4012345';
 const FOLDED = 'https://boards.greenhouse.io/acme/jobs/4012345';
@@ -85,7 +85,7 @@ eq('winner: tracking params are stripped, gh_jid kept',
   'https://x.test/Jobs/1?gh_jid=99');
 eq('winner: query order does not change the key',
   normalizeUrl('https://x.test/Jobs/1?b=2&a=1'), normalizeUrl('https://x.test/Jobs/1?a=1&b=2'));
-// Deliberately NOT stripped — functional on some boards (url-key.mjs:24-26).
+// Deliberately NOT stripped — functional on some boards (src/lib/url-key.mjs:24-26).
 eq('winner: ref/src/source are kept',
   normalizeUrl('https://x.test/Jobs/1?ref=abc'), 'https://x.test/Jobs/1?ref=abc');
 

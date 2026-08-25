@@ -1,5 +1,5 @@
 // tests/helpers.mjs — shared assertion helpers + counters for the test suite.
-// Moved verbatim from test-all.mjs (issue #1440); no framework by design:
+// Moved verbatim from tests/run-all.mjs (issue #1440); no framework by design:
 // the suite must run on a fresh clone with only Node.
 import { execFileSync } from 'child_process';
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync as _rmSync, symlinkSync } from 'fs';
@@ -17,7 +17,7 @@ export const NODE = process.execPath;
 // Node retries exactly that error class (EBUSY/EMFILE/ENFILE/ENOTEMPTY/EPERM)
 // with linear backoff when given maxRetries, so default it here. An explicit
 // option still wins, and a removal that keeps failing still throws. Same
-// wrapper test-all.mjs applies to its own call sites (#3066), shared so the
+// wrapper tests/run-all.mjs applies to its own call sites (#3066), shared so the
 // suites under tests/ cannot drift from it.
 export const rmSync = (target, opts = {}) => _rmSync(target, { maxRetries: 10, retryDelay: 100, ...opts });
 
@@ -76,7 +76,7 @@ export function results() { return { passed, failed, warnings }; }
 
 /**
  * Print the summary line and exit with the suite's exit code.
- * Moved verbatim from the tail of test-all.mjs — output must stay byte-identical.
+ * Moved verbatim from the tail of tests/run-all.mjs — output must stay byte-identical.
  */
 export function finish() {
   // A discovered suite under tests/ that uses node:test reports through node's
@@ -242,7 +242,7 @@ export function lastRunFailure() {
  * later a case was added, the more certain it is to be truncated away, which
  * is exactly backwards for something read only when a run goes red.
  *
- * That is not hypothetical: `agent-inbox-tests.mjs` grew past this cap, and a
+ * That is not hypothetical: `tests/agent-inbox.test.mjs` grew past this cap, and a
  * windows-latest failure of its §7 cut off mid-word one assertion short of §8's
  * verdict — the assertion added specifically to attribute that failure (#3035).
  *
@@ -301,7 +301,7 @@ export function fileExists(path) { return existsSync(join(ROOT, path)); }
  *
  * Deterministic by construction: entries are sorted lexicographically at every
  * level, so the result is identical on every run and every OS — the same
- * property test-all.mjs's own `tests/` discovery relies on (#1440).
+ * property tests/run-all.mjs's own `tests/` discovery relies on (#1440).
  *
  * A missing `dir` yields `[]` rather than throwing, so the caller reports its
  * own contract failure (e.g. "discovery is empty") instead of the run dying
@@ -333,7 +333,7 @@ export function walkFiles(dir, match, skipDirs = new Set()) {
  * reach `ROOT/node_modules` from.
  *
  * The PDF sandboxes are created under `ROOT/output` and run a copy of
- * generate-pdf.mjs, whose siblings theme-style.mjs and tracker-utils.mjs both
+ * generate-pdf.mjs, whose siblings src/lib/theme-style.mjs and tracker-utils.mjs both
  * `import * as yaml from 'js-yaml'`. That specifier resolves by walking parent
  * directories up into `ROOT/node_modules`, and the walk starts from the
  * importer's REALPATH, because --preserve-symlinks is off by default. On a
@@ -582,7 +582,7 @@ export function hermeticGitEnv(gitConfigPath, base = process.env) {
   //                          Measured: with it set, a commit made through this
   //                          env took its author from the ambient value.
   //   GIT_CONFIG             redirects the `git config` command, reads AND
-  //                          writes. The fixtures in test-all.mjs call `git config` to
+  //                          writes. The fixtures in tests/run-all.mjs call `git config` to
   //                          set themselves up, so with it set that write lands
   //                          in the ambient file instead of the fixture: the
   //                          setting never takes effect, and the suite mutates

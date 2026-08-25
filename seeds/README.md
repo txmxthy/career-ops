@@ -90,7 +90,7 @@ export const SEED_SOURCES = {
 };
 ```
 
-4. Add test cases in `test-all.mjs` covering your `parseXyzPayload()` function.
+4. Add test cases in `tests/run-all.mjs` covering your `parseXyzPayload()` function.
 
 ## Prior art
 

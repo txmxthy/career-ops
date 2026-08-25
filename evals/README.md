@@ -1,6 +1,6 @@
 # Golden-set eval for cheap-model routing (#1354)
 
-> **Status: v1.** The *mechanism* (`eval-golden.mjs`) is design-invariant and runs
+> **Status: v1.** The *mechanism* (`src/scripts/eval-golden.mjs`) is design-invariant and runs
 > today. Reference labels are now frozen (10 synthetic cases — see **Labeling
 > methodology** below); the gate threshold and per-model cost remain tunable
 > constants, and wiring into CI is still deferred (see **Open design questions**).
@@ -49,7 +49,7 @@ evals/
   golden/      labeled cases — one JSON per case (synthetic JDs, no user data)
   fixtures/    recorded candidate outputs for $0 deterministic replay in CI
   README.md    this file
-eval-golden.mjs  the harness (root level, sibling to openai-eval.mjs)
+src/scripts/eval-golden.mjs  the harness (root level, sibling to src/scripts/openai-eval.mjs)
 ```
 
 ### Golden case format (`evals/golden/*.json`)
@@ -81,7 +81,7 @@ phantom subdirectory.
 
 ```bash
 npm run eval:golden -- --replay --model cheap-stub   # offline, deterministic, $0
-npm run eval:golden -- --live   --model gpt-4o-mini  # real call via openai-eval.mjs (needs key + cv.md)
+npm run eval:golden -- --live   --model gpt-4o-mini  # real call via src/scripts/openai-eval.mjs (needs key + cv.md)
 ```
 
 Replay is the CI-friendly path: no API keys, no `cv.md`, fully deterministic.
@@ -102,9 +102,9 @@ Still tunable (named constants, safe defaults today):
 
 | Question | Where it lives | v1 default |
 |----------|----------------|------------|
-| `SCORE` agreement: tolerance band width | `SCORE_TOLERANCE` in `eval-golden.mjs` | ±0.5 (band, per distance-to-reference) |
-| CI gate threshold for archetype agreement | `MIN_ARCHETYPE_AGREEMENT` in `eval-golden.mjs` | 0.8 |
-| Per-model $/run rates | `COST_PER_RUN_USD` in `eval-golden.mjs` | empty — needs real provider rates |
+| `SCORE` agreement: tolerance band width | `SCORE_TOLERANCE` in `src/scripts/eval-golden.mjs` | ±0.5 (band, per distance-to-reference) |
+| CI gate threshold for archetype agreement | `MIN_ARCHETYPE_AGREEMENT` in `src/scripts/eval-golden.mjs` | 0.8 |
+| Per-model $/run rates | `COST_PER_RUN_USD` in `src/scripts/eval-golden.mjs` | empty — needs real provider rates |
 
 Wiring this into the required CI job (`.github/workflows/test.yml`) is intentionally
 deferred until the gate threshold is confirmed, so a default value can't make `main`
