@@ -6,6 +6,9 @@
   "engines": {
     "node": ">=18"
   },
+  "bin": {
+    "career-ops": "bin/career-ops"
+  },
   "scripts": {
     "doctor": "node doctor.mjs",
     "or": "node openrouter-runner.mjs",

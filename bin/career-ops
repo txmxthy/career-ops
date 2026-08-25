@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+// The `career-ops` entry point. Deliberately nothing but a dynamic import:
+// this file sits outside `src/` and so has no `"type": "module"` over it, and
+// an extensionless entry point is read as CommonJS on the Node 18 floor this
+// package supports. `import()` is the one form both module systems accept.
+import('../src/cli.js')
+  .then(({ run }) => run(process.argv.slice(2)))
+  .then((code) => { process.exitCode = code; })
+  .catch((err) => {
+    // A facade that cannot load has not run any check — code 3, not 1.
+    process.stderr.write(`could not verify: career-ops failed to start — ${err?.message || err}\n`);
+    process.exitCode = 3;
+  });

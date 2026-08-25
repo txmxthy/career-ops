@@ -201,6 +201,7 @@ const SYSTEM_PATHS = [
   'prepare-application.mjs',
   'application-artifacts.mjs',
   'batch-evaluate-gemini.mjs',
+  'bin/',
   'providers/',
   'seeds/',
   'src/',
